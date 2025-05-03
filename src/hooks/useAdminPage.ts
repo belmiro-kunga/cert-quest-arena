@@ -1,17 +1,26 @@
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 export interface AdminPageState {
   activeTab: string;
   selectedStudent: string | null;
-  selectedAchievement: string | null;
+  selectedExam: string | null;
+  selectedCoupon: string | null;
 }
 
-export const useAdminPage = () => {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>('overview');
+export interface AdminPageActions {
+  handleTabChange: (value: string) => void;
+  handleStudentSelect: (studentId: string) => void;
+  handleExamSelect: (examId: string) => void;
+  handleExamDelete: (examId: string) => void;
+  handleCouponSelect: (couponId: string) => void;
+  handleCouponDelete: (couponId: string) => void;
+}
+
+export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActions } => {
+  const [activeTab, setActiveTab] = useState('overview');
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [selectedAchievement, setSelectedAchievement] = useState<string | null>(null);
+  const [selectedExam, setSelectedExam] = useState<string | null>(null);
+  const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -21,44 +30,38 @@ export const useAdminPage = () => {
     setSelectedStudent(studentId);
   };
 
-  const handleAchievementSelect = (achievementId: string) => {
-    setSelectedAchievement(achievementId);
+  const handleExamSelect = (examId: string) => {
+    setSelectedExam(examId);
   };
 
-  const handleCreateAchievement = () => {
-    toast({
-      title: "Conquista criada",
-      description: "Nova conquista foi criada com sucesso!"
-    });
+  const handleCouponSelect = (couponId: string) => {
+    setSelectedCoupon(couponId);
   };
 
-  const handleUpdateAchievement = () => {
-    toast({
-      title: "Conquista atualizada",
-      description: "A conquista foi atualizada com sucesso!"
-    });
+  const handleExamDelete = (examId: string) => {
+    // Implementar lógica de exclusão
+    console.log('Deletando simulado:', examId);
   };
 
-  const handleDeleteAchievement = () => {
-    toast({
-      title: "Conquista removida",
-      description: "A conquista foi removida com sucesso!"
-    });
+  const handleCouponDelete = (couponId: string) => {
+    // Implementar lógica de exclusão
+    console.log('Deletando cupom:', couponId);
   };
 
   return {
     state: {
       activeTab,
       selectedStudent,
-      selectedAchievement
+      selectedExam,
+      selectedCoupon
     },
     actions: {
       handleTabChange,
       handleStudentSelect,
-      handleAchievementSelect,
-      handleCreateAchievement,
-      handleUpdateAchievement,
-      handleDeleteAchievement
+      handleExamSelect,
+      handleExamDelete,
+      handleCouponSelect,
+      handleCouponDelete
     }
   };
 };

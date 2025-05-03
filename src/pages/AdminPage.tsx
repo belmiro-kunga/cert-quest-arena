@@ -48,6 +48,8 @@ import { CompletionRate } from '@/components/achievements/CompletionRate';
 // Componentes Admin
 import { Overview } from '@/components/admin/Overview';
 import { Students } from '@/components/admin/Students';
+import { Exams } from '@/components/admin/Exams';
+import { Coupons } from '@/components/admin/Coupons';
 
 // Tipos
 interface Student {
@@ -75,55 +77,100 @@ const ACHIEVEMENT_TYPES = {
   STREAK: 'streak',
   MASTERY: 'mastery',
   SPECIAL: 'special'
-} as const;
+};
 
 const MOCK_DATA = {
   performance: [
     { name: 'Jan', aprovados: 65, total: 100 },
-    { name: 'Fev', aprovados: 72, total: 95 },
-    { name: 'Mar', aprovados: 85, total: 110 },
-    { name: 'Abr', aprovados: 90, total: 120 }
+    { name: 'Fev', aprovados: 59, total: 80 },
+    { name: 'Mar', aprovados: 80, total: 100 },
+    { name: 'Abr', aprovados: 81, total: 90 },
+    { name: 'Mai', aprovados: 56, total: 70 }
   ],
   achievements: [
-    { name: 'Certificações', value: 35 },
-    { name: 'Missões', value: 25 },
-    { name: 'Desafios', value: 20 },
-    { name: 'Especiais', value: 20 }
+    { name: 'AWS', value: 400 },
+    { name: 'Azure', value: 300 },
+    { name: 'GCP', value: 200 },
+    { name: 'DevOps', value: 100 }
   ],
   students: [
     {
       id: '1',
-      name: 'Ana Silva',
-      email: 'ana.silva@email.com',
+      name: 'João Silva',
+      email: 'joao@email.com',
       progress: 75,
       achievements: 12,
-      lastActive: '2025-05-02'
+      lastActive: '2025-05-03'
     },
     {
       id: '2',
-      name: 'João Santos',
-      email: 'joao.santos@email.com',
-      progress: 60,
-      achievements: 8,
-      lastActive: '2025-05-01'
+      name: 'Maria Santos',
+      email: 'maria@email.com',
+      progress: 90,
+      achievements: 15,
+      lastActive: '2025-05-03'
     }
   ],
-  recentAchievements: [
+  exams: [
     {
       id: '1',
-      title: 'AWS Cloud Practitioner',
-      description: 'Certificação inicial AWS conquistada',
-      type: ACHIEVEMENT_TYPES.CERTIFICATION,
-      xp: 1000,
-      icon: 'trophy'
+      title: 'AWS Cloud Practitioner - Simulado Completo',
+      description: 'Simulado completo com questões atualizadas para a certificação AWS Cloud Practitioner',
+      price: 29.90,
+      discountPrice: 19.90,
+      discountPercentage: 33,
+      discountEnds: '2025-05-10',
+      questionsCount: 65,
+      duration: 90,
+      difficulty: 'Médio',
+      purchases: 128,
+      rating: 4.8
     },
     {
       id: '2',
-      title: 'Streak 30 Dias',
-      description: '30 dias consecutivos de estudo',
-      type: ACHIEVEMENT_TYPES.STREAK,
-      xp: 500,
-      icon: 'star'
+      title: 'Azure Fundamentals AZ-900',
+      description: 'Prepare-se para o exame AZ-900 com questões práticas',
+      price: 34.90,
+      discountPrice: 24.90,
+      discountPercentage: 29,
+      discountEnds: '2025-05-15',
+      questionsCount: 75,
+      duration: 120,
+      difficulty: 'Fácil',
+      purchases: 95,
+      rating: 4.6
+    }
+  ],
+  coupons: [
+    {
+      id: '1',
+      code: 'WELCOME25',
+      description: 'Cupom de boas-vindas para novos usuários',
+      discountType: 'percentage',
+      discountValue: 25,
+      validFrom: '2025-05-01',
+      validUntil: '2025-06-01',
+      usageLimit: 100,
+      usageCount: 45,
+      minPurchaseAmount: 0,
+      maxDiscountAmount: 50,
+      applicableExams: ['all'],
+      active: true
+    },
+    {
+      id: '2',
+      code: 'AWS50OFF',
+      description: 'Desconto especial para simulados AWS',
+      discountType: 'percentage',
+      discountValue: 50,
+      validFrom: '2025-05-01',
+      validUntil: '2025-05-15',
+      usageLimit: 50,
+      usageCount: 12,
+      minPurchaseAmount: 29.90,
+      maxDiscountAmount: 100,
+      applicableExams: ['aws', 'aws-saa'],
+      active: true
     }
   ]
 };
@@ -133,7 +180,17 @@ const performanceData = MOCK_DATA.performance;
 const certificationsData = MOCK_DATA.achievements;
 
 const AdminPage: React.FC = () => {
-  const { state: { activeTab, selectedStudent, selectedAchievement }, actions: { handleTabChange, handleStudentSelect, handleAchievementSelect, handleCreateAchievement, handleUpdateAchievement, handleDeleteAchievement } } = useAdminPage();
+  const {
+    state: { activeTab },
+    actions: {
+      handleTabChange,
+      handleStudentSelect,
+      handleExamSelect,
+      handleExamDelete,
+      handleCouponSelect,
+      handleCouponDelete
+    }
+  } = useAdminPage();
 
   const handleSaveExam = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,63 +223,12 @@ const AdminPage: React.FC = () => {
         <div className="container mx-auto max-w-7xl">
           <h1 className="text-3xl font-bold mb-8">Painel de Administração</h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Cards de Estatísticas */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">2,850</div>
-                <p className="text-xs text-muted-foreground">
-                  +18% em relação ao mês anterior
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
-                <Trophy className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">78%</div>
-                <p className="text-xs text-muted-foreground">
-                  +5% em relação ao mês anterior
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Simulados Ativos</CardTitle>
-                <Book className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">124</div>
-                <p className="text-xs text-muted-foreground">
-                  12 adicionados este mês
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Certificações</CardTitle>
-                <Award className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">15</div>
-                <p className="text-xs text-muted-foreground">
-                  3 novas certificações
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
           <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="space-y-4">
             <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="students">Alunos</TabsTrigger>
               <TabsTrigger value="exams">Simulados</TabsTrigger>
+              <TabsTrigger value="coupons">Cupons</TabsTrigger>
               <TabsTrigger value="questions">Questões</TabsTrigger>
               <TabsTrigger value="study">Sistema de Estudos</TabsTrigger>
               <TabsTrigger value="gamification">Gamificação</TabsTrigger>
@@ -248,102 +254,19 @@ const AdminPage: React.FC = () => {
 
             {/* Aba de Simulados */}
             <TabsContent value="exams">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Gerenciar Simulados</h2>
-                <Button className="flex items-center gap-2">
-                  <Plus size={16} />
-                  Novo Simulado
-                </Button>
-              </div>
-              
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle>Criar/Editar Simulado</CardTitle>
-                  <CardDescription>
-                    Crie um novo simulado ou edite um existente
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSaveExam} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Nome do Simulado</label>
-                        <Input placeholder="Ex: AWS Cloud Practitioner" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Categoria</label>
-                        <Input placeholder="Ex: Cloud Computing" />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Descrição</label>
-                      <Textarea placeholder="Descrição do simulado" rows={3} />
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Preço (R$)</label>
-                        <Input type="number" placeholder="29.90" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Tempo (minutos)</label>
-                        <Input type="number" placeholder="60" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Nº de Questões</label>
-                        <Input type="number" placeholder="60" />
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 justify-end">
-                      <Button type="submit">Salvar Simulado</Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Simulados Disponíveis</CardTitle>
-                  <CardDescription>
-                    Lista de todos os simulados cadastrados no sistema
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Categoria</TableHead>
-                        <TableHead>Preço</TableHead>
-                        <TableHead>Questões</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>1</TableCell>
-                        <TableCell>AWS Cloud Practitioner</TableCell>
-                        <TableCell>Cloud Computing</TableCell>
-                        <TableCell>R$ 29,90</TableCell>
-                        <TableCell>60</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
-                              <Edit size={14} />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={handleDeleteExam}>
-                              <Trash size={14} />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <Exams
+                exams={MOCK_DATA.exams}
+                onSelect={handleExamSelect}
+                onDelete={handleExamDelete}
+              />
+            </TabsContent>
+
+            <TabsContent value="coupons">
+              <Coupons
+                coupons={MOCK_DATA.coupons}
+                onSelect={handleCouponSelect}
+                onDelete={handleCouponDelete}
+              />
             </TabsContent>
 
             {/* Nova aba de Sistema de Estudos */}
