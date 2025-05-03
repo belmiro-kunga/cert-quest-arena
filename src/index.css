@@ -1,39 +1,77 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Tema base - tons de azul profissional com cinzas neutros */
+    --background: 220 33% 98%; /* Fundo claro com tom azulado suave */
+    --foreground: 224 71% 4%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 71% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 224 71% 4%;
 
-    --primary: 221.2 83.2% 53.3%;
+    /* Azul confiável como cor primária */
+    --primary: 215 90% 30%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Azul mais suave para elementos secundários */
+    --secondary: 215 85% 45%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Cinza azulado para elementos sutis */
+    --muted: 215 16% 88%;
+    --muted-foreground: 215 25% 27%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Verde sucesso para elementos de destaque */
+    --accent: 142 76% 36%;
+    --accent-foreground: 355.7 100% 97%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* Vermelho para alertas e exclusões */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
+    /* Bordas e elementos de formulário */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 215 90% 30%;
 
     --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Tema escuro - mais suave nos olhos para estudo noturno */
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Azul mais vibrante no modo escuro */
+    --primary: 215 90% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 215 85% 65%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 16% 20%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 142 70% 45%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 16% 20%;
+    --input: 215 16% 20%;
+    --ring: 215 90% 50%;
   }
 }
 
@@ -43,18 +81,19 @@
   }
 
   body {
-    @apply bg-cert-gray text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
+/* Gradientes mais profissionais */
 .hero-gradient {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  background: linear-gradient(135deg, hsl(215, 90%, 30%) 0%, hsl(215, 85%, 45%) 100%);
 }
 
 .premium-badge {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 76%, 30%) 100%);
 }
 
 .freemium-badge {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, hsl(215, 85%, 45%) 0%, hsl(215, 85%, 35%) 100%);
 }

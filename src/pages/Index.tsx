@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -11,6 +10,14 @@ import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const navigate = useNavigate();
+  
+  // Redirecionar para o dashboard se estiver logado
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
   
   return (
     <div className="min-h-screen flex flex-col">
