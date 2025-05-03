@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { User, Settings } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -48,6 +49,15 @@ const Dashboard = () => {
               <span className="text-sm freemium-badge text-white px-3 py-1 rounded-full">
                 PLANO FREEMIUM
               </span>
+              <Button 
+                onClick={() => navigate('/profile')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <User size={16} />
+                Meu Perfil
+              </Button>
               <Button 
                 onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-cert-purple hover:bg-cert-purple/90"

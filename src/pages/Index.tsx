@@ -19,10 +19,17 @@ const Index = () => {
         <Hero />
         <div className="container mx-auto py-10 text-center">
           <Button 
-            className="bg-cert-blue hover:bg-cert-darkblue text-lg px-8 py-6"
+            className="bg-cert-blue hover:bg-cert-darkblue text-lg px-8 py-6 mr-4"
             onClick={() => navigate('/login')}
           >
             Comece Agora
+          </Button>
+          <Button 
+            variant="outline"
+            className="text-lg px-8 py-6"
+            onClick={() => navigate('/profile')}
+          >
+            Ver Perfil
           </Button>
         </div>
         <Features />
