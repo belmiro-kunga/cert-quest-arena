@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -22,7 +21,9 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex space-x-6">
           <a href="#" className="text-gray-600 hover:text-cert-blue font-medium">Home</a>
           <a href="#certifications" className="text-gray-600 hover:text-cert-blue font-medium">Certificações</a>
-          <a href="#pricing" className="text-gray-600 hover:text-cert-blue font-medium">Planos</a>
+          <a href="#features" className="text-gray-600 hover:text-cert-blue font-medium">Recursos</a>
+          <a href="#pricing" className="text-gray-600 hover:text-cert-blue font-medium">Preços</a>
+          <a href="#testimonials" className="text-gray-600 hover:text-cert-blue font-medium">Depoimentos</a>
           <a href="#about" className="text-gray-600 hover:text-cert-blue font-medium">Sobre</a>
         </nav>
         

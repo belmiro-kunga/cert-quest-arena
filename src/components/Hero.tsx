@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -26,11 +25,10 @@ const Hero: React.FC = () => {
             </Button>
             <Button 
               onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:bg-opacity-10"
+              className="bg-cert-orange hover:bg-cert-orange/90 text-white"
               size="lg"
             >
-              Ver planos
+              Ver preços
             </Button>
           </div>
         </div>

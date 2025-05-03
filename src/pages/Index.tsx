@@ -7,6 +7,7 @@ import Certifications from '@/components/Certifications';
 import PricingSection from '@/components/PricingSection';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import TestimonialsSection from '@/components/TestimonialsSection';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ const Index = () => {
         <Features />
         <Certifications />
         <PricingSection />
+        <TestimonialsSection />
       </main>
       <Footer />
     </div>
