@@ -26,10 +26,17 @@ const Index = () => {
           </Button>
           <Button 
             variant="outline"
-            className="text-lg px-8 py-6"
+            className="text-lg px-8 py-6 mr-4"
             onClick={() => navigate('/profile')}
           >
             Ver Perfil
+          </Button>
+          <Button 
+            variant="outline"
+            className="text-lg px-8 py-6"
+            onClick={() => navigate('/admin')}
+          >
+            Painel Admin
           </Button>
         </div>
         <Features />
