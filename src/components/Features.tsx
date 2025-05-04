@@ -37,24 +37,24 @@ const features = [
 
 const Features: React.FC = () => {
   return (
-    <section id="features" className="py-16 px-4">
+    <section id="features" className="py-10 md:py-16 px-4">
       <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3">Por que escolher nossa plataforma?</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2 md:mb-3">Por que escolher nossa plataforma?</h2>
+          <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
             Desenvolvida por especialistas em certificações para oferecer a melhor experiência de preparação.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {features.map((feature) => (
             <Card key={feature.id} className="border-none shadow-md hover:shadow-lg transition-shadow">
               <CardContent className="pt-6">
-                <div className="h-10 w-10 rounded-full bg-cert-blue/10 flex items-center justify-center mb-4">
-                  <span className="text-cert-blue font-bold">{feature.id}</span>
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-cert-blue/10 flex items-center justify-center mb-3 md:mb-4">
+                  <span className="text-cert-blue font-bold text-sm md:text-base">{feature.id}</span>
                 </div>
-                <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="font-bold text-base md:text-lg mb-2">{feature.title}</h3>
+                <p className="text-gray-600 text-sm md:text-base">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

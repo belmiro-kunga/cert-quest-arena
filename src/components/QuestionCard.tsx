@@ -18,18 +18,18 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 }) => {
   return (
     <Card className="shadow-md">
-      <CardContent className="pt-6">
-        <h2 className="text-lg font-medium mb-4">{question.text}</h2>
+      <CardContent className="pt-4 md:pt-6">
+        <h2 className="text-base md:text-lg font-medium mb-3 md:mb-4">{question.text}</h2>
         
         <RadioGroup 
           value={selectedOption || ""} 
           onValueChange={onOptionSelect}
-          className="space-y-3"
+          className="space-y-2 md:space-y-3"
         >
           {question.options.map(option => (
-            <div key={option.id} className="flex items-center space-x-2 border border-gray-200 rounded-md p-3 hover:bg-gray-50">
+            <div key={option.id} className="flex items-center space-x-2 border border-gray-200 rounded-md p-2 md:p-3 hover:bg-gray-50">
               <RadioGroupItem value={option.id} id={`option-${option.id}`} />
-              <Label className="flex-grow cursor-pointer" htmlFor={`option-${option.id}`}>
+              <Label className="flex-grow cursor-pointer text-sm md:text-base" htmlFor={`option-${option.id}`}>
                 <div className="flex">
                   <span className="font-medium mr-2">{option.id.toUpperCase()}.</span>
                   <span>{option.text}</span>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,30 +34,35 @@ const levelColors = {
 
 export const StudyMaterials: React.FC<StudyMaterialsProps> = ({ materials }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {materials.map((material) => {
         const Icon = typeIcons[material.type];
         
         return (
           <Card key={material.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5" />
-                  <CardTitle className="text-lg">{material.title}</CardTitle>
+            <CardHeader className="pb-2 pt-4 px-4 md:px-6">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <Icon className="h-4 w-4 md:h-5 md:w-5" />
+                  <CardTitle className="text-base md:text-lg">{material.title}</CardTitle>
                 </div>
-                <Badge className={levelColors[material.level]}>
+                <Badge className={`${levelColors[material.level]} text-xs`}>
                   {material.level.charAt(0).toUpperCase() + material.level.slice(1)}
                 </Badge>
               </div>
-              <CardDescription>{material.description}</CardDescription>
+              <CardDescription className="text-xs md:text-sm mt-1">{material.description}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex justify-between items-center">
+            <CardContent className="pt-0 px-4 md:px-6 pb-4">
+              <div className="flex justify-between items-center flex-wrap gap-2">
                 {material.duration && (
-                  <Badge variant="outline">Duração: {material.duration}</Badge>
+                  <Badge variant="outline" className="text-xs">Duração: {material.duration}</Badge>
                 )}
-                <Button variant="outline" onClick={() => window.open(material.url, '_blank')}>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="text-xs md:text-sm" 
+                  onClick={() => window.open(material.url, '_blank')}
+                >
                   Acessar Material
                 </Button>
               </div>

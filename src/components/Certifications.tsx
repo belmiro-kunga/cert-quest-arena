@@ -55,17 +55,17 @@ const certifications: Certification[] = [
 
 const Certifications: React.FC = () => {
   return (
-    <section id="certifications" className="py-16 px-4">
+    <section id="certifications" className="py-10 md:py-16 px-4">
       <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3">Certificações Disponíveis</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold mb-2 md:mb-3">Certificações Disponíveis</h2>
+          <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
             Escolha entre diversas certificações e prepare-se adequadamente para o exame real
             com nossos simulados personalizados.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {certifications.map((cert) => (
             <CertificationCard key={cert.id} certification={cert} />
           ))}
