@@ -13,10 +13,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em hsla(194, 60%, 36%, 0.8));
+  filter: drop-shadow(0 0 2em hsla(205, 70%, 40%, 0.8));
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em hsla(193, 100%, 40%, 0.8));
+  filter: drop-shadow(0 0 2em hsla(193, 90%, 45%, 0.8));
 }
 
 @keyframes logo-spin {
@@ -36,39 +36,39 @@
 
 .card {
   padding: 2em;
-  background-color: hsla(192, 100%, 15%, 0.7);
-  border: 1px solid hsla(194, 14%, 40%, 0.3);
+  background-color: hsla(192, 100%, 15%, 0.65);
+  border: 1px solid hsla(194, 14%, 40%, 0.25);
   border-radius: 0.5rem;
 }
 
 .read-the-docs {
-  color: hsl(180, 7%, 60%);
+  color: hsl(180, 7%, 70%);
 }
 
-/* Solarized Dark theme specific styles */
+/* Solarized Dark theme specific styles with softer shadows */
 .solarized-shadow {
-  box-shadow: 0 4px 6px -1px rgba(7, 54, 66, 0.2), 0 2px 4px -1px rgba(7, 54, 66, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(7, 54, 66, 0.15), 0 2px 4px -1px rgba(7, 54, 66, 0.08);
 }
 
 .solarized-gradient {
-  background: linear-gradient(135deg, hsl(205, 82%, 33%) 0%, hsl(175, 74%, 26%) 100%);
+  background: linear-gradient(135deg, hsla(205, 70%, 40%, 0.9) 0%, hsla(175, 65%, 30%, 0.9) 100%);
 }
 
-/* Custom scrollbar for Solarized Dark theme */
+/* Custom scrollbar with softer colors */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(193, 100%, 10%);
+  background: hsl(193, 100%, 13%);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(194, 14%, 40%);
+  background: hsl(194, 14%, 45%);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(196, 13%, 45%);
+  background: hsl(196, 13%, 50%);
 }

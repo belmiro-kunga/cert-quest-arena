@@ -5,93 +5,93 @@
 
 @layer base {
   :root {
-    /* Solarized Dark Theme */
-    --background: 193 100% 10%; /* base03 - darkest background */
-    --foreground: 44 87% 94%;  /* base3 - brightest content */
+    /* Solarized Dark Theme with softer contrast */
+    --background: 193 100% 12%; /* slightly lighter base03 for less eye strain */
+    --foreground: 46 42% 88%;  /* softer text color than brightest */
 
     --card: 192 100% 15%;
-    --card-foreground: 44 87% 94%;
+    --card-foreground: 46 42% 88%;
 
     --popover: 192 100% 15%;
-    --popover-foreground: 44 87% 94%;
+    --popover-foreground: 46 42% 88%;
 
-    /* Solarized Blue as primary color */
-    --primary: 205 82% 33%;
-    --primary-foreground: 44 87% 94%;
+    /* Softer blue as primary color */
+    --primary: 205 70% 40%;
+    --primary-foreground: 46 42% 88%;
 
-    /* Cyan as secondary color */
-    --secondary: 175 74% 26%;
-    --secondary-foreground: 44 87% 94%;
+    /* Softer cyan as secondary color */
+    --secondary: 175 65% 30%;
+    --secondary-foreground: 46 42% 88%;
 
     /* Slightly lighter background for muted elements */
-    --muted: 194 14% 25%;
-    --muted-foreground: 180 7% 70%;
+    --muted: 194 14% 30%;
+    --muted-foreground: 180 7% 75%;
 
-    /* Green as accent color */
-    --accent: 68 100% 30%;
-    --accent-foreground: 44 87% 94%;
+    /* Softer green as accent color */
+    --accent: 68 80% 35%;
+    --accent-foreground: 46 42% 88%;
 
-    /* Red for destructive actions */
-    --destructive: 1 71% 52%;
-    --destructive-foreground: 44 87% 94%;
+    /* Softer red for destructive actions */
+    --destructive: 1 65% 55%;
+    --destructive-foreground: 46 42% 88%;
 
     /* Border and input colors */
-    --border: 194 14% 30%;
-    --input: 194 14% 30%;
-    --ring: 205 82% 33%;
+    --border: 194 14% 35%;
+    --input: 194 14% 35%;
+    --ring: 205 70% 40%;
 
     /* Sidebar variables */
-    --sidebar-background: 193 100% 12%;  /* Slightly lighter than background */
-    --sidebar-foreground: 44 87% 94%;
-    --sidebar-primary: 205 82% 33%;
-    --sidebar-primary-foreground: 44 87% 94%;
-    --sidebar-accent: 175 74% 26%;
-    --sidebar-accent-foreground: 44 87% 94%;
-    --sidebar-border: 194 14% 25%;
-    --sidebar-ring: 205 82% 33%;
+    --sidebar-background: 193 100% 13%;  /* Slightly lighter than background */
+    --sidebar-foreground: 46 42% 88%;
+    --sidebar-primary: 205 70% 40%;
+    --sidebar-primary-foreground: 46 42% 88%;
+    --sidebar-accent: 175 65% 30%;
+    --sidebar-accent-foreground: 46 42% 88%;
+    --sidebar-border: 194 14% 30%;
+    --sidebar-ring: 205 70% 40%;
 
     --radius: 0.5rem;
   }
 
   .light {
     /* Solarized Light Theme - for future light mode */
-    --background: 44 87% 94%;  /* base3 - brightest background */
-    --foreground: 193 100% 10%; /* base03 - darkest content */
+    --background: 44 87% 96%;  /* Even lighter base3 background */
+    --foreground: 193 100% 12%; /* Softer dark content */
 
-    --card: 46 42% 88%;
-    --card-foreground: 193 100% 10%;
+    --card: 46 42% 92%;
+    --card-foreground: 193 100% 12%;
 
-    --popover: 46 42% 88%;
-    --popover-foreground: 193 100% 10%;
+    --popover: 46 42% 92%;
+    --popover-foreground: 193 100% 12%;
 
-    --primary: 205 82% 33%;
-    --primary-foreground: 44 87% 94%;
+    --primary: 205 70% 40%;
+    --primary-foreground: 44 87% 96%;
 
-    --secondary: 175 74% 26%;
-    --secondary-foreground: 44 87% 94%;
+    --secondary: 175 65% 30%;
+    --secondary-foreground: 44 87% 96%;
 
-    --muted: 46 42% 80%;
-    --muted-foreground: 194 14% 40%;
+    --muted: 46 42% 85%;
+    --muted-foreground: 194 14% 45%;
 
-    --accent: 68 100% 30%;
-    --accent-foreground: 44 87% 94%;
+    --accent: 68 80% 35%;
+    --accent-foreground: 44 87% 96%;
 
-    --destructive: 1 71% 52%;
-    --destructive-foreground: 44 87% 94%;
+    --destructive: 1 65% 55%;
+    --destructive-foreground: 44 87% 96%;
 
-    --border: 196 13% 80%;
-    --input: 196 13% 80%;
-    --ring: 205 82% 33%;
+    --border: 196 13% 85%;
+    --input: 196 13% 85%;
+    --ring: 205 70% 40%;
     
     /* Sidebar variables */
-    --sidebar-background: 46 42% 88%;
-    --sidebar-foreground: 193 100% 10%;
-    --sidebar-primary: 205 82% 33%;
-    --sidebar-primary-foreground: 44 87% 94%;
-    --sidebar-accent: 175 74% 26%;
-    --sidebar-accent-foreground: 44 87% 94%;
-    --sidebar-border: 196 13% 70%;
-    --sidebar-ring: 205 82% 33%;
+    --sidebar-background: 46 42% 92%;
+    --sidebar-foreground: 193 100% 12%;
+    --sidebar-primary: 205 70% 40%;
+    --sidebar-primary-foreground: 44 87% 96%;
+    --sidebar-accent: 175 65% 30%;
+    --sidebar-accent-foreground: 44 87% 96%;
+    --sidebar-border: 196 13% 75%;
+    --sidebar-ring: 205 70% 40%;
   }
 }
 
@@ -106,28 +106,28 @@
   }
 }
 
-/* Gradientes mais profissionais usando cores Solarized */
+/* Gradients with softer colors using Solarized */
 .hero-gradient {
-  background: linear-gradient(135deg, hsl(205, 82%, 33%) 0%, hsl(175, 74%, 26%) 100%);
+  background: linear-gradient(135deg, hsla(205, 70%, 40%, 0.9) 0%, hsla(175, 65%, 30%, 0.9) 100%);
 }
 
 .premium-badge {
-  background: linear-gradient(135deg, hsl(68, 100%, 30%) 0%, hsl(68, 100%, 22%) 100%);
+  background: linear-gradient(135deg, hsla(68, 80%, 35%, 0.9) 0%, hsla(68, 80%, 25%, 0.9) 100%);
 }
 
 .freemium-badge {
-  background: linear-gradient(135deg, hsl(205, 82%, 33%) 0%, hsl(205, 82%, 25%) 100%);
+  background: linear-gradient(135deg, hsla(205, 70%, 40%, 0.9) 0%, hsla(205, 70%, 30%, 0.9) 100%);
 }
 
-/* Glass effect for cards and pop-ups */
+/* Glass effect with softer transparency for cards and pop-ups */
 .glass-effect {
-  background: hsla(192, 100%, 15%, 0.7);
+  background: hsla(192, 100%, 15%, 0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid hsla(194, 14%, 40%, 0.3);
+  border: 1px solid hsla(194, 14%, 40%, 0.2);
 }
 
-/* Estilos para os flashcards */
+/* Styles for flashcards */
 .perspective-1000 {
   perspective: 1000px;
 }
