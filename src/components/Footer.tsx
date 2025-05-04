@@ -3,13 +3,13 @@ import React from 'react';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-cert-darkblue text-white">
+    <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                <span className="text-cert-darkblue font-bold">CQ</span>
+                <span className="text-gray-900 font-bold">CQ</span>
               </div>
               <span className="text-xl font-bold">CertQuest</span>
             </div>
