@@ -1,77 +1,97 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Tema base - tons de azul profissional com cinzas neutros */
-    --background: 220 33% 98%; /* Fundo claro com tom azulado suave */
-    --foreground: 224 71% 4%;
+    /* Solarized Dark Theme */
+    --background: 193 100% 10%; /* base03 - darkest background */
+    --foreground: 44 87% 94%;  /* base3 - brightest content */
 
-    --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card: 192 100% 15%;
+    --card-foreground: 44 87% 94%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover: 192 100% 15%;
+    --popover-foreground: 44 87% 94%;
 
-    /* Azul confiável como cor primária */
-    --primary: 215 90% 30%;
-    --primary-foreground: 210 40% 98%;
+    /* Solarized Blue as primary color */
+    --primary: 205 82% 33%;
+    --primary-foreground: 44 87% 94%;
 
-    /* Azul mais suave para elementos secundários */
-    --secondary: 215 85% 45%;
-    --secondary-foreground: 210 40% 98%;
+    /* Cyan as secondary color */
+    --secondary: 175 74% 26%;
+    --secondary-foreground: 44 87% 94%;
 
-    /* Cinza azulado para elementos sutis */
-    --muted: 215 16% 88%;
-    --muted-foreground: 215 25% 27%;
+    /* Slightly lighter background for muted elements */
+    --muted: 194 14% 25%;
+    --muted-foreground: 180 7% 70%;
 
-    /* Verde sucesso para elementos de destaque */
-    --accent: 142 76% 36%;
-    --accent-foreground: 355.7 100% 97%;
+    /* Green as accent color */
+    --accent: 68 100% 30%;
+    --accent-foreground: 44 87% 94%;
 
-    /* Vermelho para alertas e exclusões */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    /* Red for destructive actions */
+    --destructive: 1 71% 52%;
+    --destructive-foreground: 44 87% 94%;
 
-    /* Bordas e elementos de formulário */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 215 90% 30%;
+    /* Border and input colors */
+    --border: 194 14% 30%;
+    --input: 194 14% 30%;
+    --ring: 205 82% 33%;
+
+    /* Sidebar variables */
+    --sidebar-background: 193 100% 12%;  /* Slightly lighter than background */
+    --sidebar-foreground: 44 87% 94%;
+    --sidebar-primary: 205 82% 33%;
+    --sidebar-primary-foreground: 44 87% 94%;
+    --sidebar-accent: 175 74% 26%;
+    --sidebar-accent-foreground: 44 87% 94%;
+    --sidebar-border: 194 14% 25%;
+    --sidebar-ring: 205 82% 33%;
 
     --radius: 0.5rem;
   }
 
-  .dark {
-    /* Tema escuro - mais suave nos olhos para estudo noturno */
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
+  .light {
+    /* Solarized Light Theme - for future light mode */
+    --background: 44 87% 94%;  /* base3 - brightest background */
+    --foreground: 193 100% 10%; /* base03 - darkest content */
 
-    --card: 224 71% 4%;
-    --card-foreground: 210 40% 98%;
+    --card: 46 42% 88%;
+    --card-foreground: 193 100% 10%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 46 42% 88%;
+    --popover-foreground: 193 100% 10%;
 
-    /* Azul mais vibrante no modo escuro */
-    --primary: 215 90% 50%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 205 82% 33%;
+    --primary-foreground: 44 87% 94%;
 
-    --secondary: 215 85% 65%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 175 74% 26%;
+    --secondary-foreground: 44 87% 94%;
 
-    --muted: 215 16% 20%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 46 42% 80%;
+    --muted-foreground: 194 14% 40%;
 
-    --accent: 142 70% 45%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 68 100% 30%;
+    --accent-foreground: 44 87% 94%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 1 71% 52%;
+    --destructive-foreground: 44 87% 94%;
 
-    --border: 215 16% 20%;
-    --input: 215 16% 20%;
-    --ring: 215 90% 50%;
+    --border: 196 13% 80%;
+    --input: 196 13% 80%;
+    --ring: 205 82% 33%;
+    
+    /* Sidebar variables */
+    --sidebar-background: 46 42% 88%;
+    --sidebar-foreground: 193 100% 10%;
+    --sidebar-primary: 205 82% 33%;
+    --sidebar-primary-foreground: 44 87% 94%;
+    --sidebar-accent: 175 74% 26%;
+    --sidebar-accent-foreground: 44 87% 94%;
+    --sidebar-border: 196 13% 70%;
+    --sidebar-ring: 205 82% 33%;
   }
 }
 
@@ -82,20 +102,29 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 }
 
-/* Gradientes mais profissionais */
+/* Gradientes mais profissionais usando cores Solarized */
 .hero-gradient {
-  background: linear-gradient(135deg, hsl(215, 90%, 30%) 0%, hsl(215, 85%, 45%) 100%);
+  background: linear-gradient(135deg, hsl(205, 82%, 33%) 0%, hsl(175, 74%, 26%) 100%);
 }
 
 .premium-badge {
-  background: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 76%, 30%) 100%);
+  background: linear-gradient(135deg, hsl(68, 100%, 30%) 0%, hsl(68, 100%, 22%) 100%);
 }
 
 .freemium-badge {
-  background: linear-gradient(135deg, hsl(215, 85%, 45%) 0%, hsl(215, 85%, 35%) 100%);
+  background: linear-gradient(135deg, hsl(205, 82%, 33%) 0%, hsl(205, 82%, 25%) 100%);
+}
+
+/* Glass effect for cards and pop-ups */
+.glass-effect {
+  background: hsla(192, 100%, 15%, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid hsla(194, 14%, 40%, 0.3);
 }
 
 /* Estilos para os flashcards */

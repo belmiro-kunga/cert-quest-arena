@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -53,26 +54,44 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         cert: {
-          blue: "hsl(215, 90%, 50%)",      // Azul principal
-          darkblue: "hsl(215, 85%, 45%)",  // Azul escuro
-          gray: "hsl(215, 16%, 88%)",      // Cinza azulado
-          white: "hsl(0, 0%, 100%)",       // Branco
-          green: "hsl(142, 76%, 36%)",     // Verde sucesso
-          orange: "hsl(45, 93%, 47%)",     // Laranja alerta
-          purple: "hsl(265, 89%, 78%)",    // Roxo destaque
-          success: "hsl(142, 76%, 36%)",   // Verde para aprovação
-          warning: "hsl(45, 93%, 47%)",    // Amarelo para atenção
-          error: "hsl(0, 84%, 60%)",       // Vermelho para erro
-          info: "hsl(215, 90%, 50%)",      // Azul para informação
-          study: "hsl(215, 85%, 45%)",     // Azul para área de estudo
-          premium: "hsl(142, 76%, 36%)",   // Verde para conteúdo premium
-          basic: "hsl(215, 85%, 45%)",     // Azul para conteúdo básico
+          blue: "hsl(194, 60%, 36%)",      // Solarized Blue
+          darkblue: "hsl(194, 80%, 20%)",  // Darker Solarized Blue
+          gray: "hsl(46, 10%, 60%)",       // Solarized Gray
+          white: "hsl(44, 87%, 94%)",      // Solarized Off-White
+          green: "hsl(68, 100%, 30%)",     // Solarized Green
+          orange: "hsl(18, 80%, 44%)",     // Solarized Orange
+          purple: "hsl(256, 45%, 56%)",    // Harmonious Purple
+          success: "hsl(68, 100%, 30%)",   // Solarized Green for success
+          warning: "hsl(45, 100%, 50%)",   // Solarized Yellow for warnings
+          error: "hsl(1, 71%, 52%)",       // Solarized Red for errors
+          info: "hsl(194, 60%, 36%)",      // Solarized Blue for info
+          study: "hsl(175, 74%, 26%)",     // Solarized Cyan for study areas
+          premium: "hsl(68, 100%, 30%)",   // Solarized Green for premium
+          basic: "hsl(194, 60%, 36%)",     // Solarized Blue for basic
         },
         status: {
-          passed: "hsl(142, 76%, 36%)",
-          failed: "hsl(0, 84%, 60%)",
-          pending: "hsl(45, 93%, 47%)",
-          inProgress: "hsl(215, 90%, 50%)",
+          passed: "hsl(68, 100%, 30%)",     // Solarized Green
+          failed: "hsl(1, 71%, 52%)",       // Solarized Red
+          pending: "hsl(45, 100%, 50%)",    // Solarized Yellow
+          inProgress: "hsl(194, 60%, 36%)", // Solarized Blue
+        },
+        solarized: {
+          base03: "hsl(193, 100%, 10%)",    // Darkest background
+          base02: "hsl(192, 100%, 15%)",    // Dark background
+          base01: "hsl(194, 14%, 40%)",     // Content secondary
+          base00: "hsl(196, 13%, 45%)",     // Content tertiary
+          base0: "hsl(186, 13%, 55%)",      // Content primary
+          base1: "hsl(180, 7%, 60%)",       // Emphasized content
+          base2: "hsl(46, 42%, 88%)",       // Background secondary
+          base3: "hsl(44, 87%, 94%)",       // Background primary
+          yellow: "hsl(45, 100%, 50%)",     // Accent
+          orange: "hsl(18, 80%, 44%)",      // Accent
+          red: "hsl(1, 71%, 52%)",          // Accent
+          magenta: "hsl(331, 74%, 46%)",    // Accent
+          violet: "hsl(237, 45%, 50%)",     // Accent
+          blue: "hsl(205, 82%, 33%)",       // Accent
+          cyan: "hsl(175, 74%, 26%)",       // Accent
+          green: "hsl(68, 100%, 30%)",      // Accent
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -91,8 +110,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'cert': '0 4px 6px -1px rgba(33, 90, 198, 0.1), 0 2px 4px -1px rgba(33, 90, 198, 0.06)',
-        'cert-lg': '0 10px 15px -3px rgba(33, 90, 198, 0.1), 0 4px 6px -2px rgba(33, 90, 198, 0.05)',
+        'cert': '0 4px 6px -1px rgba(7, 54, 66, 0.2), 0 2px 4px -1px rgba(7, 54, 66, 0.1)',
+        'cert-lg': '0 10px 15px -3px rgba(7, 54, 66, 0.2), 0 4px 6px -2px rgba(7, 54, 66, 0.1)',
       },
       keyframes: {
         "accordion-down": {

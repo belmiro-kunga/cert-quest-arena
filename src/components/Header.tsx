@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -15,21 +16,21 @@ const Header = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-10">
+    <header className="bg-solarized-base03 shadow-cert sticky top-0 z-10">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-cert-blue">
+          <Link to="/" className="text-xl font-bold text-solarized-blue">
             CertQuest Arena
           </Link>
 
           <nav className="hidden md:flex items-center space-x-4">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">
+            <Link to="/" className="text-solarized-base0 hover:text-solarized-base3">
               Home
             </Link>
-            <Link to="/exams" className="text-gray-600 hover:text-gray-900">
+            <Link to="/exams" className="text-solarized-base0 hover:text-solarized-base3">
               Exams
             </Link>
-            <Link to="/about" className="text-gray-600 hover:text-gray-900">
+            <Link to="/about" className="text-solarized-base0 hover:text-solarized-base3">
               About
             </Link>
           </nav>
@@ -38,12 +39,12 @@ const Header = () => {
             <Button
               variant="outline"
               size="icon"
-              className="relative"
+              className="relative border-solarized-base01"
               onClick={() => navigate('/cart')}
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-5 w-5 text-solarized-base1" />
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-cert-blue text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-solarized-blue text-solarized-base3 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {itemCount}
                 </span>
               )}
@@ -51,12 +52,13 @@ const Header = () => {
 
             <Button
               variant="ghost"
+              className="text-solarized-base1 hover:text-solarized-base3 hover:bg-solarized-base02"
               onClick={() => setIsLoginOpen(true)}
             >
               Sign In
             </Button>
             <Button
-              className="bg-cert-blue hover:bg-cert-blue/90"
+              className="bg-solarized-blue hover:bg-solarized-blue/90 text-solarized-base3"
               onClick={() => setIsRegisterOpen(true)}
             >
               Sign Up
@@ -66,13 +68,13 @@ const Header = () => {
       </div>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-solarized-base03 border-solarized-base01">
           <LoginForm />
         </DialogContent>
       </Dialog>
 
       <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-solarized-base03 border-solarized-base01">
           <RegisterForm onSuccess={() => setIsRegisterOpen(false)} />
         </DialogContent>
       </Dialog>
