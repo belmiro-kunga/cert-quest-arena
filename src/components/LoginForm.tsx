@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,19 +12,36 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      setError('Preencha todos os campos.');
+      return;
+    }
+    
     setLoading(true);
-
-    // Simulação de login
-    setTimeout(() => {
+    setError('');
+    try {
+      const res = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email, 
+          senha: password // Alterado para 'senha' para corresponder ao backend
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao fazer login.');
+      localStorage.setItem('token', data.token);
+      if (onSuccess) onSuccess();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      // Executar callback de sucesso, se fornecido
-      if (onSuccess) {
-        onSuccess();
-      }
-    }, 1500);
+    }
   };
 
   return (
@@ -66,6 +82,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Entrando...' : 'Entrar'}
       </Button>
+      {error && <div className="text-red-500 text-center text-sm mt-2">{error}</div>}
     </form>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,9 +11,35 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
-  const handleRegister = (e: React.FormEvent) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSuccess();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch('http://localhost:3001/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar.');
+      setSuccess('Cadastro realizado com sucesso!');
+      setTimeout(() => {
+        onSuccess();
+      }, 1000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,6 +64,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
                   placeholder="Enter your full name"
                   className="pl-10"
                   required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
                 />
               </div>
             </div>
@@ -52,6 +80,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
                   placeholder="Enter your email"
                   className="pl-10"
                   required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -66,6 +96,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
                   placeholder="Create a password"
                   className="pl-10"
                   required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -85,10 +117,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-cert-blue hover:bg-cert-blue/90">
+          <Button type="submit" className="w-full bg-cert-blue hover:bg-cert-blue/90" disabled={loading}>
             <UserPlus className="mr-2 h-4 w-4" />
-            Create Account
+            {loading ? 'Cadastrando...' : 'Create Account'}
           </Button>
+
+          {error && <div className="text-red-500 text-center text-sm mt-2">{error}</div>}
+          {success && <div className="text-green-600 text-center text-sm mt-2">{success}</div>}
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">

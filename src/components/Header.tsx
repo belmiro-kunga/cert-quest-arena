@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { ShoppingCart, Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -17,6 +17,7 @@ const Header = () => {
   const itemCount = items.length;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user, logout } = useAuth();
 
   return (
     <header className="bg-white/95 shadow sticky top-0 z-10 backdrop-blur-sm">
@@ -56,19 +57,34 @@ const Header = () => {
 
             {/* Desktop Authentication Buttons */}
             <div className="hidden md:flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                onClick={() => setIsLoginOpen(true)}
-              >
-                Sign In
-              </Button>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => setIsRegisterOpen(true)}
-              >
-                Sign Up
-              </Button>
+              {user ? (
+                <>
+                  <span className="text-gray-700 font-medium">Olá, {user.name}</span>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={logout}
+                  >
+                    Sair
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    onClick={() => setIsLoginOpen(true)}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => setIsRegisterOpen(true)}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -114,25 +130,43 @@ const Header = () => {
               </Link>
             </nav>
             <div className="flex flex-col space-y-2 px-2">
-              <Button
-                variant="ghost"
-                className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
-                onClick={() => {
-                  setIsLoginOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                Sign In
-              </Button>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-                onClick={() => {
-                  setIsRegisterOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                Sign Up
-              </Button>
+              {user ? (
+                <>
+                  <span className="text-gray-700 font-medium px-2">Olá, {user.name}</span>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Sair
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
+                    onClick={() => {
+                      setIsLoginOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                    onClick={() => {
+                      setIsRegisterOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -140,12 +174,18 @@ const Header = () => {
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md bg-white border-gray-200 backdrop-blur-md">
+          <DialogHeader>
+            <DialogTitle>Login</DialogTitle>
+          </DialogHeader>
           <LoginForm onSuccess={() => setIsLoginOpen(false)} />
         </DialogContent>
       </Dialog>
 
       <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
         <DialogContent className="sm:max-w-md bg-white border-gray-200 backdrop-blur-md">
+          <DialogHeader>
+            <DialogTitle>Criar Conta</DialogTitle>
+          </DialogHeader>
           <RegisterForm onSuccess={() => setIsRegisterOpen(false)} />
         </DialogContent>
       </Dialog>

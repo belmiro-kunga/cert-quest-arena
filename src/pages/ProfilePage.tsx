@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
@@ -119,6 +119,31 @@ const ProfilePage = () => {
     });
   };
 
+  // Buscar dados reais do usuário autenticado
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await fetch('http://localhost:3001/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.user) {
+          setUser((prev) => ({
+            ...prev,
+            name: data.user.name,
+            email: data.user.email
+          }));
+        }
+      } catch (err) {
+        // erro ao buscar usuário
+      }
+    };
+    fetchUser();
+    // eslint-disable-next-line
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -131,10 +156,12 @@ const ProfilePage = () => {
                 <CardHeader className="text-center">
                   <Avatar className="w-24 h-24 mx-auto">
                     <AvatarImage src={user.photo} />
-                    <AvatarFallback className="text-2xl bg-cert-blue text-white">{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="text-2xl bg-cert-blue text-white">
+                      {user.name ? user.name.charAt(0) : '?'}
+                    </AvatarFallback>
                   </Avatar>
-                  <CardTitle className="mt-4">{user.name}</CardTitle>
-                  <CardDescription>{user.email}</CardDescription>
+                  <CardTitle className="mt-4">{user.name || 'Carregando...'}</CardTitle>
+                  <CardDescription>{user.email || 'Carregando...'}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
