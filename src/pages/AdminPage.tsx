@@ -114,63 +114,74 @@ const MOCK_DATA = {
   exams: [
     {
       id: '1',
-      title: 'AWS Cloud Practitioner - Simulado Completo',
-      description: 'Simulado completo com questões atualizadas para a certificação AWS Cloud Practitioner',
-      price: 29.90,
-      discountPrice: 19.90,
+      title: 'AWS Solutions Architect Associate',
+      description: 'Complete practice exam with detailed explanations',
+      price: 29.99,
+      discountPrice: 19.99,
       discountPercentage: 33,
-      discountEnds: '2025-05-10',
-      questionsCount: 65,
-      duration: 90,
-      difficulty: 'Médio',
-      purchases: 128,
-      rating: 4.8
+      discountExpiresAt: new Date('2025-06-01')
     },
     {
       id: '2',
-      title: 'Azure Fundamentals AZ-900',
-      description: 'Prepare-se para o exame AZ-900 com questões práticas',
-      price: 34.90,
-      discountPrice: 24.90,
-      discountPercentage: 29,
-      discountEnds: '2025-05-15',
-      questionsCount: 75,
-      duration: 120,
-      difficulty: 'Fácil',
-      purchases: 95,
-      rating: 4.6
+      title: 'Azure Administrator AZ-104',
+      description: 'Full practice exam with performance analytics',
+      price: 24.99,
+      discountPrice: 19.99,
+      discountPercentage: 20,
+      discountExpiresAt: new Date('2025-05-15')
+    },
+    {
+      id: '3',
+      title: 'Google Cloud Associate Engineer',
+      description: 'Practice exam with domain-based scoring',
+      price: 24.99,
+      discountPrice: null,
+      discountPercentage: null,
+      discountExpiresAt: null
     }
   ],
   coupons: [
     {
       id: '1',
       code: 'WELCOME25',
-      description: 'Cupom de boas-vindas para novos usuários',
-      discountType: 'percentage',
-      discountValue: 25,
-      validFrom: '2025-05-01',
-      validUntil: '2025-06-01',
-      usageLimit: 100,
-      usageCount: 45,
-      minPurchaseAmount: 0,
-      maxDiscountAmount: 50,
-      applicableExams: ['all'],
-      active: true
+      description: '25% off for new users',
+      type: 'percentage',
+      value: 25,
+      maxDiscount: 20,
+      minPurchase: 19.99,
+      validFrom: new Date('2025-05-01'),
+      validUntil: new Date('2025-06-01'),
+      maxUses: 1000,
+      currentUses: 450,
+      isActive: true
     },
     {
       id: '2',
       code: 'AWS50OFF',
-      description: 'Desconto especial para simulados AWS',
-      discountType: 'percentage',
-      discountValue: 50,
-      validFrom: '2025-05-01',
-      validUntil: '2025-05-15',
-      usageLimit: 50,
-      usageCount: 12,
-      minPurchaseAmount: 29.90,
-      maxDiscountAmount: 100,
-      applicableExams: ['aws', 'aws-saa'],
-      active: true
+      description: '50% off AWS exams',
+      type: 'percentage',
+      value: 50,
+      maxDiscount: 30,
+      minPurchase: 24.99,
+      validFrom: new Date('2025-05-01'),
+      validUntil: new Date('2025-05-15'),
+      maxUses: 500,
+      currentUses: 320,
+      isActive: true
+    },
+    {
+      id: '3',
+      code: 'FIXED10',
+      description: '$10 off any exam',
+      type: 'fixed',
+      value: 10,
+      maxDiscount: null,
+      minPurchase: 19.99,
+      validFrom: new Date('2025-05-01'),
+      validUntil: new Date('2025-12-31'),
+      maxUses: 2000,
+      currentUses: 845,
+      isActive: true
     }
   ]
 };

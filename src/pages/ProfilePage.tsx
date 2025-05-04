@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -34,26 +33,26 @@ const ProfilePage = () => {
       expiry: '04/25'
     },
     invoices: [
-      { id: 'INV-001', date: '01/04/2025', amount: 'R$39,90', status: 'Pago' },
-      { id: 'INV-002', date: '01/03/2025', amount: 'R$39,90', status: 'Pago' }
+      { id: 'INV-001', date: '04/01/2025', amount: '$29.99', status: 'Paid' },
+      { id: 'INV-002', date: '04/03/2025', amount: '$29.99', status: 'Paid' }
     ],
     examHistory: [
-      { id: 1, cert: 'AWS Cloud Practitioner', date: '25/04/2025', score: 70, result: 'Aprovado' },
-      { id: 2, cert: 'CompTIA A+', date: '20/04/2025', score: 65, result: 'Reprovado' },
-      { id: 3, cert: 'AWS Cloud Practitioner', date: '18/04/2025', score: 60, result: 'Reprovado' }
+      { id: 1, cert: 'AWS Cloud Practitioner', date: '04/25/2025', score: 70, result: 'Passed' },
+      { id: 2, cert: 'CompTIA A+', date: '04/20/2025', score: 65, result: 'Failed' },
+      { id: 3, cert: 'AWS Cloud Practitioner', date: '04/18/2025', score: 60, result: 'Failed' }
     ],
     certificates: [
-      { id: 'aws-cloud-practitioner', name: 'AWS Cloud Practitioner', acquired: '25/04/2025' }
+      { id: 'aws-cloud-practitioner', name: 'AWS Cloud Practitioner', acquired: '04/25/2025' }
     ]
   });
   
   // Schema para validação do formulário de perfil
   const profileFormSchema = z.object({
     name: z.string().min(2, {
-      message: "Nome deve ter pelo menos 2 caracteres.",
+      message: "Name must have at least 2 characters.",
     }),
     email: z.string().email({
-      message: "Email inválido.",
+      message: "Invalid email.",
     }),
     phone: z.string().optional()
   });
@@ -61,16 +60,16 @@ const ProfilePage = () => {
   // Schema para validação do formulário de senha
   const passwordFormSchema = z.object({
     currentPassword: z.string().min(6, {
-      message: "Senha atual deve ter pelo menos 6 caracteres.",
+      message: "Current password must have at least 6 characters.",
     }),
     newPassword: z.string().min(6, {
-      message: "Nova senha deve ter pelo menos 6 caracteres.",
+      message: "New password must have at least 6 characters.",
     }),
     confirmPassword: z.string().min(6, {
-      message: "Confirmação de senha deve ter pelo menos 6 caracteres.",
+      message: "Confirm password must have at least 6 characters.",
     }),
   }).refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Senhas não conferem",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
   
@@ -104,8 +103,8 @@ const ProfilePage = () => {
     });
     
     toast({
-      title: "Perfil atualizado",
-      description: "Suas informações foram atualizadas com sucesso.",
+      title: "Profile updated",
+      description: "Your information has been updated successfully.",
     });
   };
   
@@ -115,8 +114,8 @@ const ProfilePage = () => {
     passwordForm.reset();
     
     toast({
-      title: "Senha atualizada",
-      description: "Sua senha foi alterada com sucesso.",
+      title: "Password updated",
+      description: "Your password has been changed successfully.",
     });
   };
 
@@ -140,13 +139,13 @@ const ProfilePage = () => {
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Plano</span>
+                      <span className="text-sm font-medium">Plan</span>
                       <span className={`text-sm font-semibold ${user.planType === 'Premium' ? 'text-cert-purple' : 'text-gray-500'}`}>
                         {user.planType}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Tentativas restantes</span>
+                      <span className="text-sm font-medium">Attempts left</span>
                       <span className="text-sm font-semibold">{user.attemptsLeft}/3</span>
                     </div>
                   </div>
@@ -157,7 +156,7 @@ const ProfilePage = () => {
                       className="w-full bg-cert-purple hover:bg-cert-purple/90"
                       onClick={() => navigate('/#pricing')}
                     >
-                      Upgrade para Premium
+                      Upgrade to Premium
                     </Button>
                   ) : (
                     <Button 
@@ -165,7 +164,7 @@ const ProfilePage = () => {
                       className="w-full"
                       onClick={() => navigate('/dashboard')}
                     >
-                      Acessar Dashboard
+                      Access Dashboard
                     </Button>
                   )}
                 </CardFooter>
@@ -178,19 +177,19 @@ const ProfilePage = () => {
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="profile" className="flex items-center gap-2">
                     <User size={16} />
-                    <span className="hidden sm:inline">Perfil</span>
+                    <span className="hidden sm:inline">Profile</span>
                   </TabsTrigger>
                   <TabsTrigger value="payment" className="flex items-center gap-2">
                     <CreditCard size={16} />
-                    <span className="hidden sm:inline">Pagamento</span>
+                    <span className="hidden sm:inline">Payment</span>
                   </TabsTrigger>
                   <TabsTrigger value="history" className="flex items-center gap-2">
                     <History size={16} />
-                    <span className="hidden sm:inline">Histórico</span>
+                    <span className="hidden sm:inline">History</span>
                   </TabsTrigger>
                   <TabsTrigger value="security" className="flex items-center gap-2">
                     <Lock size={16} />
-                    <span className="hidden sm:inline">Segurança</span>
+                    <span className="hidden sm:inline">Security</span>
                   </TabsTrigger>
                 </TabsList>
                 
@@ -198,9 +197,9 @@ const ProfilePage = () => {
                 <TabsContent value="profile">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Informações de Perfil</CardTitle>
+                      <CardTitle>Profile Information</CardTitle>
                       <CardDescription>
-                        Atualize suas informações pessoais aqui. Clique em salvar quando terminar.
+                        Update your personal information here. Click save when you're done.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -211,7 +210,7 @@ const ProfilePage = () => {
                             name="name"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Nome</FormLabel>
+                                <FormLabel>Name</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
                                 </FormControl>
@@ -239,7 +238,7 @@ const ProfilePage = () => {
                             name="phone"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Telefone (opcional)</FormLabel>
+                                <FormLabel>Phone (optional)</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
                                 </FormControl>
@@ -248,7 +247,7 @@ const ProfilePage = () => {
                             )}
                           />
                           
-                          <Button type="submit" className="w-full">Salvar Alterações</Button>
+                          <Button type="submit" className="w-full">Save Changes</Button>
                         </form>
                       </Form>
                     </CardContent>
@@ -259,37 +258,37 @@ const ProfilePage = () => {
                 <TabsContent value="payment">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Informações de Pagamento</CardTitle>
+                      <CardTitle>Payment Information</CardTitle>
                       <CardDescription>
-                        Gerencie seus métodos de pagamento e veja seu histórico de faturas.
+                        Manage your payment methods and view your billing history.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-medium mb-2">Método de Pagamento Atual</h3>
+                        <h3 className="text-lg font-medium mb-2">Current Payment Method</h3>
                         <div className="flex items-center space-x-4 p-4 border rounded-md">
                           <div className="bg-cert-blue text-white p-2 rounded">
                             <CreditCard />
                           </div>
                           <div>
                             <p className="font-medium">•••• •••• •••• {user.paymentMethod.lastFour}</p>
-                            <p className="text-sm text-gray-500">Válido até {user.paymentMethod.expiry}</p>
+                            <p className="text-sm text-gray-500">Valid until {user.paymentMethod.expiry}</p>
                           </div>
                         </div>
                         <div className="mt-3">
-                          <Button variant="outline" size="sm">Atualizar Cartão</Button>
+                          <Button variant="outline" size="sm">Update Card</Button>
                         </div>
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium mb-2">Histórico de Faturas</h3>
+                        <h3 className="text-lg font-medium mb-2">Billing History</h3>
                         <div className="border rounded-md overflow-hidden">
                           <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                               <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                               </tr>
                             </thead>
@@ -312,21 +311,21 @@ const ProfilePage = () => {
                       </div>
                       
                       <div className="bg-gray-50 p-4 rounded-md">
-                        <h3 className="text-lg font-medium mb-2">Plano Atual: {user.planType}</h3>
+                        <h3 className="text-lg font-medium mb-2">Current Plan: {user.planType}</h3>
                         {user.planType === 'Freemium' ? (
                           <div>
-                            <p className="text-sm text-gray-500 mb-3">Atualize para o plano Premium para acessar recursos adicionais.</p>
+                            <p className="text-sm text-gray-500 mb-3">Upgrade to Premium plan to access additional features.</p>
                             <Button 
                               className="w-full bg-cert-purple hover:bg-cert-purple/90"
                               onClick={() => navigate('/#pricing')}
                             >
-                              Upgrade para Premium
+                              Upgrade to Premium
                             </Button>
                           </div>
                         ) : (
                           <div>
-                            <p className="text-sm text-gray-500 mb-3">Você está atualmente no plano Premium.</p>
-                            <Button variant="outline" className="w-full">Cancelar Assinatura</Button>
+                            <p className="text-sm text-gray-500 mb-3">You are currently on the Premium plan.</p>
+                            <Button variant="outline" className="w-full">Cancel Subscription</Button>
                           </div>
                         )}
                       </div>
@@ -338,23 +337,23 @@ const ProfilePage = () => {
                 <TabsContent value="history">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Histórico de Simulados</CardTitle>
+                      <CardTitle>Exam History</CardTitle>
                       <CardDescription>
-                        Acompanhe seu progresso nos simulados realizados.
+                        Track your progress on practice exams.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-medium mb-2">Simulados Realizados</h3>
+                        <h3 className="text-lg font-medium mb-2">Completed Exams</h3>
                         <div className="border rounded-md overflow-hidden">
                           <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                               <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificação</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resultado</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certification</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -365,7 +364,7 @@ const ProfilePage = () => {
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.score}%</td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                      exam.result === 'Aprovado' 
+                                      exam.result === 'Passed' 
                                         ? 'bg-green-100 text-green-800' 
                                         : 'bg-red-100 text-red-800'
                                     }`}>
@@ -378,7 +377,7 @@ const ProfilePage = () => {
                                       size="sm"
                                       onClick={() => navigate(`/results/${exam.id}`)}
                                     >
-                                      Ver Detalhes
+                                      View Details
                                     </Button>
                                   </td>
                                 </tr>
@@ -389,21 +388,21 @@ const ProfilePage = () => {
                       </div>
                       
                       <div>
-                        <h3 className="text-lg font-medium mb-2">Certificados Adquiridos</h3>
+                        <h3 className="text-lg font-medium mb-2">Earned Certificates</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {user.certificates.length > 0 ? (
                             user.certificates.map((cert) => (
                               <div key={cert.id} className="border rounded-md p-4 flex justify-between items-center">
                                 <div>
                                   <h4 className="font-medium">{cert.name}</h4>
-                                  <p className="text-sm text-gray-500">Adquirido em {cert.acquired}</p>
+                                  <p className="text-sm text-gray-500">Acquired on {cert.acquired}</p>
                                 </div>
                                 <Button variant="outline" size="sm">Download</Button>
                               </div>
                             ))
                           ) : (
                             <div className="col-span-2 text-center py-10 bg-gray-50 rounded-md">
-                              <p className="text-gray-500">Você ainda não possui certificados.</p>
+                              <p className="text-gray-500">You don't have any certificates yet.</p>
                             </div>
                           )}
                         </div>
@@ -411,7 +410,7 @@ const ProfilePage = () => {
                       
                       <div className="text-center mt-4">
                         <Button onClick={() => navigate('/certifications')}>
-                          Ver Todas as Certificações
+                          View All Certifications
                         </Button>
                       </div>
                     </CardContent>
@@ -422,14 +421,14 @@ const ProfilePage = () => {
                 <TabsContent value="security">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Segurança da Conta</CardTitle>
+                      <CardTitle>Account Security</CardTitle>
                       <CardDescription>
-                        Gerencie sua senha e configurações de segurança.
+                        Manage your password and security settings.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-medium mb-2">Alteração de Senha</h3>
+                        <h3 className="text-lg font-medium mb-2">Change Password</h3>
                         <Form {...passwordForm}>
                           <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
                             <FormField
@@ -437,7 +436,7 @@ const ProfilePage = () => {
                               name="currentPassword"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Senha Atual</FormLabel>
+                                  <FormLabel>Current Password</FormLabel>
                                   <FormControl>
                                     <Input type="password" {...field} />
                                   </FormControl>
@@ -451,7 +450,7 @@ const ProfilePage = () => {
                               name="newPassword"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Nova Senha</FormLabel>
+                                  <FormLabel>New Password</FormLabel>
                                   <FormControl>
                                     <Input type="password" {...field} />
                                   </FormControl>
@@ -465,7 +464,7 @@ const ProfilePage = () => {
                               name="confirmPassword"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Confirmar Nova Senha</FormLabel>
+                                  <FormLabel>Confirm New Password</FormLabel>
                                   <FormControl>
                                     <Input type="password" {...field} />
                                   </FormControl>
@@ -474,16 +473,16 @@ const ProfilePage = () => {
                               )}
                             />
                             
-                            <Button type="submit" className="w-full">Alterar Senha</Button>
+                            <Button type="submit" className="w-full">Change Password</Button>
                           </form>
                         </Form>
                       </div>
                       
                       <div className="pt-4 border-t">
-                        <h3 className="text-lg font-medium mb-2">Preferências de Notificação</h3>
+                        <h3 className="text-lg font-medium mb-2">Notification Preferences</h3>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="email-updates">Atualizações por email</Label>
+                            <Label htmlFor="email-updates">Email updates</Label>
                             <input
                               id="email-updates"
                               type="checkbox"
@@ -493,7 +492,7 @@ const ProfilePage = () => {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="marketing">Ofertas e promoções</Label>
+                            <Label htmlFor="marketing">Marketing and promotions</Label>
                             <input
                               id="marketing"
                               type="checkbox"
@@ -503,7 +502,7 @@ const ProfilePage = () => {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="new-certs">Novas certificações disponíveis</Label>
+                            <Label htmlFor="new-certs">New certifications available</Label>
                             <input
                               id="new-certs"
                               type="checkbox"
@@ -515,16 +514,16 @@ const ProfilePage = () => {
                       </div>
                       
                       <div className="pt-4 border-t">
-                        <h3 className="text-lg font-medium text-red-600">Zona de Perigo</h3>
+                        <h3 className="text-lg font-medium text-red-600">Danger Zone</h3>
                         <p className="text-sm text-gray-500 mb-4">
-                          Estas ações não podem ser desfeitas. Por favor, tenha certeza antes de prosseguir.
+                          These actions cannot be undone. Please be sure before proceeding.
                         </p>
                         <div className="space-y-3">
                           <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">
-                            Apagar histórico de simulados
+                            Delete exam history
                           </Button>
                           <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">
-                            Excluir conta
+                            Delete account
                           </Button>
                         </div>
                       </div>
