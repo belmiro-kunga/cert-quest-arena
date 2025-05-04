@@ -3,10 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '@/contexts/CartContext';
+import { ShoppingCart } from 'lucide-react';
 
 const Header: React.FC = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const { items, toggleCart } = useCart();
+  const itemCount = items.length;
+  const navigate = useNavigate();
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-10">
@@ -51,6 +57,19 @@ const Header: React.FC = () => {
               <RegisterForm onSuccess={() => setIsRegisterOpen(false)} />
             </DialogContent>
           </Dialog>
+          <Button
+            variant="outline"
+            size="icon"
+            className="relative"
+            onClick={() => navigate('/cart')}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-cert-blue text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {itemCount}
+              </span>
+            )}
+          </Button>
         </div>
       </div>
     </header>
