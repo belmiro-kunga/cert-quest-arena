@@ -85,8 +85,25 @@ function auth(req, res, next) {
 }
 
 // Rota protegida: dados do usuário
-app.get('/me', auth, (req, res) => {
-  res.json({ user: req.user });
+app.get('/me', auth, async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT id, nome, email, photo FROM usuarios WHERE id = ?', [req.user.id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    const user = rows[0];
+    res.json({ 
+      user: {
+        id: user.id,
+        name: user.nome,
+        email: user.email,
+        photo: user.photo || null
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao buscar dados do usuário:', err);
+    res.status(500).json({ error: 'Erro ao buscar dados do usuário.' });
+  }
 });
 
 // --- Certificações ---

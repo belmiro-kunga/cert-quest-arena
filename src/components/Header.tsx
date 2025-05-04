@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -18,6 +27,72 @@ const Header = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const renderAuthButton = () => {
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user.photo} alt={user.name} />
+                <AvatarFallback className="bg-blue-600 text-white">
+                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user.name}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <User className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    return (
+      <>
+        <Button
+          variant="ghost"
+          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          onClick={() => setIsLoginOpen(true)}
+        >
+          Login
+        </Button>
+        <Button
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => setIsRegisterOpen(true)}
+        >
+          Cadastrar
+        </Button>
+      </>
+    );
+  };
 
   return (
     <header className="bg-white/95 shadow sticky top-0 z-10 backdrop-blur-sm">
@@ -57,34 +132,7 @@ const Header = () => {
 
             {/* Desktop Authentication Buttons */}
             <div className="hidden md:flex items-center space-x-2">
-              {user ? (
-                <>
-                  <span className="text-gray-700 font-medium">Olá, {user.name}</span>
-                  <Button
-                    variant="ghost"
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={logout}
-                  >
-                    Sair
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                    onClick={() => setIsLoginOpen(true)}
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => setIsRegisterOpen(true)}
-                  >
-                    Sign Up
-                  </Button>
-                </>
-              )}
+              {renderAuthButton()}
             </div>
 
             {/* Mobile Menu Button */}
@@ -132,15 +180,46 @@ const Header = () => {
             <div className="flex flex-col space-y-2 px-2">
               {user ? (
                 <>
-                  <span className="text-gray-700 font-medium px-2">Olá, {user.name}</span>
+                  <div className="flex items-center space-x-2 px-2 py-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.photo} alt={user.name} />
+                      <AvatarFallback className="bg-blue-600 text-white">
+                        {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-gray-700 font-medium">{user.name}</span>
+                  </div>
                   <Button
                     variant="ghost"
                     className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
                     onClick={() => {
-                      logout();
+                      navigate('/profile');
                       setIsMobileMenuOpen(false);
                     }}
                   >
+                    <User className="mr-2 h-4 w-4" />
+                    Perfil
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
+                    onClick={() => {
+                      navigate('/dashboard');
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
                     Sair
                   </Button>
                 </>
@@ -154,7 +233,7 @@ const Header = () => {
                       setIsMobileMenuOpen(false);
                     }}
                   >
-                    Sign In
+                    Login
                   </Button>
                   <Button
                     className="bg-blue-600 hover:bg-blue-700 text-white w-full"
@@ -163,7 +242,7 @@ const Header = () => {
                       setIsMobileMenuOpen(false);
                     }}
                   >
-                    Sign Up
+                    Cadastrar
                   </Button>
                 </>
               )}
@@ -175,7 +254,9 @@ const Header = () => {
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md bg-white border-gray-200 backdrop-blur-md">
           <DialogHeader>
-            <DialogTitle>Login</DialogTitle>
+            <DialogTitle className="text-2xl font-semibold leading-none tracking-tight">
+              Login
+            </DialogTitle>
           </DialogHeader>
           <LoginForm onSuccess={() => setIsLoginOpen(false)} />
         </DialogContent>

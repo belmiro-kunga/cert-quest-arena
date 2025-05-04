@@ -45,9 +45,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   return (
     <Card className="w-full">
       <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+        <CardTitle className="text-2xl font-bold">Criar Conta</CardTitle>
         <CardDescription>
-          Join our community of certification seekers
+          Junte-se à nossa comunidade de estudantes
         </CardDescription>
       </CardHeader>
 
@@ -119,7 +119,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
           <Button type="submit" className="w-full bg-cert-blue hover:bg-cert-blue/90" disabled={loading}>
             <UserPlus className="mr-2 h-4 w-4" />
-            {loading ? 'Cadastrando...' : 'Create Account'}
+            {loading ? 'Cadastrando...' : 'Cadastrar'}
           </Button>
 
           {error && <div className="text-red-500 text-center text-sm mt-2">{error}</div>}
@@ -130,7 +130,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">Or sign up with</span>
+              <span className="bg-white px-2 text-gray-500">Ou cadastre-se com</span>
             </div>
           </div>
 
@@ -151,7 +151,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         <div className="text-sm text-gray-600 w-full">
           Already have an account?{' '}
           <Button variant="link" className="text-cert-blue hover:text-cert-blue/90 p-0">
-            Sign in
+            Login
           </Button>
         </div>
       </CardFooter>

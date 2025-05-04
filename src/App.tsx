@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from '@/contexts/CartContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CertificationsPage from "./pages/CertificationsPage";
@@ -27,32 +28,34 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <CartProvider>
-        <PaymentProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/certifications" element={<CertificationsPage />} />
-              <Route path="/exams/:certificationId" element={<PrivateRoute><QuizPage /></PrivateRoute>} />
-              <Route path="/results/:certificationId" element={<ResultPage />} />
-              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-              <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/exams/:examId" element={<ExamPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/payment" element={<PaymentPage />} />
-              <Route path="/payment/success" element={<PaymentResultPage />} />
-              <Route path="/payment/failure" element={<PaymentResultPage />} />
-              <Route path="/payment/pending" element={<PaymentResultPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </PaymentProvider>
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <PaymentProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/certifications" element={<CertificationsPage />} />
+                <Route path="/exams/:certificationId" element={<PrivateRoute><QuizPage /></PrivateRoute>} />
+                <Route path="/results/:certificationId" element={<ResultPage />} />
+                <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/exams/:examId" element={<ExamPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/payment" element={<PaymentPage />} />
+                <Route path="/payment/success" element={<PaymentResultPage />} />
+                <Route path="/payment/failure" element={<PaymentResultPage />} />
+                <Route path="/payment/pending" element={<PaymentResultPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </PaymentProvider>
+        </CartProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

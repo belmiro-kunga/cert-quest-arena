@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -13,6 +15,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,13 +34,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email, 
-          senha: password // Alterado para 'senha' para corresponder ao backend
+          senha: password
         })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao fazer login.');
-      localStorage.setItem('token', data.token);
+      
+      // Salva o token e atualiza o estado do usuário
+      await login(data.token);
+      
       if (onSuccess) onSuccess();
+      navigate('/'); // Redireciona para a página inicial após o login
     } catch (err: any) {
       setError(err.message);
     } finally {

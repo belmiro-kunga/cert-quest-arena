@@ -110,7 +110,7 @@ export const Icons = {
             <circle cx="31" cy="24" r="14" fill="#FFA200" opacity=".8" />
         </svg>
     ),
-    skrill: CreditCardIcon,
+    skrill: CreditCard,
     mercadoPago: (props: any) => (
         <svg
             {...props}
