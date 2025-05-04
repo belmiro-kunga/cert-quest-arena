@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trophy, Star, Target, Book, Clock, Award, TrendingUp, Lightning, Calendar } from 'lucide-react';
+import { Trophy, Star, Target, Book, Clock, Award, TrendingUp, Zap as Lightning, Calendar } from 'lucide-react';
 import {
   LineChart,
   Line,

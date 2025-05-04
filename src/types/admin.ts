@@ -1,3 +1,4 @@
+
 export interface Student {
   id: string;
   name: string;
@@ -23,6 +24,14 @@ export interface Exam {
   questions: Question[];
   duration: number;
   passingScore: number;
+  price?: number;
+  discountPrice?: number | null;
+  discountPercentage?: number | null;
+  discountExpiresAt?: Date | null;
+  questionsCount?: number;
+  difficulty?: 'Fácil' | 'Médio' | 'Difícil';
+  purchases?: number;
+  rating?: number;
 }
 
 export interface Question {
@@ -61,4 +70,20 @@ export interface AdminPageActions {
   handleCreateAchievement: () => void;
   handleUpdateAchievement: () => void;
   handleDeleteAchievement: () => void;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  validFrom: string;
+  validUntil: string;
+  usageLimit: number;
+  usageCount: number;
+  minPurchaseAmount?: number;
+  maxDiscountAmount?: number;
+  applicableExams?: string[];
+  active: boolean;
 }

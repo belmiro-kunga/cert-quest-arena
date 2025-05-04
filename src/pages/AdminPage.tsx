@@ -16,7 +16,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Separator } from "@/components/ui/separator";
 
 // Ícones
-import { Settings, Plus, Edit, Trash, Trophy, Book, Target, Users, TrendingUp, Award, Coins, Sword, Star, Calendar, Gift, GameController } from 'lucide-react';
+import { Settings, Plus, Edit, Trash, Trophy, Book, Target, Users, TrendingUp, Award, Coins, Sword, Star, Calendar, Gift, Gamepad } from 'lucide-react';
 
 // Componentes de Gráficos
 import {
@@ -52,27 +52,11 @@ import { Exams } from '@/components/admin/Exams';
 import { Coupons } from '@/components/admin/Coupons';
 
 // Tipos
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  progress: number;
-  achievements: number;
-  lastActive: string;
-}
-
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  xp: number;
-  icon: string;
-}
+import { Student, Exam, AchievementType, Coupon } from '@/types/admin';
 
 // Constantes
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-const ACHIEVEMENT_TYPES = {
+const ACHIEVEMENT_TYPES: Record<string, AchievementType> = {
   CERTIFICATION: 'certification',
   STREAK: 'streak',
   MASTERY: 'mastery',
@@ -190,6 +174,30 @@ const MOCK_DATA = {
 const performanceData = MOCK_DATA.performance;
 const certificationsData = MOCK_DATA.achievements;
 
+const mockExams: Exam[] = MOCK_DATA.exams.map(exam => ({
+  ...exam,
+  questions: [],
+  questionsCount: 65,
+  duration: 120,
+  difficulty: 'Médio' as 'Fácil' | 'Médio' | 'Difícil',
+  purchases: 250,
+  rating: 4.7,
+  passingScore: 70
+}));
+
+const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
+  ...coupon,
+  discountType: coupon.type as 'percentage' | 'fixed',
+  discountValue: coupon.value,
+  usageLimit: coupon.maxUses,
+  usageCount: coupon.currentUses,
+  validFrom: coupon.validFrom.toISOString(),
+  validUntil: coupon.validUntil.toISOString(),
+  minPurchaseAmount: coupon.minPurchase,
+  maxDiscountAmount: coupon.maxDiscount,
+  active: coupon.isActive
+}));
+
 const AdminPage: React.FC = () => {
   const {
     state: { activeTab },
@@ -266,7 +274,7 @@ const AdminPage: React.FC = () => {
             {/* Aba de Simulados */}
             <TabsContent value="exams">
               <Exams
-                exams={MOCK_DATA.exams}
+                exams={mockExams}
                 onSelect={handleExamSelect}
                 onDelete={handleExamDelete}
               />
@@ -274,7 +282,7 @@ const AdminPage: React.FC = () => {
 
             <TabsContent value="coupons">
               <Coupons
-                coupons={MOCK_DATA.coupons}
+                coupons={mockCoupons}
                 onSelect={handleCouponSelect}
                 onDelete={handleCouponDelete}
               />
@@ -801,7 +809,7 @@ const AdminPage: React.FC = () => {
                           <select className="w-full p-2 border rounded">
                             <option value="all">Todo o período</option>
                             <option value="30">Últimos 30 dias</option>
-                            <option value="90">Últimos 90 dias</option>
+                            <option value="90">��ltimos 90 dias</option>
                             <option value="365">Último ano</option>
                           </select>
                         </div>
@@ -981,22 +989,6 @@ const AdminPage: React.FC = () => {
                             level: "bronze",
                             type: ACHIEVEMENT_TYPES.SPECIAL,
                             earnedAt: new Date("2025-03-20")
-                          },
-                          {
-                            id: "5",
-                            title: "GCP Associate",
-                            description: "Certificação Google Cloud conquistada",
-                            level: "silver",
-                            type: ACHIEVEMENT_TYPES.CERTIFICATION,
-                            earnedAt: new Date("2025-03-01")
-                          },
-                          {
-                            id: "6",
-                            title: "Expert em Segurança",
-                            description: "Domínio em práticas de segurança",
-                            level: "platinum",
-                            type: ACHIEVEMENT_TYPES.MASTERY,
-                            earnedAt: new Date("2025-02-15")
                           }
                         ]}
                       />
