@@ -24,14 +24,14 @@ export interface Exam {
   questions: Question[];
   duration: number;
   passingScore: number;
-  price?: number;
+  price: number; // Changed from optional to required
   discountPrice?: number | null;
   discountPercentage?: number | null;
   discountExpiresAt?: Date | null;
-  questionsCount?: number;
-  difficulty?: 'Fácil' | 'Médio' | 'Difícil';
-  purchases?: number;
-  rating?: number;
+  questionsCount: number; // Changed from optional to required
+  difficulty: 'Fácil' | 'Médio' | 'Difícil'; // Changed from optional to required
+  purchases: number; // Changed from optional to required
+  rating: number; // Changed from optional to required
 }
 
 export interface Question {
@@ -84,6 +84,6 @@ export interface Coupon {
   usageCount: number;
   minPurchaseAmount?: number;
   maxDiscountAmount?: number;
-  applicableExams?: string[];
+  applicableExams: string[]; // Changed from optional to required
   active: boolean;
 }

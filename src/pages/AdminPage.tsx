@@ -174,6 +174,7 @@ const MOCK_DATA = {
 const performanceData = MOCK_DATA.performance;
 const certificationsData = MOCK_DATA.achievements;
 
+// Update the mock data to match the required fields in the Exam type
 const mockExams: Exam[] = MOCK_DATA.exams.map(exam => ({
   ...exam,
   questions: [],
@@ -182,9 +183,11 @@ const mockExams: Exam[] = MOCK_DATA.exams.map(exam => ({
   difficulty: 'Médio' as 'Fácil' | 'Médio' | 'Difícil',
   purchases: 250,
   rating: 4.7,
-  passingScore: 70
+  passingScore: 70,
+  price: exam.price || 0 // Ensure price is provided
 }));
 
+// Update the mock data to match the required fields in the Coupon type
 const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
   ...coupon,
   discountType: coupon.type as 'percentage' | 'fixed',
@@ -195,7 +198,8 @@ const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
   validUntil: coupon.validUntil.toISOString(),
   minPurchaseAmount: coupon.minPurchase,
   maxDiscountAmount: coupon.maxDiscount,
-  active: coupon.isActive
+  active: coupon.isActive,
+  applicableExams: [] // Add the required field
 }));
 
 const AdminPage: React.FC = () => {
