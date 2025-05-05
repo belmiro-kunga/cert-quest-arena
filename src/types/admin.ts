@@ -24,14 +24,14 @@ export interface Exam {
   questions: Question[];
   duration: number;
   passingScore: number;
-  price: number; // Changed from optional to required
+  price: number; 
   discountPrice?: number | null;
   discountPercentage?: number | null;
   discountExpiresAt?: Date | null;
-  questionsCount: number; // Changed from optional to required
-  difficulty: 'Fácil' | 'Médio' | 'Difícil'; // Changed from optional to required
-  purchases: number; // Changed from optional to required
-  rating: number; // Changed from optional to required
+  questionsCount: number; 
+  difficulty: 'Fácil' | 'Médio' | 'Difícil';
+  purchases: number; 
+  rating: number; 
 }
 
 export interface Question {
@@ -84,6 +84,39 @@ export interface Coupon {
   usageCount: number;
   minPurchaseAmount?: number;
   maxDiscountAmount?: number;
-  applicableExams: string[]; // Changed from optional to required
+  applicableExams: string[];
   active: boolean;
+}
+
+// Novos tipos para o gestor de conteúdo
+export interface ContentItem {
+  id: string;
+  title: string;
+  type: ContentType;
+  content: string;
+  status: 'published' | 'draft';
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  author: string;
+  tags: string[];
+  category: string;
+  featured: boolean;
+  image?: string;
+}
+
+export type ContentType = 'page' | 'post' | 'faq' | 'testimonial' | 'banner';
+
+export interface ContentCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  parentId?: string;
+}
+
+export interface ContentTag {
+  id: string;
+  name: string;
+  slug: string;
 }

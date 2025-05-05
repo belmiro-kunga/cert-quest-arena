@@ -1,3 +1,4 @@
+
 // React e Hooks
 import React from 'react';
 import { useAdminPage } from '@/hooks/useAdminPage';
@@ -50,6 +51,7 @@ import { Overview } from '@/components/admin/Overview';
 import { Students } from '@/components/admin/Students';
 import { Exams } from '@/components/admin/Exams';
 import { Coupons } from '@/components/admin/Coupons';
+import { ContentManager } from '@/components/admin/ContentManager';
 
 // Tipos
 import { Student, Exam, AchievementType, Coupon } from '@/types/admin';
@@ -226,12 +228,13 @@ const AdminPage: React.FC = () => {
           <h1 className="text-3xl font-bold mb-8">Painel de Administração</h1>
           
           <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-8">
+            <TabsList className="grid w-full grid-cols-11">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="students">Alunos</TabsTrigger>
               <TabsTrigger value="exams">Simulados</TabsTrigger>
-              <TabsTrigger value="coupons">Cupons</TabsTrigger>
               <TabsTrigger value="questions">Questões</TabsTrigger>
+              <TabsTrigger value="content">Conteúdo</TabsTrigger>
+              <TabsTrigger value="coupons">Cupons</TabsTrigger>
               <TabsTrigger value="study">Sistema de Estudos</TabsTrigger>
               <TabsTrigger value="gamification">Gamificação</TabsTrigger>
               <TabsTrigger value="achievements">Conquistas</TabsTrigger>
@@ -269,6 +272,11 @@ const AdminPage: React.FC = () => {
                   onExamUpdated={handleExamUpdated}
                 />
               )}
+            </TabsContent>
+
+            {/* Nova aba de Gerenciamento de Conteúdo */}
+            <TabsContent value="content">
+              <ContentManager />
             </TabsContent>
 
             <TabsContent value="coupons">

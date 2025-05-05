@@ -5,7 +5,8 @@ interface User {
   id: number;
   name: string;
   email: string;
-  photo?: string; // Added photo property as optional
+  photo?: string;
+  roles?: string[]; // Adicionado campo de papéis para controle de acesso
 }
 
 interface AuthContextType {
@@ -13,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string) => Promise<void>;
   logout: () => void;
+  isAdmin: () => boolean; // Função para verificar se o usuário é admin
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   logout: () => {},
+  isAdmin: () => false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -65,11 +68,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  // Verifica se o usuário tem permissão de administrador
+  const isAdmin = () => {
+    return user?.roles?.includes('admin') || false;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => useContext(AuthContext);
