@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { AuthError } from '@supabase/supabase-js';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -16,7 +17,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -24,38 +25,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     e.preventDefault();
     
     if (!email || !password) {
-      setError('Preencha todos os campos.');
+      setError('Por favor, preencha todos os campos.');
       return;
     }
     
     setLoading(true);
     setError('');
+
     try {
-      const res = await fetch('http://localhost:3001/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email, 
-          senha: password
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao fazer login.');
+      await signIn(email, password);
       
-      // Salva o token e atualiza o estado do usuário
-      await login(data.token);
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/profile');
+      }
+    } catch (err) {
+      const error = err as AuthError;
+      setError(error.message);
       
-      toast({
-        title: "Login bem-sucedido",
-        description: "Seus dados foram carregados no perfil.",
-      });
-      
-      if (onSuccess) onSuccess();
-      
-      // Redireciona para a página inicial após o login
-      navigate('/profile'); 
-    } catch (err: any) {
-      setError(err.message);
+      // Mensagens de erro mais amigáveis
+      if (error.message.includes('Invalid login credentials')) {
+        setError('Email ou senha incorretos.');
+      } else if (error.message.includes('Email not confirmed')) {
+        setError('Por favor, confirme seu email antes de fazer login.');
+      }
     } finally {
       setLoading(false);
     }
@@ -72,14 +66,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="w-full"
         />
       </div>
+      
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Senha</Label>
-          <a href="#" className="text-sm text-cert-blue hover:underline">
+          <Button 
+            variant="link" 
+            className="px-0 font-normal text-sm text-cert-blue"
+            onClick={() => navigate('/reset-password')}
+            type="button"
+          >
             Esqueceu a senha?
-          </a>
+          </Button>
         </div>
         <Input 
           id="password"
@@ -88,18 +89,42 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className="w-full"
         />
       </div>
+
       <div className="flex items-center space-x-2">
         <Checkbox id="remember" />
         <Label htmlFor="remember" className="text-sm font-normal">
           Lembrar de mim
         </Label>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={loading}
+      >
         {loading ? 'Entrando...' : 'Entrar'}
       </Button>
-      {error && <div className="text-red-500 text-center text-sm mt-2">{error}</div>}
+
+      {error && (
+        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md text-center">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-4 text-center text-sm text-gray-500">
+        <span>Não tem uma conta? </span>
+        <Button 
+          variant="link" 
+          className="px-0 font-medium text-cert-blue"
+          onClick={() => navigate('/signup')}
+          type="button"
+        >
+          Cadastre-se
+        </Button>
+      </div>
     </form>
   );
 };
