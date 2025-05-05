@@ -1,3 +1,4 @@
+
 const express = require('express');
 const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
@@ -127,22 +128,183 @@ app.get('/certificacoes/:id', async (req, res) => {
 });
 
 // --- Simulados ---
+// Obter todos os simulados
 app.get('/simulados', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM simulados WHERE ativo = TRUE');
-    res.json(rows);
+    
+    // Converter as datas e nomes de campos para o formato esperado pelo frontend
+    const formattedRows = rows.map(row => ({
+      id: row.id.toString(),
+      title: row.titulo,
+      description: row.descricao,
+      questionsCount: row.qt_questoes,
+      duration: row.duracao_minutos,
+      difficulty: row.dificuldade,
+      price: row.preco,
+      discountPrice: row.preco_desconto,
+      discountPercentage: row.percentual_desconto,
+      discountExpiresAt: row.data_fim_desconto,
+      purchases: row.qt_vendas || 0,
+      rating: row.avaliacao || 0,
+      passingScore: row.nota_aprovacao || 70,
+      questions: []
+    }));
+    
+    res.json(formattedRows);
   } catch (err) {
+    console.error('Erro ao buscar simulados:', err);
     res.status(500).json({ error: 'Erro ao buscar simulados.' });
   }
 });
 
+// Obter um simulado específico
 app.get('/simulados/:id', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM simulados WHERE id = ?', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Simulado não encontrado.' });
-    res.json(rows[0]);
+    
+    // Converter para o formato esperado pelo frontend
+    const simulado = {
+      id: rows[0].id.toString(),
+      title: rows[0].titulo,
+      description: rows[0].descricao,
+      questionsCount: rows[0].qt_questoes,
+      duration: rows[0].duracao_minutos,
+      difficulty: rows[0].dificuldade,
+      price: rows[0].preco,
+      discountPrice: rows[0].preco_desconto,
+      discountPercentage: rows[0].percentual_desconto,
+      discountExpiresAt: rows[0].data_fim_desconto,
+      purchases: rows[0].qt_vendas || 0,
+      rating: rows[0].avaliacao || 0,
+      passingScore: rows[0].nota_aprovacao || 70,
+      questions: []
+    };
+    
+    res.json(simulado);
   } catch (err) {
+    console.error('Erro ao buscar simulado:', err);
     res.status(500).json({ error: 'Erro ao buscar simulado.' });
+  }
+});
+
+// Criar novo simulado
+app.post('/simulados', async (req, res) => {
+  const { 
+    title, 
+    description, 
+    questionsCount, 
+    duration, 
+    difficulty, 
+    price, 
+    discountPrice, 
+    discountPercentage, 
+    discountExpiresAt 
+  } = req.body;
+  
+  if (!title || !description || !questionsCount || !duration || !difficulty || price === undefined) {
+    return res.status(400).json({ error: 'Dados incompletos.' });
+  }
+  
+  try {
+    const [result] = await db.query(
+      `INSERT INTO simulados 
+      (titulo, descricao, qt_questoes, duracao_minutos, dificuldade, preco, 
+      preco_desconto, percentual_desconto, data_fim_desconto, ativo, data_criacao)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, NOW())`,
+      [title, description, questionsCount, duration, difficulty, price, 
+       discountPrice, discountPercentage, discountExpiresAt]
+    );
+    
+    const simuladoId = result.insertId;
+    
+    // Retornar o simulado criado no formato esperado pelo frontend
+    const simulado = {
+      id: simuladoId.toString(),
+      title,
+      description,
+      questionsCount,
+      duration,
+      difficulty,
+      price,
+      discountPrice,
+      discountPercentage,
+      discountExpiresAt,
+      purchases: 0,
+      rating: 0,
+      passingScore: 70,
+      questions: []
+    };
+    
+    res.status(201).json(simulado);
+  } catch (err) {
+    console.error('Erro ao criar simulado:', err);
+    res.status(500).json({ error: 'Erro ao criar simulado.' });
+  }
+});
+
+// Atualizar simulado
+app.put('/simulados/:id', async (req, res) => {
+  const { 
+    title, 
+    description, 
+    questionsCount, 
+    duration, 
+    difficulty, 
+    price, 
+    discountPrice, 
+    discountPercentage, 
+    discountExpiresAt 
+  } = req.body;
+  
+  try {
+    await db.query(
+      `UPDATE simulados 
+      SET titulo = ?, descricao = ?, qt_questoes = ?, duracao_minutos = ?,
+      dificuldade = ?, preco = ?, preco_desconto = ?, percentual_desconto = ?,
+      data_fim_desconto = ?
+      WHERE id = ?`,
+      [title, description, questionsCount, duration, difficulty, price, 
+       discountPrice, discountPercentage, discountExpiresAt, req.params.id]
+    );
+    
+    const [rows] = await db.query('SELECT * FROM simulados WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Simulado não encontrado.' });
+    
+    // Retornar o simulado atualizado no formato esperado pelo frontend
+    const simulado = {
+      id: rows[0].id.toString(),
+      title: rows[0].titulo,
+      description: rows[0].descricao,
+      questionsCount: rows[0].qt_questoes,
+      duration: rows[0].duracao_minutos,
+      difficulty: rows[0].dificuldade,
+      price: rows[0].preco,
+      discountPrice: rows[0].preco_desconto,
+      discountPercentage: rows[0].percentual_desconto,
+      discountExpiresAt: rows[0].data_fim_desconto,
+      purchases: rows[0].qt_vendas || 0,
+      rating: rows[0].avaliacao || 0,
+      passingScore: rows[0].nota_aprovacao || 70,
+      questions: []
+    };
+    
+    res.json(simulado);
+  } catch (err) {
+    console.error('Erro ao atualizar simulado:', err);
+    res.status(500).json({ error: 'Erro ao atualizar simulado.' });
+  }
+});
+
+// Excluir simulado
+app.delete('/simulados/:id', async (req, res) => {
+  try {
+    await db.query('UPDATE simulados SET ativo = FALSE WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Simulado excluído com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao excluir simulado:', err);
+    res.status(500).json({ error: 'Erro ao excluir simulado.' });
   }
 });
 

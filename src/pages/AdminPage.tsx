@@ -204,40 +204,19 @@ const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
 
 const AdminPage: React.FC = () => {
   const {
-    state: { activeTab },
+    state: { activeTab, exams, isLoading },
     actions: {
       handleTabChange,
       handleStudentSelect,
       handleExamSelect,
       handleExamDelete,
+      handleExamCreated,
+      handleExamUpdated,
       handleCouponSelect,
-      handleCouponDelete
+      handleCouponDelete,
+      refreshExams
     }
   } = useAdminPage();
-
-  const handleSaveExam = (e: React.FormEvent) => {
-    e.preventDefault();
-    // toast({
-    //   title: "Simulado salvo",
-    //   description: "O simulado foi salvo com sucesso.",
-    // });
-  };
-
-  const handleSaveQuestion = (e: React.FormEvent) => {
-    e.preventDefault();
-    // toast({
-    //   title: "Questão salva",
-    //   description: "A questão foi adicionada com sucesso.",
-    // });
-  };
-
-  const handleDeleteExam = () => {
-    // toast({
-    //   title: "Simulado excluído",
-    //   description: "O simulado foi removido com sucesso.",
-    //   variant: "destructive",
-    // });
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -277,11 +256,19 @@ const AdminPage: React.FC = () => {
 
             {/* Aba de Simulados */}
             <TabsContent value="exams">
-              <Exams
-                exams={mockExams}
-                onSelect={handleExamSelect}
-                onDelete={handleExamDelete}
-              />
+              {isLoading ? (
+                <div className="flex justify-center items-center py-20">
+                  <p>Carregando simulados...</p>
+                </div>
+              ) : (
+                <Exams
+                  exams={exams}
+                  onSelect={handleExamSelect}
+                  onDelete={handleExamDelete}
+                  onExamCreated={handleExamCreated}
+                  onExamUpdated={handleExamUpdated}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="coupons">

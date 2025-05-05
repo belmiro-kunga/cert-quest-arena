@@ -1,36 +1,172 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash, Coins } from 'lucide-react';
-
-interface Exam {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  discountPrice?: number;
-  discountEnds?: string;
-  discountPercentage?: number;
-  questionsCount: number;
-  duration: number;
-  difficulty: 'Fácil' | 'Médio' | 'Difícil';
-  purchases: number;
-  rating: number;
-}
+import { useToast } from "@/hooks/use-toast";
+import { createExam, updateExam, deleteExam } from '@/services/examService';
+import { Exam } from '@/types/admin';
 
 interface ExamsProps {
   exams: Exam[];
   onSelect: (examId: string) => void;
   onDelete: (examId: string) => void;
+  onExamCreated?: (exam: Exam) => void;
+  onExamUpdated?: (exam: Exam) => void;
 }
 
 export const Exams: React.FC<ExamsProps> = ({
   exams,
   onSelect,
-  onDelete
+  onDelete,
+  onExamCreated,
+  onExamUpdated
 }) => {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Estado do formulário
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: 0,
+    discountPercentage: 0,
+    discountEnds: '',
+    questionsCount: 0,
+    duration: 0,
+    difficulty: 'Médio' as 'Fácil' | 'Médio' | 'Difícil',
+  });
+
+  // Filtrar exames baseado no termo de busca
+  const filteredExams = exams.filter(exam => 
+    exam.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Selecionar um exame para edição
+  const handleSelectExam = (examId: string) => {
+    const exam = exams.find(e => e.id === examId);
+    if (exam) {
+      setFormData({
+        title: exam.title,
+        description: exam.description,
+        price: exam.price,
+        discountPercentage: exam.discountPercentage || 0,
+        discountEnds: exam.discountExpiresAt ? new Date(exam.discountExpiresAt).toISOString().split('T')[0] : '',
+        questionsCount: exam.questionsCount,
+        duration: exam.duration,
+        difficulty: exam.difficulty,
+      });
+      setSelectedExamId(examId);
+      setIsEditing(true);
+      onSelect(examId);
+    }
+  };
+
+  // Handler para mudanças nos campos do formulário
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'price' || name === 'discountPercentage' || name === 'questionsCount' || name === 'duration' 
+        ? parseFloat(value) 
+        : value
+    }));
+  };
+
+  // Limpar formulário
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      price: 0,
+      discountPercentage: 0,
+      discountEnds: '',
+      questionsCount: 0,
+      duration: 0,
+      difficulty: 'Médio',
+    });
+    setSelectedExamId(null);
+    setIsEditing(false);
+  };
+
+  // Cancelar edição
+  const handleCancel = () => {
+    resetForm();
+  };
+
+  // Salvar simulado
+  const handleSaveExam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const examData = {
+      ...formData,
+      discountPrice: formData.discountPercentage > 0 
+        ? formData.price - (formData.price * formData.discountPercentage / 100)
+        : null,
+      discountExpiresAt: formData.discountEnds ? new Date(formData.discountEnds) : null,
+      purchases: 0,
+      rating: 0,
+      questions: [],
+      passingScore: 70,
+    };
+    
+    try {
+      if (isEditing && selectedExamId) {
+        // Atualizar simulado existente
+        const updatedExam = await updateExam(selectedExamId, examData);
+        if (updatedExam) {
+          toast({
+            title: "Simulado atualizado",
+            description: "O simulado foi atualizado com sucesso.",
+          });
+          onExamUpdated && onExamUpdated(updatedExam);
+        }
+      } else {
+        // Criar novo simulado
+        const newExam = await createExam(examData);
+        if (newExam) {
+          toast({
+            title: "Simulado criado",
+            description: "O simulado foi criado com sucesso.",
+          });
+          onExamCreated && onExamCreated(newExam);
+        }
+      }
+      resetForm();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o simulado.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Excluir simulado
+  const handleDeleteExam = async (examId: string) => {
+    if (confirm("Tem certeza que deseja excluir este simulado?")) {
+      const result = await deleteExam(examId);
+      if (result) {
+        toast({
+          title: "Simulado excluído",
+          description: "O simulado foi removido com sucesso.",
+        });
+        onDelete(examId);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro ao excluir o simulado.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -42,7 +178,7 @@ export const Exams: React.FC<ExamsProps> = ({
                 Gerenciar simulados disponíveis para venda
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={resetForm}>
               <Plus className="mr-2 h-4 w-4" /> Novo Simulado
             </Button>
           </div>
@@ -53,6 +189,8 @@ export const Exams: React.FC<ExamsProps> = ({
               <Input
                 placeholder="Buscar simulados..."
                 className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
@@ -70,7 +208,7 @@ export const Exams: React.FC<ExamsProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exams.map((exam) => (
+                {filteredExams.map((exam) => (
                   <TableRow key={exam.id}>
                     <TableCell className="font-medium">{exam.title}</TableCell>
                     <TableCell>
@@ -97,9 +235,9 @@ export const Exams: React.FC<ExamsProps> = ({
                                 -{exam.discountPercentage}%
                               </span>
                             </div>
-                            {exam.discountEnds && (
+                            {exam.discountExpiresAt && (
                               <span className="text-xs text-muted-foreground">
-                                Termina em {new Date(exam.discountEnds).toLocaleDateString()}
+                                Termina em {new Date(exam.discountExpiresAt).toLocaleDateString()}
                               </span>
                             )}
                           </>
@@ -139,7 +277,7 @@ export const Exams: React.FC<ExamsProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => onSelect(exam.id)}
+                          onClick={() => handleSelectExam(exam.id)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -147,7 +285,7 @@ export const Exams: React.FC<ExamsProps> = ({
                           variant="ghost"
                           size="icon"
                           className="text-destructive"
-                          onClick={() => onDelete(exam.id)}
+                          onClick={() => handleDeleteExam(exam.id)}
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
@@ -164,52 +302,109 @@ export const Exams: React.FC<ExamsProps> = ({
       {/* Formulário de Criação/Edição */}
       <Card>
         <CardHeader>
-          <CardTitle>Adicionar Simulado</CardTitle>
+          <CardTitle>{isEditing ? "Editar Simulado" : "Adicionar Simulado"}</CardTitle>
           <CardDescription>
-            Criar um novo simulado para venda
+            {isEditing ? "Atualizar dados do simulado" : "Criar um novo simulado para venda"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSaveExam}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Título</label>
-                <Input placeholder="Ex: AWS Cloud Practitioner - Simulado 1" />
+                <Input 
+                  name="title"
+                  value={formData.title} 
+                  onChange={handleInputChange}
+                  placeholder="Ex: AWS Cloud Practitioner - Simulado 1" 
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Preço Regular (R$)</label>
-                <Input type="number" placeholder="29.90" step="0.01" min="0" />
+                <Input 
+                  type="number" 
+                  name="price"
+                  value={formData.price} 
+                  onChange={handleInputChange}
+                  placeholder="29.90" 
+                  step="0.01" 
+                  min="0" 
+                  required
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Desconto (%)</label>
-                <Input type="number" placeholder="15" min="0" max="100" />
+                <Input 
+                  type="number" 
+                  name="discountPercentage"
+                  value={formData.discountPercentage} 
+                  onChange={handleInputChange}
+                  placeholder="15" 
+                  min="0" 
+                  max="100" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Data Final do Desconto</label>
-                <Input type="date" min={new Date().toISOString().split('T')[0]} />
+                <Input 
+                  type="date" 
+                  name="discountEnds"
+                  value={formData.discountEnds} 
+                  onChange={handleInputChange}
+                  min={new Date().toISOString().split('T')[0]} 
+                />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">Descrição</label>
-              <Input placeholder="Breve descrição do simulado" />
+              <Textarea 
+                name="description"
+                value={formData.description} 
+                onChange={handleInputChange}
+                placeholder="Breve descrição do simulado" 
+                required
+              />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Número de Questões</label>
-                <Input type="number" placeholder="65" min="1" />
+                <Input 
+                  type="number" 
+                  name="questionsCount"
+                  value={formData.questionsCount} 
+                  onChange={handleInputChange}
+                  placeholder="65" 
+                  min="1" 
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Duração (minutos)</label>
-                <Input type="number" placeholder="120" min="1" />
+                <Input 
+                  type="number" 
+                  name="duration"
+                  value={formData.duration} 
+                  onChange={handleInputChange}
+                  placeholder="120" 
+                  min="1" 
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Dificuldade</label>
-                <select className="w-full p-2 border rounded">
+                <select 
+                  className="w-full p-2 border rounded"
+                  name="difficulty"
+                  value={formData.difficulty} 
+                  onChange={handleInputChange}
+                  required
+                >
                   <option value="Fácil">Fácil</option>
                   <option value="Médio">Médio</option>
                   <option value="Difícil">Difícil</option>
@@ -218,8 +413,8 @@ export const Exams: React.FC<ExamsProps> = ({
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline">Cancelar</Button>
-              <Button>Salvar Simulado</Button>
+              <Button type="button" variant="outline" onClick={handleCancel}>Cancelar</Button>
+              <Button type="submit">{isEditing ? "Atualizar" : "Salvar"} Simulado</Button>
             </div>
           </form>
         </CardContent>

@@ -1,10 +1,15 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import { fetchExams } from '@/services/examService';
+import { Exam } from '@/types/admin';
 
 export interface AdminPageState {
   activeTab: string;
   selectedStudent: string | null;
   selectedExam: string | null;
   selectedCoupon: string | null;
+  exams: Exam[];
+  isLoading: boolean;
 }
 
 export interface AdminPageActions {
@@ -12,8 +17,11 @@ export interface AdminPageActions {
   handleStudentSelect: (studentId: string) => void;
   handleExamSelect: (examId: string) => void;
   handleExamDelete: (examId: string) => void;
+  handleExamCreated: (exam: Exam) => void;
+  handleExamUpdated: (exam: Exam) => void;
   handleCouponSelect: (couponId: string) => void;
   handleCouponDelete: (couponId: string) => void;
+  refreshExams: () => Promise<void>;
 }
 
 export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActions } => {
@@ -21,6 +29,24 @@ export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActio
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedExam, setSelectedExam] = useState<string | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const refreshExams = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedExams = await fetchExams();
+      setExams(fetchedExams);
+    } catch (error) {
+      console.error('Erro ao carregar simulados:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshExams();
+  }, []);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -39,8 +65,22 @@ export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActio
   };
 
   const handleExamDelete = (examId: string) => {
-    // Implementar lógica de exclusão
-    console.log('Deletando simulado:', examId);
+    // Remover o exame da lista local após exclusão
+    setExams(exams.filter(exam => exam.id !== examId));
+  };
+
+  const handleExamCreated = (exam: Exam) => {
+    // Adicionar novo exame à lista
+    setExams(prevExams => [...prevExams, exam]);
+  };
+
+  const handleExamUpdated = (updatedExam: Exam) => {
+    // Atualizar exame na lista
+    setExams(prevExams => 
+      prevExams.map(exam => 
+        exam.id === updatedExam.id ? updatedExam : exam
+      )
+    );
   };
 
   const handleCouponDelete = (couponId: string) => {
@@ -53,15 +93,20 @@ export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActio
       activeTab,
       selectedStudent,
       selectedExam,
-      selectedCoupon
+      selectedCoupon,
+      exams,
+      isLoading
     },
     actions: {
       handleTabChange,
       handleStudentSelect,
       handleExamSelect,
       handleExamDelete,
+      handleExamCreated,
+      handleExamUpdated,
       handleCouponSelect,
-      handleCouponDelete
+      handleCouponDelete,
+      refreshExams
     }
   };
 };
