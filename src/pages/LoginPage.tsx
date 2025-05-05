@@ -9,7 +9,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   
   const handleLoginSuccess = () => {
-    navigate('/dashboard');
+    navigate('/profile');
   };
 
   return (
@@ -23,7 +23,7 @@ const LoginPage = () => {
               </div>
             </div>
             <h1 className="text-3xl font-bold mt-4">CertQuest</h1>
-            <p className="text-gray-600 mt-2">Faça login para acessar os simulados</p>
+            <p className="text-gray-600 mt-2">Faça login para acessar seu perfil e os simulados</p>
           </div>
 
           <Card>

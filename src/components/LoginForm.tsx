@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -17,6 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,8 +45,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       // Salva o token e atualiza o estado do usuário
       await login(data.token);
       
+      toast({
+        title: "Login bem-sucedido",
+        description: "Seus dados foram carregados no perfil.",
+      });
+      
       if (onSuccess) onSuccess();
-      navigate('/'); // Redireciona para a página inicial após o login
+      
+      // Redireciona para a página inicial após o login
+      navigate('/profile'); 
     } catch (err: any) {
       setError(err.message);
     } finally {
