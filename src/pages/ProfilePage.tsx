@@ -1,30 +1,27 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useNavigate } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { CreditCard, Lock, User, History, Settings } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Import our new components
+import ProfileSidebar from '@/components/profile/ProfileSidebar';
+import ProfileTabTriggers from '@/components/profile/ProfileTabTriggers';
+import ProfileTab from '@/components/profile/tabs/ProfileTab';
+import PaymentTab from '@/components/profile/tabs/PaymentTab';
+import HistoryTab from '@/components/profile/tabs/HistoryTab';
+import SecurityTab from '@/components/profile/tabs/SecurityTab';
 
 const ProfilePage = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const { user: authUser, updateUserProfile } = useAuth();
   
-  // Simulando dados do usuário
+  // Merged user state with default values and auth user data
   const [user, setUser] = useState({
-    name: 'João Silva',
-    email: 'joao.silva@example.com',
+    name: '',
+    email: '',
     photo: '',
-    phone: '(11) 98765-4321',
+    phone: '',
     planType: 'Freemium',
     attemptsLeft: 1,
     paymentMethod: {
@@ -45,104 +42,29 @@ const ProfilePage = () => {
       { id: 'aws-cloud-practitioner', name: 'AWS Cloud Practitioner', acquired: '04/25/2025' }
     ]
   });
-  
-  // Schema para validação do formulário de perfil
-  const profileFormSchema = z.object({
-    name: z.string().min(2, {
-      message: "Name must have at least 2 characters.",
-    }),
-    email: z.string().email({
-      message: "Invalid email.",
-    }),
-    phone: z.string().optional()
-  });
-  
-  // Schema para validação do formulário de senha
-  const passwordFormSchema = z.object({
-    currentPassword: z.string().min(6, {
-      message: "Current password must have at least 6 characters.",
-    }),
-    newPassword: z.string().min(6, {
-      message: "New password must have at least 6 characters.",
-    }),
-    confirmPassword: z.string().min(6, {
-      message: "Confirm password must have at least 6 characters.",
-    }),
-  }).refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-  
-  // Form para editar perfil
-  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      name: user.name,
-      email: user.email,
-      phone: user.phone
-    },
-  });
-  
-  // Form para alterar senha
-  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: zodResolver(passwordFormSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    },
-  });
-  
-  // Manipulador para atualização de perfil
-  const onProfileSubmit = (values: z.infer<typeof profileFormSchema>) => {
-    setUser({
-      ...user,
-      name: values.name,
-      email: values.email,
-      phone: values.phone || ''
-    });
-    
-    toast({
-      title: "Profile updated",
-      description: "Your information has been updated successfully.",
-    });
-  };
-  
-  // Manipulador para alteração de senha
-  const onPasswordSubmit = (values: z.infer<typeof passwordFormSchema>) => {
-    // Simula atualização de senha
-    passwordForm.reset();
-    
-    toast({
-      title: "Password updated",
-      description: "Your password has been changed successfully.",
-    });
-  };
 
-  // Buscar dados reais do usuário autenticado
+  // Update user data when authUser changes
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const res = await fetch('http://localhost:3001/me', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (res.ok && data.user) {
-          setUser((prev) => ({
-            ...prev,
-            name: data.user.name,
-            email: data.user.email
-          }));
-        }
-      } catch (err) {
-        // erro ao buscar usuário
-      }
-    };
-    fetchUser();
-    // eslint-disable-next-line
-  }, []);
+    if (authUser) {
+      setUser(prev => ({
+        ...prev,
+        name: authUser.name || prev.name,
+        email: authUser.email || prev.email,
+        photo: authUser.photo || prev.photo,
+        phone: authUser.phone || prev.phone,
+        planType: authUser.planType || prev.planType,
+        attemptsLeft: authUser.attemptsLeft || prev.attemptsLeft,
+      }));
+    }
+  }, [authUser]);
+
+  // Handle profile updates
+  const handleUpdateProfile = (userData: Partial<typeof user>) => {
+    setUser(prev => ({ ...prev, ...userData }));
+    if (updateUserProfile) {
+      updateUserProfile(userData);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -150,412 +72,34 @@ const ProfilePage = () => {
       <main className="flex-grow py-8 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Sidebar com informações do usuário */}
+            {/* Sidebar with user information */}
             <div className="w-full md:w-1/4">
-              <Card>
-                <CardHeader className="text-center">
-                  <Avatar className="w-24 h-24 mx-auto">
-                    <AvatarImage src={user.photo} />
-                    <AvatarFallback className="text-2xl bg-cert-blue text-white">
-                      {user.name ? user.name.charAt(0) : '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <CardTitle className="mt-4">{user.name || 'Carregando...'}</CardTitle>
-                  <CardDescription>{user.email || 'Carregando...'}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Plan</span>
-                      <span className={`text-sm font-semibold ${user.planType === 'Premium' ? 'text-cert-purple' : 'text-gray-500'}`}>
-                        {user.planType}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Attempts left</span>
-                      <span className="text-sm font-semibold">{user.attemptsLeft}/3</span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  {user.planType === 'Freemium' ? (
-                    <Button 
-                      className="w-full bg-cert-purple hover:bg-cert-purple/90"
-                      onClick={() => navigate('/#pricing')}
-                    >
-                      Upgrade to Premium
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => navigate('/dashboard')}
-                    >
-                      Access Dashboard
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
+              <ProfileSidebar user={user} />
             </div>
             
-            {/* Conteúdo principal com tabs */}
+            {/* Main content with tabs */}
             <div className="w-full md:w-3/4">
               <Tabs defaultValue="profile">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="profile" className="flex items-center gap-2">
-                    <User size={16} />
-                    <span className="hidden sm:inline">Profile</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="payment" className="flex items-center gap-2">
-                    <CreditCard size={16} />
-                    <span className="hidden sm:inline">Payment</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="history" className="flex items-center gap-2">
-                    <History size={16} />
-                    <span className="hidden sm:inline">History</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="security" className="flex items-center gap-2">
-                    <Lock size={16} />
-                    <span className="hidden sm:inline">Security</span>
-                  </TabsTrigger>
-                </TabsList>
+                <ProfileTabTriggers />
                 
-                {/* Tab de Perfil */}
+                {/* Tab contents */}
                 <TabsContent value="profile">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Profile Information</CardTitle>
-                      <CardDescription>
-                        Update your personal information here. Click save when you're done.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Form {...profileForm}>
-                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                          <FormField
-                            control={profileForm.control}
-                            name="name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Name</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={profileForm.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={profileForm.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Phone (optional)</FormLabel>
-                                <FormControl>
-                                  <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <Button type="submit" className="w-full">Save Changes</Button>
-                        </form>
-                      </Form>
-                    </CardContent>
-                  </Card>
+                  <ProfileTab 
+                    user={user} 
+                    updateUserProfile={handleUpdateProfile} 
+                  />
                 </TabsContent>
                 
-                {/* Tab de Pagamentos */}
                 <TabsContent value="payment">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Payment Information</CardTitle>
-                      <CardDescription>
-                        Manage your payment methods and view your billing history.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Current Payment Method</h3>
-                        <div className="flex items-center space-x-4 p-4 border rounded-md">
-                          <div className="bg-cert-blue text-white p-2 rounded">
-                            <CreditCard />
-                          </div>
-                          <div>
-                            <p className="font-medium">•••• •••• •••• {user.paymentMethod.lastFour}</p>
-                            <p className="text-sm text-gray-500">Valid until {user.paymentMethod.expiry}</p>
-                          </div>
-                        </div>
-                        <div className="mt-3">
-                          <Button variant="outline" size="sm">Update Card</Button>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Billing History</h3>
-                        <div className="border rounded-md overflow-hidden">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {user.invoices.map((invoice) => (
-                                <tr key={invoice.id}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{invoice.id}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.date}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.amount}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                      {invoice.status}
-                                    </span>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 p-4 rounded-md">
-                        <h3 className="text-lg font-medium mb-2">Current Plan: {user.planType}</h3>
-                        {user.planType === 'Freemium' ? (
-                          <div>
-                            <p className="text-sm text-gray-500 mb-3">Upgrade to Premium plan to access additional features.</p>
-                            <Button 
-                              className="w-full bg-cert-purple hover:bg-cert-purple/90"
-                              onClick={() => navigate('/#pricing')}
-                            >
-                              Upgrade to Premium
-                            </Button>
-                          </div>
-                        ) : (
-                          <div>
-                            <p className="text-sm text-gray-500 mb-3">You are currently on the Premium plan.</p>
-                            <Button variant="outline" className="w-full">Cancel Subscription</Button>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <PaymentTab user={user} />
                 </TabsContent>
                 
-                {/* Tab de Histórico */}
                 <TabsContent value="history">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Exam History</CardTitle>
-                      <CardDescription>
-                        Track your progress on practice exams.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Completed Exams</h3>
-                        <div className="border rounded-md overflow-hidden">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certification</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {user.examHistory.map((exam) => (
-                                <tr key={exam.id}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exam.cert}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.date}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.score}%</td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                      exam.result === 'Passed' 
-                                        ? 'bg-green-100 text-green-800' 
-                                        : 'bg-red-100 text-red-800'
-                                    }`}>
-                                      {exam.result}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => navigate(`/results/${exam.id}`)}
-                                    >
-                                      View Details
-                                    </Button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Earned Certificates</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {user.certificates.length > 0 ? (
-                            user.certificates.map((cert) => (
-                              <div key={cert.id} className="border rounded-md p-4 flex justify-between items-center">
-                                <div>
-                                  <h4 className="font-medium">{cert.name}</h4>
-                                  <p className="text-sm text-gray-500">Acquired on {cert.acquired}</p>
-                                </div>
-                                <Button variant="outline" size="sm">Download</Button>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="col-span-2 text-center py-10 bg-gray-50 rounded-md">
-                              <p className="text-gray-500">You don't have any certificates yet.</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="text-center mt-4">
-                        <Button onClick={() => navigate('/certifications')}>
-                          View All Certifications
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <HistoryTab user={user} />
                 </TabsContent>
                 
-                {/* Tab de Segurança */}
                 <TabsContent value="security">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Account Security</CardTitle>
-                      <CardDescription>
-                        Manage your password and security settings.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Change Password</h3>
-                        <Form {...passwordForm}>
-                          <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                            <FormField
-                              control={passwordForm.control}
-                              name="currentPassword"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Current Password</FormLabel>
-                                  <FormControl>
-                                    <Input type="password" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={passwordForm.control}
-                              name="newPassword"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>New Password</FormLabel>
-                                  <FormControl>
-                                    <Input type="password" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={passwordForm.control}
-                              name="confirmPassword"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Confirm New Password</FormLabel>
-                                  <FormControl>
-                                    <Input type="password" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <Button type="submit" className="w-full">Change Password</Button>
-                          </form>
-                        </Form>
-                      </div>
-                      
-                      <div className="pt-4 border-t">
-                        <h3 className="text-lg font-medium mb-2">Notification Preferences</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="email-updates">Email updates</Label>
-                            <input
-                              id="email-updates"
-                              type="checkbox"
-                              defaultChecked={true}
-                              className="h-4 w-4 text-cert-blue focus:ring-cert-blue border-gray-300 rounded"
-                            />
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="marketing">Marketing and promotions</Label>
-                            <input
-                              id="marketing"
-                              type="checkbox"
-                              defaultChecked={false}
-                              className="h-4 w-4 text-cert-blue focus:ring-cert-blue border-gray-300 rounded"
-                            />
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="new-certs">New certifications available</Label>
-                            <input
-                              id="new-certs"
-                              type="checkbox"
-                              defaultChecked={true}
-                              className="h-4 w-4 text-cert-blue focus:ring-cert-blue border-gray-300 rounded"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4 border-t">
-                        <h3 className="text-lg font-medium text-red-600">Danger Zone</h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                          These actions cannot be undone. Please be sure before proceeding.
-                        </p>
-                        <div className="space-y-3">
-                          <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">
-                            Delete exam history
-                          </Button>
-                          <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">
-                            Delete account
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <SecurityTab />
                 </TabsContent>
               </Tabs>
             </div>
