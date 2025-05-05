@@ -1,9 +1,11 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
   id: number;
   name: string;
   email: string;
+  photo?: string; // Added photo property as optional
 }
 
 interface AuthContextType {

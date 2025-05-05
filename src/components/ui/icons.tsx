@@ -1,3 +1,4 @@
+
 import {
     AlertTriangle,
     ArrowRight,
@@ -22,7 +23,9 @@ import {
     Twitter,
     User,
     X,
-    type Icon as LucideIcon
+    CheckCircle2, // Added for success icon
+    XCircle, // Added for error icon
+    type LucideIcon
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -50,6 +53,8 @@ export const Icons = {
     moon: Moon,
     laptop: Laptop,
     shield: AlertTriangle,
+    success: CheckCircle2, // Added success icon
+    error: XCircle, // Added error icon
     stripe: (props: any) => (
         <svg
             xmlns="http://www.w3.org/2000/svg"
