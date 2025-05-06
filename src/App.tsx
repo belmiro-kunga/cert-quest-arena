@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,8 +27,20 @@ import { PaymentResultPage } from './pages/PaymentResult';
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Console log para depuração
-  console.log("App está renderizando");
+  // Adding useEffect for additional debugging
+  useEffect(() => {
+    console.log("App component mounted");
+    
+    // Log current route
+    const currentPath = window.location.pathname;
+    console.log("Current route path:", currentPath);
+    
+    return () => {
+      console.log("App component unmounted");
+    };
+  }, []);
+  
+  console.log("App rendering with all providers and routes");
   
   return (
     <QueryClientProvider client={queryClient}>

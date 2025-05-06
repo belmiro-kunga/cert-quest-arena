@@ -20,8 +20,7 @@ const Index = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Console log para depuração
-  console.log("Index está renderizando");
+  console.log("Index component rendering started");
   
   // Buscar simulados do servidor
   useEffect(() => {
@@ -41,13 +40,8 @@ const Index = () => {
     getExams();
   }, []);
 
-  // Redirecionar para o dashboard se estiver logado
-  useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [navigate]);
+  // Removing the redirect to dashboard, as this might be causing the blank page
+  // This allows the index page to render properly for all users
 
   const handleAddToCart = (exam: Exam) => {
     addItem({
@@ -95,6 +89,8 @@ const Index = () => {
 
   // Exames a serem exibidos (do servidor ou fallback)
   const examToDisplay = exams.length > 0 ? exams : availableExams;
+  
+  console.log("Index component ready to render UI");
   
   return (
     <div className="min-h-screen flex flex-col">
