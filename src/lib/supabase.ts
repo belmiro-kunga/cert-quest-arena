@@ -19,6 +19,7 @@ export type Profile = {
   attempts_left: number;
   created_at: string;
   updated_at: string;
+  role: 'admin' | 'user';
 }
 
 // Helper functions
