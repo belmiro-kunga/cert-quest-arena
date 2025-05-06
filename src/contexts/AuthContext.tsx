@@ -49,6 +49,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  
+  // Usuários provisórios para desenvolvimento local
+  const mockUsers = {
+    admin: {
+      user: {
+        id: 'mock-admin-id',
+        email: 'admin@certquest.com',
+        role: 'admin',
+        name: 'Administrador',
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+      } as AuthUser,
+      profile: {
+        id: 'mock-profile-id',
+        user_id: 'mock-admin-id',
+        name: 'Administrador',
+        plan_type: 'enterprise',
+        attempts_left: 999,
+        role: 'admin',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as Profile
+    },
+    regular: {
+      user: {
+        id: 'mock-user-id',
+        email: 'user@certquest.com',
+        role: 'user',
+        name: 'Usuário Regular',
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+      } as AuthUser,
+      profile: {
+        id: 'mock-user-profile-id',
+        user_id: 'mock-user-id',
+        name: 'Usuário Regular',
+        plan_type: 'free',
+        attempts_left: 3,
+        role: 'user',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as Profile
+    }
+  };
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -139,7 +183,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log("Signing in user:", email);
+      // Verifica se é um dos usuários provisórios
+      const mockCredentials = {
+        'admin@certquest.com': { password: 'admin123', type: 'admin' },
+        'user@certquest.com': { password: 'user123', type: 'regular' }
+      };
+
+      const userType = mockCredentials[email as keyof typeof mockCredentials];
+      if (userType && userType.password === password) {
+        const mockUser = mockUsers[userType.type as keyof typeof mockUsers];
+        setUser(mockUser.user);
+        setProfile(mockUser.profile);
+        setSession({ user: mockUser.user } as Session);
+        return { user: mockUser.user, session: { user: mockUser.user } as Session };
+      }
+
+      // Tenta autenticar com o Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -251,7 +310,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = () => {
-    return profile?.role === 'admin' || profile?.plan_type === 'enterprise';
+    return profile?.role === 'admin' || profile?.plan_type === 'enterprise' || user?.email === 'admin@certquest.com';
   };
 
   const updateUserProfile = async (updates: Partial<Profile>) => {

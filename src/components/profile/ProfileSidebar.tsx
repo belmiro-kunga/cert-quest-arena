@@ -50,7 +50,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ user }) => {
         {user.planType === 'Freemium' ? (
           <Button 
             className="w-full bg-cert-purple hover:bg-cert-purple/90 text-xs md:text-sm py-1.5 md:py-2"
-            onClick={() => navigate('/#pricing')}
+            onClick={() => navigate('/dashboard')}
           >
             Upgrade to Premium
           </Button>
