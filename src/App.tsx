@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CertificationsPage from "./pages/CertificationsPage";
 import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage"; // Add the new SignUpPage
 import Dashboard from "./pages/Dashboard";
 import QuizPage from "./pages/QuizPage";
 import ExamPage from "./pages/ExamPage";
@@ -23,6 +24,7 @@ import PrivateRoute from './components/PrivateRoute';
 import { PaymentProvider } from './contexts/PaymentContext';
 import { PaymentPage } from './pages/Payment';
 import { PaymentResultPage } from './pages/PaymentResult';
+import { initializeDefaultUsers } from './utils/supabaseAdmin';
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,19 @@ const App = () => {
     // Log current route
     const currentPath = window.location.pathname;
     console.log("Current route path:", currentPath);
+    
+    // Initialize default users (admin and regular user)
+    const setupUsers = async () => {
+      try {
+        console.log("Setting up default users...");
+        await initializeDefaultUsers();
+        console.log("Default users setup completed");
+      } catch (err) {
+        console.error("Error setting up default users:", err);
+      }
+    };
+    
+    setupUsers();
     
     return () => {
       console.log("App component unmounted");
@@ -54,6 +69,7 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignUpPage />} />
                   <Route path="/certifications" element={<CertificationsPage />} />
                   <Route path="/exams/:certificationId" element={<PrivateRoute><QuizPage /></PrivateRoute>} />
                   <Route path="/results/:certificationId" element={<ResultPage />} />

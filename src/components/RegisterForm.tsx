@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UserPlus, Lock, Mail, User, Github, Globe } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -17,26 +20,36 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { signUp } = useAuth();
+  const { toast } = useToast();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
+    
     try {
-      const res = await fetch('http://localhost:3001/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar.');
+      // Use the signUp function from AuthContext
+      await signUp(email, password, name);
+      
       setSuccess('Cadastro realizado com sucesso!');
+      toast({
+        title: "Conta criada",
+        description: "Sua conta foi criada com sucesso!",
+      });
+      
       setTimeout(() => {
         onSuccess();
       }, 1000);
     } catch (err: any) {
-      setError(err.message);
+      console.error("Registration error:", err);
+      setError(err.message || 'Erro ao cadastrar.');
+      toast({
+        title: "Erro no cadastro",
+        description: err.message || 'Erro ao cadastrar.',
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -55,13 +68,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         <form onSubmit={handleRegister} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">Nome Completo</Label>
               <div className="relative">
                 <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Enter your full name"
+                  placeholder="Digite seu nome completo"
                   className="pl-10"
                   required
                   value={name}
@@ -77,7 +90,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Digite seu email"
                   className="pl-10"
                   required
                   value={email}
@@ -87,13 +100,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Senha</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password"
+                  placeholder="Crie uma senha"
                   className="pl-10"
                   required
                   value={password}
@@ -105,13 +118,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             <div className="flex items-center space-x-2">
               <Checkbox id="terms" required />
               <Label htmlFor="terms" className="text-sm">
-                I agree to the{' '}
+                Eu concordo com os{' '}
                 <Button variant="link" className="text-cert-blue hover:text-cert-blue/90 p-0">
-                  Terms of Service
+                  Termos de Serviço
                 </Button>
-                {' '}and{' '}
+                {' '}e{' '}
                 <Button variant="link" className="text-cert-blue hover:text-cert-blue/90 p-0">
-                  Privacy Policy
+                  Política de Privacidade
                 </Button>
               </Label>
             </div>
@@ -149,7 +162,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
       <CardFooter className="text-center">
         <div className="text-sm text-gray-600 w-full">
-          Already have an account?{' '}
+          Já tem uma conta?{' '}
           <Button variant="link" className="text-cert-blue hover:text-cert-blue/90 p-0">
             Login
           </Button>

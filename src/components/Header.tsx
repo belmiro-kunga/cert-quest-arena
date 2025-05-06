@@ -80,13 +80,13 @@ const Header = () => {
         <Button
           variant="ghost"
           className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-          onClick={() => setIsLoginOpen(true)}
+          onClick={() => navigate('/login')}
         >
           Login
         </Button>
         <Button
           className="bg-blue-600 hover:bg-blue-700 text-white"
-          onClick={() => setIsRegisterOpen(true)}
+          onClick={() => navigate('/signup')}
         >
           Cadastrar
         </Button>
@@ -110,8 +110,8 @@ const Header = () => {
             <Link to="/exams" className="text-gray-600 hover:text-gray-900 transition-colors">
               Exams
             </Link>
-            <Link to="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
-              About
+            <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Dashboard
             </Link>
           </nav>
 
@@ -151,7 +151,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - updated with dashboard link */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-4 mb-4">
@@ -170,11 +170,11 @@ const Header = () => {
                 Exams
               </Link>
               <Link 
-                to="/about" 
+                to="/dashboard" 
                 className="text-gray-600 hover:text-gray-900 transition-colors px-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                About
+                Dashboard
               </Link>
             </nav>
             <div className="flex flex-col space-y-2 px-2">

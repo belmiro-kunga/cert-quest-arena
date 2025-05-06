@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,15 +34,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     setError('');
 
     try {
+      console.log("Logging in user:", email);
       await signIn(email, password);
       
+      console.log("Login successful, redirecting...");
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/profile');
+        navigate('/dashboard');
       }
     } catch (err) {
       const error = err as AuthError;
+      console.error("Login error:", error);
       setError(error.message);
       
       // Mensagens de erro mais amigáveis
@@ -53,6 +57,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Admin and test user login shortcuts
+  const loginAsAdmin = () => {
+    setEmail('admin@certquest.com');
+    setPassword('admin123');
+  };
+  
+  const loginAsUser = () => {
+    setEmail('user@certquest.com');
+    setPassword('user123');
   };
 
   return (
@@ -113,6 +128,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           {error}
         </div>
       )}
+      
+      <div className="border-t border-gray-200 pt-4 mt-4">
+        <p className="text-sm text-gray-600 mb-2 text-center">Usuários de demonstração:</p>
+        <div className="grid grid-cols-2 gap-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm"
+            onClick={loginAsAdmin}
+            className="text-xs"
+          >
+            Admin: admin@certquest.com
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm"
+            onClick={loginAsUser}
+            className="text-xs"
+          >
+            Usuário: user@certquest.com
+          </Button>
+        </div>
+      </div>
 
       <div className="mt-4 text-center text-sm text-gray-500">
         <span>Não tem uma conta? </span>

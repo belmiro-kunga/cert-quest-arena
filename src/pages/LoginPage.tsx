@@ -1,15 +1,28 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LoginForm from '@/components/LoginForm';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  
+  // Get the redirect path from location state or default to dashboard
+  const from = location.state?.from || '/dashboard';
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
   
   const handleLoginSuccess = () => {
-    navigate('/profile');
+    navigate(from, { replace: true });
   };
 
   return (
@@ -32,9 +45,6 @@ const LoginPage = () => {
             </CardHeader>
             <CardContent>
               <LoginForm onSuccess={handleLoginSuccess} />
-              <div className="mt-4 text-center text-sm text-gray-500">
-                <p>Não tem uma conta? <a href="#" className="text-cert-blue font-medium hover:underline">Cadastre-se</a></p>
-              </div>
             </CardContent>
           </Card>
         </div>
