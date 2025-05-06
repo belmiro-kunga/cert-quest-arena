@@ -1,6 +1,8 @@
 
 // React e Hooks
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useAdminPage } from '@/hooks/useAdminPage';
 
 // Componentes de Layout
@@ -17,7 +19,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Separator } from "@/components/ui/separator";
 
 // Ícones
-import { Settings, Plus, Edit, Trash, Trophy, Book, Target, Users, TrendingUp, Award, Coins, Sword, Star, Calendar, Gift, Gamepad } from 'lucide-react';
+import { Settings, Plus, Edit, Trash, Trophy, Book, Target, Users, TrendingUp, Award, Coins, Sword, Star, Calendar, Gift, Gamepad, CreditCard } from 'lucide-react';
 
 // Componentes de Gráficos
 import {
@@ -49,9 +51,11 @@ import { CompletionRate } from '@/components/achievements/CompletionRate';
 // Componentes Admin
 import { Overview } from '@/components/admin/Overview';
 import { Students } from '@/components/admin/Students';
+import PaymentConfig from '@/components/admin/PaymentConfig';
 import { Exams } from '@/components/admin/Exams';
 import { Coupons } from '@/components/admin/Coupons';
 import { ContentManager } from '@/components/admin/ContentManager';
+import Payments from '@/components/admin/Payments';
 
 // Tipos
 import { Student, Exam, AchievementType, Coupon } from '@/types/admin';
@@ -204,7 +208,15 @@ const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
   applicableExams: [] // Add the required field
 }));
 
-const AdminPage: React.FC = () => {
+const AdminPage = () => {
+  const navigate = useNavigate();
+  const { adminSignOut } = useAdminAuth();
+
+  const handleLogout = () => {
+    adminSignOut();
+    navigate('/admin/login');
+  };
+
   const {
     state: { activeTab, exams, isLoading },
     actions: {
@@ -222,24 +234,44 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <div className="bg-white shadow">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-semibold text-gray-800">Painel Administrativo</h1>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="text-cert-blue hover:text-cert-blue/90 hover:bg-cert-blue/10"
+            >
+              Ir para Home
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              Sair do Admin
+            </Button>
+          </div>
+        </div>
+      </div>
       <main className="flex-grow py-8 px-4">
         <div className="container mx-auto max-w-7xl">
           <h1 className="text-3xl font-bold mb-8">Painel de Administração</h1>
           
           <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-11">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="students">Alunos</TabsTrigger>
-              <TabsTrigger value="exams">Simulados</TabsTrigger>
-              <TabsTrigger value="questions">Questões</TabsTrigger>
-              <TabsTrigger value="content">Conteúdo</TabsTrigger>
-              <TabsTrigger value="coupons">Cupons</TabsTrigger>
-              <TabsTrigger value="study">Sistema de Estudos</TabsTrigger>
-              <TabsTrigger value="gamification">Gamificação</TabsTrigger>
-              <TabsTrigger value="achievements">Conquistas</TabsTrigger>
-              <TabsTrigger value="analytics">Análises</TabsTrigger>
-              <TabsTrigger value="settings">Configurações</TabsTrigger>
+            <TabsList className="inline-flex w-full overflow-x-auto whitespace-nowrap gap-2 bg-transparent p-0 no-scrollbar">
+              <TabsTrigger value="overview" className="shrink-0 px-4">Visão Geral</TabsTrigger>
+              <TabsTrigger value="students" className="shrink-0 px-4">Alunos</TabsTrigger>
+              <TabsTrigger value="exams" className="shrink-0 px-4">Simulados</TabsTrigger>
+              <TabsTrigger value="questions" className="shrink-0 px-4">Questões</TabsTrigger>
+              <TabsTrigger value="content" className="shrink-0 px-4">Conteúdo</TabsTrigger>
+              <TabsTrigger value="coupons" className="shrink-0 px-4">Cupons</TabsTrigger>
+              <TabsTrigger value="study" className="shrink-0 px-4">Sistema de Estudos</TabsTrigger>
+              <TabsTrigger value="gamification" className="shrink-0 px-4">Gamificação</TabsTrigger>
+              <TabsTrigger value="achievements" className="shrink-0 px-4">Conquistas</TabsTrigger>
+              <TabsTrigger value="payments" className="shrink-0 px-4">Pagamentos</TabsTrigger>
+              <TabsTrigger value="settings" className="shrink-0 px-4">Configurações</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -285,6 +317,10 @@ const AdminPage: React.FC = () => {
                 onSelect={handleCouponSelect}
                 onDelete={handleCouponDelete}
               />
+            </TabsContent>
+
+            <TabsContent value="payments">
+              <Payments />
             </TabsContent>
 
             {/* Nova aba de Sistema de Estudos */}
@@ -1149,7 +1185,26 @@ const AdminPage: React.FC = () => {
               </div>
             </TabsContent>
 
-            {/* Outras abas mantidas como estão */}
+            <TabsContent value="settings">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Configurações de Pagamento</CardTitle>
+                        <CardDescription>
+                          Gerencie os métodos de pagamento e suas configurações
+                        </CardDescription>
+                      </div>
+                      <CreditCard className="h-6 w-6 text-cert-blue" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <PaymentConfig />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
       </main>

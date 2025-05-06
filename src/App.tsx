@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from '@/contexts/CartContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { AdminAuthProvider } from '@/contexts/AdminAuthContext';
+import { PaymentConfigProvider } from '@/contexts/PaymentConfigContext';
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CertificationsPage from "./pages/CertificationsPage";
@@ -18,6 +20,8 @@ import ExamPage from "./pages/ExamPage";
 import ResultPage from "./pages/ResultPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPage from "./pages/AdminPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminRoute from "./components/auth/AdminRoute";
 import CheckoutPage from '@/pages/CheckoutPage';
 import CartPage from '@/pages/CartPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -61,8 +65,10 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <CartProvider>
-            <PaymentProvider>
+          <AdminAuthProvider>
+            <PaymentConfigProvider>
+              <CartProvider>
+                <PaymentProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter>
@@ -75,7 +81,8 @@ const App = () => {
                   <Route path="/results/:certificationId" element={<ResultPage />} />
                   <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                   <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin/login" element={<AdminLoginPage />} />
+                  <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/exams/:examId" element={<ExamPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
@@ -86,8 +93,10 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
-            </PaymentProvider>
-          </CartProvider>
+                </PaymentProvider>
+              </CartProvider>
+            </PaymentConfigProvider>
+          </AdminAuthProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

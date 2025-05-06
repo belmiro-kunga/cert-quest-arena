@@ -21,6 +21,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
 const paymentController = require('./controllers/paymentController');
 
+// Rotas de pagamento
+app.get('/api/admin/payments', auth, requireRole('admin'), paymentController.getPayments);
+app.post('/api/payment/create-session', auth, paymentController.createPaymentSession);
+app.post('/api/payment/confirm', auth, paymentController.confirmPayment);
+app.post('/api/payment/webhook', paymentController.handleWebhook);
+
 // Middleware para controle de acesso por papel
 function requireRole(role) {
   return (req, res, next) => {

@@ -6,6 +6,38 @@ const paypal = require('@paypal/checkout-server-sdk');
 const pool = mysql.createPool(dbConfig);
 
 const paymentController = {
+    // Buscar todos os pagamentos
+    async getPayments(req, res) {
+        try {
+            const connection = await pool.getConnection();
+            
+            const [payments] = await connection.execute(`
+                SELECT 
+                    pt.id,
+                    pt.order_id as orderId,
+                    u.name as userName,
+                    pt.amount,
+                    pt.status,
+                    pm.code as method,
+                    pt.created_at as createdAt,
+                    pt.updated_at as updatedAt,
+                    pt.transaction_id as transactionId
+                FROM payment_transactions pt
+                JOIN orders o ON pt.order_id = o.id
+                JOIN users u ON o.user_id = u.id
+                JOIN payment_methods pm ON pt.payment_method_id = pm.id
+                ORDER BY pt.created_at DESC
+            `);
+
+            connection.release();
+            res.json(payments);
+
+        } catch (error) {
+            console.error('Erro ao buscar pagamentos:', error);
+            res.status(500).json({ error: 'Erro ao buscar pagamentos' });
+        }
+    },
+
     // Criar sessão de pagamento
     async createPaymentSession(req, res) {
         const { method, orderId, amount } = req.body;

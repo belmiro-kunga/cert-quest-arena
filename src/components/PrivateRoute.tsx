@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, adminOnly = false }) => {
   const { user, profile, loading } = useAuth();
+  const { isAuthenticated: isAdminAuthenticated } = useAdminAuth();
   const location = useLocation();
   
   console.log("PrivateRoute check:", { 
@@ -31,14 +33,14 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, adminOnly = false
     );
   }
   
+  // Se o usuário está logado como admin, não deve acessar páginas de usuário normal
+  if (isAdminAuthenticated) {
+    return <Navigate to="/admin" replace />;
+  }
+
   // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
-  }
-  
-  // Check admin access if adminOnly is true
-  if (adminOnly && profile?.role !== 'admin' && profile?.plan_type !== 'enterprise') {
-    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
