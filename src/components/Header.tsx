@@ -26,10 +26,10 @@ const Header = () => {
   const itemCount = items.length;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleLogout = () => {
-    logout();
+    signOut();
     navigate('/');
   };
 
@@ -40,7 +40,7 @@ const Header = () => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={user.photo} alt={user.name} />
+                <AvatarImage src={user.photo} alt={user.name || 'User'} />
                 <AvatarFallback className="bg-blue-600 text-white">
                   {user.name?.charAt(0)?.toUpperCase() || 'U'}
                 </AvatarFallback>
@@ -50,7 +50,7 @@ const Header = () => {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.name}</p>
+                <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
                 <p className="text-xs leading-none text-muted-foreground">
                   {user.email}
                 </p>
@@ -182,12 +182,12 @@ const Header = () => {
                 <>
                   <div className="flex items-center space-x-2 px-2 py-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.photo} alt={user.name} />
+                      <AvatarImage src={user.photo} alt={user.name || 'User'} />
                       <AvatarFallback className="bg-blue-600 text-white">
                         {user.name?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-gray-700 font-medium">{user.name}</span>
+                    <span className="text-gray-700 font-medium">{user.name || 'User'}</span>
                   </div>
                   <Button
                     variant="ghost"

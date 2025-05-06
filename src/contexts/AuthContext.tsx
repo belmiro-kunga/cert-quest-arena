@@ -1,10 +1,16 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as SupabaseUser, AuthError } from '@supabase/supabase-js';
 import { supabase, Profile, getProfile } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
+// Extended user interface that includes profile data
 interface AuthUser extends SupabaseUser {
-  profile?: Profile;
+  name?: string;
+  photo?: string;
+  email?: string;
+  planType?: string;
+  attemptsLeft?: number;
 }
 
 interface AuthContextType {
@@ -40,6 +46,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const profile = await getProfile(userId);
       setProfile(profile);
+      
+      // Update our AuthUser with profile data
+      if (user) {
+        setUser({
+          ...user,
+          name: profile.name,
+          photo: profile.photo_url,
+          planType: profile.plan_type,
+          attemptsLeft: profile.attempts_left
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -175,6 +192,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const updatedProfile = await updateProfile(user.id, updates);
       setProfile(updatedProfile);
+      
+      // Update the user object with new profile data if relevant
+      setUser(prev => {
+        if (!prev) return null;
+        
+        return {
+          ...prev,
+          name: updates.name || prev.name,
+          photo: updates.photo_url || prev.photo
+        };
+      });
       
       toast({
         title: "Perfil atualizado",

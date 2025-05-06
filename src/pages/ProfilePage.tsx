@@ -51,7 +51,7 @@ const ProfilePage = () => {
         name: authUser.name || prev.name,
         email: authUser.email || prev.email,
         photo: authUser.photo || prev.photo,
-        phone: authUser.phone || prev.phone,
+        phone: authUser.email || prev.phone,
         planType: authUser.planType || prev.planType,
         attemptsLeft: authUser.attemptsLeft || prev.attemptsLeft,
       }));
