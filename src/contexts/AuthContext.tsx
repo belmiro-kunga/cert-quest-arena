@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as SupabaseUser, AuthError } from '@supabase/supabase-js';
-import { supabase, Profile, getProfile } from '@/lib/supabase';
+import { supabase, Profile, getProfile, updateProfile } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
 // Extended user interface that includes profile data
