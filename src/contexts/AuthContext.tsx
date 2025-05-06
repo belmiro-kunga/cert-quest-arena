@@ -20,8 +20,14 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{
+    user: SupabaseUser | null;
+    session: Session | null;
+  } | undefined>;
+  signUp: (email: string, password: string, name: string) => Promise<{
+    user: SupabaseUser | null;
+    session: Session | null;
+  } | undefined>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
   updateUserProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -32,8 +38,8 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   session: null,
   loading: true,
-  signIn: async () => {},
-  signUp: async () => {},
+  signIn: async () => undefined,
+  signUp: async () => undefined,
   signOut: async () => {},
   isAdmin: () => false,
   updateUserProfile: async () => {},
@@ -62,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           photo: profile.photo_url,
           planType: profile.plan_type,
           attemptsLeft: profile.attempts_left,
-          role: profile.role as 'admin' | 'user' || 'user'
+          role: profile.role
         });
       }
     } catch (error) {
@@ -81,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(session);
     
     if (session?.user) {
-      setUser(session.user);
+      setUser(session.user as AuthUser);
       // Use setTimeout to avoid potential Supabase client deadlock
       setTimeout(() => {
         fetchProfile(session.user.id);
@@ -112,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // The onAuthStateChange will handle this
         if (session && session.user && !user) {
           setSession(session);
-          setUser(session.user);
+          setUser(session.user as AuthUser);
           fetchProfile(session.user.id);
         }
         
