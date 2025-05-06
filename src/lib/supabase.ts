@@ -1,14 +1,12 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Use the same configuration as the other Supabase client
+const SUPABASE_URL = "https://zspfwjmesflujextcvco.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcGZ3am1lc2ZsdWpleHRjdmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1MjcyOTcsImV4cCI6MjA2MjEwMzI5N30.DGGoB0lAtYKlz8vYtmPeMoXIIL1oUnNMVF4Jv5vY7Mg";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase URL and Anon Key must be defined in environment variables.');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+console.log("Creating Supabase client in lib/supabase.ts with URL:", SUPABASE_URL);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Tipos úteis para o sistema
 export type Profile = {
