@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
@@ -21,11 +20,16 @@ const Index = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Console log para depuração
+  console.log("Index está renderizando");
+  
   // Buscar simulados do servidor
   useEffect(() => {
     const getExams = async () => {
       try {
+        console.log("Tentando buscar exames");
         const examData = await fetchExams();
+        console.log("Exames obtidos:", examData);
         setExams(examData);
       } catch (error) {
         console.error('Erro ao buscar simulados:', error);
@@ -36,7 +40,7 @@ const Index = () => {
     
     getExams();
   }, []);
-  
+
   // Redirecionar para o dashboard se estiver logado
   useEffect(() => {
     const user = localStorage.getItem('user');
