@@ -1,37 +1,58 @@
+
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Payment } from '@/types/payment';
-import axios from 'axios';
+import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/utils';
 
 export default function Payments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  // Adiciona o token de autenticação em todas as requisições
-  api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPayments = async () => {
     try {
-      const response = await api.get('/api/admin/payments');
-      setPayments(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar pagamentos:', error);
+      setIsLoading(true);
+      // Fetch payment data from Supabase
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          id,
+          amount,
+          status,
+          method,
+          created_at,
+          updated_at,
+          order_id,
+          transaction_id,
+          user_id,
+          profiles(name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to match Payment type
+      const formattedPayments: Payment[] = data.map(payment => ({
+        id: payment.id,
+        userId: payment.user_id,
+        userName: payment.profiles?.name || 'Unknown User',
+        amount: payment.amount,
+        status: payment.status as 'pending' | 'completed' | 'failed',
+        method: payment.method,
+        createdAt: payment.created_at,
+        updatedAt: payment.updated_at,
+        orderId: payment.order_id || undefined,
+        transactionId: payment.transaction_id || undefined
+      }));
+
+      setPayments(formattedPayments);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching payments:', err);
+      setError('Não foi possível carregar os pagamentos');
       toast.error('Não foi possível carregar os pagamentos');
     } finally {
       setIsLoading(false);
@@ -71,34 +92,50 @@ export default function Payments() {
         <CardTitle>Pagamentos</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Usuário</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Método</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>ID da Transação</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {payments.map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell>{payment.id}</TableCell>
-                <TableCell>{payment.userName}</TableCell>
-                <TableCell>{formatCurrency(payment.amount)}</TableCell>
-                <TableCell className={getStatusColor(payment.status)}>
-                  {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                </TableCell>
-                <TableCell>{payment.method}</TableCell>
-                <TableCell>{formatDate(payment.createdAt)}</TableCell>
-                <TableCell>{payment.transactionId || '-'}</TableCell>
+        {isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center p-4 text-red-500">{error}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Usuário</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Método</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>ID da Transação</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {payments.length > 0 ? (
+                payments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell className="font-mono text-xs">{payment.id}</TableCell>
+                    <TableCell>{payment.userName}</TableCell>
+                    <TableCell>{formatCurrency(payment.amount)}</TableCell>
+                    <TableCell className={getStatusColor(payment.status)}>
+                      {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                    </TableCell>
+                    <TableCell>{payment.method}</TableCell>
+                    <TableCell>{formatDate(payment.createdAt)}</TableCell>
+                    <TableCell>{payment.transactionId || '-'}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Nenhum pagamento registrado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

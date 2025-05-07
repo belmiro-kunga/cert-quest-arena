@@ -1,3 +1,4 @@
+
 export interface Payment {
   id: string;
   userId: string;
@@ -9,4 +10,10 @@ export interface Payment {
   updatedAt: string;
   orderId?: string;
   transactionId?: string;
+}
+
+export interface PaymentWithProfile extends Payment {
+  profile?: {
+    name: string;
+  }
 }
