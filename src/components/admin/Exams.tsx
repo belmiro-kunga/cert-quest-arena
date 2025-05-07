@@ -3,10 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Plus, Search, Trash, ListChecks } from 'lucide-react';
+import { Edit, Plus, Search, Trash } from 'lucide-react';
 import { Exam } from '@/types/admin';
 import { ExamForm } from './ExamForm';
-import { QuestionsList } from './QuestionsList';
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
@@ -38,7 +37,7 @@ export const Exams: React.FC<ExamsProps> = ({
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
-  const [showQuestions, setShowQuestions] = useState(false);
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
   const { toast } = useToast();
@@ -86,12 +85,7 @@ export const Exams: React.FC<ExamsProps> = ({
 
   const handleCloseDialog = () => {
     setSelectedExam(null);
-    setShowQuestions(false);
-  };
 
-  const handleManageQuestions = (exam: Exam) => {
-    setSelectedExam(exam);
-    setShowQuestions(true);
   };
 
   const handleDeleteExam = async () => {
@@ -205,14 +199,7 @@ export const Exams: React.FC<ExamsProps> = ({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleManageQuestions(exam)}
-                          title="Gerenciar questões"
-                        >
-                          <ListChecks className="h-4 w-4" />
-                        </Button>
+
                         <Button
                           variant="ghost"
                           size="icon"
@@ -243,13 +230,6 @@ export const Exams: React.FC<ExamsProps> = ({
         />
       )}
 
-      {showQuestions && selectedExam && (
-        <QuestionsList
-          exam={selectedExam}
-          open={showQuestions}
-          onClose={handleCloseDialog}
-        />
-      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

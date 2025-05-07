@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -8,8 +8,6 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Book,
-  ClipboardList,
   Percent,
   GraduationCap,
   Star,
@@ -29,8 +27,6 @@ export function AdminNavigation({ activeTab, onTabChange }: AdminNavigationProps
     { value: "overview", label: "Visão Geral", icon: LayoutDashboard },
     { value: "students", label: "Alunos", icon: Users },
     { value: "exams", label: "Simulados", icon: FileText },
-    { value: "questions", label: "Questões", icon: ClipboardList },
-    { value: "content", label: "Conteúdo", icon: Book },
     { value: "coupons", label: "Cupons", icon: Percent },
     { value: "study", label: "Sistema de Estudos", icon: GraduationCap },
     { value: "gamification", label: "Gamificação", icon: Star },

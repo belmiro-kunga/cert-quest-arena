@@ -1,5 +1,6 @@
 // React e Hooks
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { api } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +22,6 @@ import { Students } from '@/components/admin/Students';
 import PaymentConfig from '@/components/admin/PaymentConfig';
 import { Exams } from '@/components/admin/Exams';
 import { Coupons } from '@/components/admin/Coupons';
-import { ContentManager } from '@/components/admin/ContentManager';
 import Payments from '@/components/admin/Payments';
 
 // Ícones
@@ -194,7 +194,10 @@ const mockExamsData: Exam[] = MOCK_DATA.exams.map(exam => ({
   purchases: 250,
   rating: 4.7,
   passingScore: 70,
-  price: exam.price || 0 // Ensure price is provided
+  price: exam.price || 0,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  discountExpiresAt: exam.discountExpiresAt ? exam.discountExpiresAt.toISOString() : null
 }));
 
 // Update the mock data to match the required fields in the Coupon type
@@ -382,11 +385,6 @@ const AdminPage = () => {
                   onExamUpdated={handleExamUpdated}
                 />
               )}
-            </TabsContent>
-
-            {/* Nova aba de Gerenciamento de Conteúdo */}
-            <TabsContent value="content">
-              <ContentManager />
             </TabsContent>
 
             <TabsContent value="coupons">
