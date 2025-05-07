@@ -1,4 +1,3 @@
-
 // React e Hooks
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,13 +9,18 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 // Componentes UI Base
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Separator } from "@/components/ui/separator";
+import { AdminNavigation } from '@/components/admin/AdminNavigation';
+
+// Componentes Admin
+import { Overview } from '@/components/admin/Overview';
+import { Students } from '@/components/admin/Students';
+import PaymentConfig from '@/components/admin/PaymentConfig';
+import { Exams } from '@/components/admin/Exams';
+import { Coupons } from '@/components/admin/Coupons';
+import { ContentManager } from '@/components/admin/ContentManager';
+import Payments from '@/components/admin/Payments';
 
 // Ícones
 import { Settings, Plus, Edit, Trash, Trophy, Book, Target, Users, TrendingUp, Award, Coins, Sword, Star, Calendar, Gift, Gamepad, CreditCard } from 'lucide-react';
@@ -48,14 +52,12 @@ import { AchievementStats } from '@/components/achievements/AchievementStats';
 import { AchievementMetrics } from '@/components/achievements/AchievementMetrics';
 import { CompletionRate } from '@/components/achievements/CompletionRate';
 
-// Componentes Admin
-import { Overview } from '@/components/admin/Overview';
-import { Students } from '@/components/admin/Students';
-import PaymentConfig from '@/components/admin/PaymentConfig';
-import { Exams } from '@/components/admin/Exams';
-import { Coupons } from '@/components/admin/Coupons';
-import { ContentManager } from '@/components/admin/ContentManager';
-import Payments from '@/components/admin/Payments';
+// Componentes UI Base
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Separator } from "@/components/ui/separator";
 
 // Tipos
 import { Student, Exam, AchievementType, Coupon } from '@/types/admin';
@@ -259,21 +261,10 @@ const AdminPage = () => {
         <div className="container mx-auto max-w-7xl">
           <h1 className="text-3xl font-bold mb-8">Painel de Administração</h1>
           
-          <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="space-y-4">
-            <TabsList className="inline-flex w-full overflow-x-auto whitespace-nowrap gap-2 bg-transparent p-0 no-scrollbar">
-              <TabsTrigger value="overview" className="shrink-0 px-4">Visão Geral</TabsTrigger>
-              <TabsTrigger value="students" className="shrink-0 px-4">Alunos</TabsTrigger>
-              <TabsTrigger value="exams" className="shrink-0 px-4">Simulados</TabsTrigger>
-              <TabsTrigger value="questions" className="shrink-0 px-4">Questões</TabsTrigger>
-              <TabsTrigger value="content" className="shrink-0 px-4">Conteúdo</TabsTrigger>
-              <TabsTrigger value="coupons" className="shrink-0 px-4">Cupons</TabsTrigger>
-              <TabsTrigger value="study" className="shrink-0 px-4">Sistema de Estudos</TabsTrigger>
-              <TabsTrigger value="gamification" className="shrink-0 px-4">Gamificação</TabsTrigger>
-              <TabsTrigger value="achievements" className="shrink-0 px-4">Conquistas</TabsTrigger>
-              <TabsTrigger value="payments" className="shrink-0 px-4">Pagamentos</TabsTrigger>
-              <TabsTrigger value="settings" className="shrink-0 px-4">Configurações</TabsTrigger>
-            </TabsList>
-
+          {/* Replaced the inline TabsList with our new AdminNavigation component */}
+          <AdminNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+          
+          <Tabs value={activeTab} className="space-y-4">
             <TabsContent value="overview">
               <Overview
                 performanceData={MOCK_DATA.performance}
