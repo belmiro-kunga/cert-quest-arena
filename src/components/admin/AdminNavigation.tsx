@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Percent,
   GraduationCap,
+  Star,
   Award,
   CreditCard,
   Settings
