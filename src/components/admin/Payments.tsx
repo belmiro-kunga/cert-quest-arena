@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Payment } from '@/types/payment';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchPayments } from '@/services/adminService';
 import { formatCurrency } from '@/lib/utils';
 
 export default function Payments() {
@@ -12,43 +11,11 @@ export default function Payments() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPayments = async () => {
+  const loadPayments = async () => {
     try {
       setIsLoading(true);
-      // Fetch payment data from Supabase
-      const { data, error } = await supabase
-        .from('payments')
-        .select(`
-          id,
-          amount,
-          status,
-          method,
-          created_at,
-          updated_at,
-          order_id,
-          transaction_id,
-          user_id,
-          profiles!payments_user_id_fkey(name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Transform data to match Payment type
-      const formattedPayments: Payment[] = data.map(payment => ({
-        id: payment.id,
-        userId: payment.user_id,
-        userName: payment.profiles?.name || 'Unknown User',
-        amount: payment.amount,
-        status: payment.status as 'pending' | 'completed' | 'failed',
-        method: payment.method,
-        createdAt: payment.created_at,
-        updatedAt: payment.updated_at,
-        orderId: payment.order_id || undefined,
-        transactionId: payment.transaction_id || undefined
-      }));
-
-      setPayments(formattedPayments);
+      const paymentsData = await fetchPayments();
+      setPayments(paymentsData);
       setError(null);
     } catch (err) {
       console.error('Error fetching payments:', err);
@@ -60,7 +27,7 @@ export default function Payments() {
   };
 
   useEffect(() => {
-    fetchPayments();
+    loadPayments();
   }, []);
 
   const getStatusColor = (status: string) => {

@@ -1,22 +1,22 @@
 
 import React, { createContext, useContext } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Profile } from '@/types/user';
+import { Profile, EnhancedUser } from '@/types/user';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 interface AuthContextType {
-  user: User | null;
+  user: EnhancedUser | null;
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{
-    user: User | null;
+    user: any | null;
     session: Session | null;
   } | undefined>;
   signUp: (email: string, password: string, name: string) => Promise<{
-    user: User | null;
+    user: any | null;
     session: Session | null;
   } | undefined>;
   signOut: () => Promise<void>;

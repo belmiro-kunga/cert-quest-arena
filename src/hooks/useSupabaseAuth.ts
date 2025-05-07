@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Profile } from '@/types/user';
+import { Profile, EnhancedUser } from '@/types/user';
 
 export function useSupabaseAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -122,7 +122,7 @@ export function useSupabaseAuth() {
   }
 
   // Create a merged user object that includes profile data
-  const enhancedUser = user && profile ? {
+  const enhancedUser: EnhancedUser | null = user && profile ? {
     ...user,
     name: profile.name,
     photo: profile.photo_url,

@@ -4,8 +4,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { EnhancedUser } from '@/types/user';
 
-// Import our new components
+// Import our components
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import ProfileTabTriggers from '@/components/profile/ProfileTabTriggers';
 import ProfileTab from '@/components/profile/tabs/ProfileTab';
