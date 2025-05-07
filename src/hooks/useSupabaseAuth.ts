@@ -123,12 +123,18 @@ export function useSupabaseAuth() {
 
   // Create a merged user object that includes profile data
   const enhancedUser: EnhancedUser | null = user && profile ? {
-    ...user,
+    id: user.id,
+    email: user.email || '', // Ensure email is never undefined
     name: profile.name,
     photo: profile.photo_url,
     planType: profile.plan_type,
     attemptsLeft: profile.attempts_left,
-    role: profile.role
+    role: profile.role,
+    // Include other user properties
+    aud: user.aud,
+    app_metadata: user.app_metadata,
+    user_metadata: user.user_metadata,
+    created_at: user.created_at
   } : null;
 
   return {

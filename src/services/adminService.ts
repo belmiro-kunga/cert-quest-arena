@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Payment } from '@/types/payment';
 import { Student } from '@/types/admin';
@@ -16,7 +17,7 @@ export const fetchPayments = async (): Promise<Payment[]> => {
         order_id,
         transaction_id,
         user_id,
-        profiles!payments_user_id_fkey(name)
+        profiles(name)
       `)
       .order('created_at', { ascending: false });
 

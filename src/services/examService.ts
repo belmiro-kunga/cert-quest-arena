@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 const convertDatesToStrings = (examData: any) => {
@@ -9,7 +10,21 @@ const convertDatesToStrings = (examData: any) => {
   };
 };
 
-export const createExamService = async (examData: any) => {
+export const fetchExams = async () => {
+  const { data, error } = await supabase
+    .from('exams')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching exams:', error);
+    throw error;
+  }
+
+  return data || [];
+};
+
+export const createExam = async (examData: any) => {
   const formattedData = convertDatesToStrings(examData);
   
   const { data, error } = await supabase
@@ -26,7 +41,7 @@ export const createExamService = async (examData: any) => {
   return data;
 };
 
-export const updateExamService = async (id: string, examData: any) => {
+export const updateExam = async (id: string, examData: any) => {
   const formattedData = convertDatesToStrings(examData);
   
   const { data, error } = await supabase
@@ -42,4 +57,18 @@ export const updateExamService = async (id: string, examData: any) => {
   }
 
   return data;
+};
+
+export const deleteExam = async (id: string) => {
+  const { error } = await supabase
+    .from('exams')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting exam:', error);
+    throw error;
+  }
+
+  return true;
 };
