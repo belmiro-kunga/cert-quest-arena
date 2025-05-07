@@ -17,7 +17,7 @@ export const fetchPayments = async (): Promise<Payment[]> => {
         order_id,
         transaction_id,
         user_id,
-        profiles(name)
+        profiles:user_id(name)
       `)
       .order('created_at', { ascending: false });
 

@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Exam } from '@/types/admin';
 
 const convertDatesToStrings = (examData: any) => {
   return {
@@ -10,7 +11,27 @@ const convertDatesToStrings = (examData: any) => {
   };
 };
 
-export const fetchExams = async () => {
+// Transform database exam to match Exam type
+const transformExamData = (exam: any): Exam => {
+  return {
+    id: exam.id,
+    title: exam.title,
+    description: exam.description || '',
+    questions: [], // Default empty array since questions are loaded separately
+    duration: exam.duration,
+    passingScore: exam.passing_score,
+    price: exam.price,
+    discountPrice: exam.discount_price,
+    discountPercentage: exam.discount_percentage,
+    discountExpiresAt: exam.discount_expires_at ? new Date(exam.discount_expires_at) : null,
+    questionsCount: exam.questions_count,
+    difficulty: exam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
+    purchases: exam.purchases,
+    rating: exam.rating
+  };
+};
+
+export const fetchExams = async (): Promise<Exam[]> => {
   const { data, error } = await supabase
     .from('exams')
     .select('*')
@@ -21,10 +42,10 @@ export const fetchExams = async () => {
     throw error;
   }
 
-  return data || [];
+  return (data || []).map(transformExamData);
 };
 
-export const createExam = async (examData: any) => {
+export const createExam = async (examData: any): Promise<Exam> => {
   const formattedData = convertDatesToStrings(examData);
   
   const { data, error } = await supabase
@@ -38,10 +59,10 @@ export const createExam = async (examData: any) => {
     throw error;
   }
 
-  return data;
+  return transformExamData(data);
 };
 
-export const updateExam = async (id: string, examData: any) => {
+export const updateExam = async (id: string, examData: any): Promise<Exam> => {
   const formattedData = convertDatesToStrings(examData);
   
   const { data, error } = await supabase
@@ -56,10 +77,10 @@ export const updateExam = async (id: string, examData: any) => {
     throw error;
   }
 
-  return data;
+  return transformExamData(data);
 };
 
-export const deleteExam = async (id: string) => {
+export const deleteExam = async (id: string): Promise<boolean> => {
   const { error } = await supabase
     .from('exams')
     .delete()
