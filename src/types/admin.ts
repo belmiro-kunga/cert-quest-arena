@@ -1,11 +1,15 @@
-
 export interface Student {
   id: string;
   name: string;
   email: string;
+  provider?: 'email' | 'google' | 'github';
+  plan_type: 'free' | 'basic' | 'premium';
+  attempts_left: number;
   progress: number;
   achievements: number;
   lastActive: string;
+  exams: string[];
+  created_at: string;
 }
 
 export interface Achievement {
@@ -21,26 +25,126 @@ export interface Exam {
   id: string;
   title: string;
   description: string;
-  questions: Question[];
-  duration: number;
-  passingScore: number;
-  price: number; 
+  price: number;
   discountPrice?: number | null;
   discountPercentage?: number | null;
-  discountExpiresAt?: Date | null;
-  questionsCount: number; 
+  discountExpiresAt?: string | null;
+  questionsCount: number;
+  duration: number; // em minutos
   difficulty: 'Fácil' | 'Médio' | 'Difícil';
-  purchases: number; 
-  rating: number; 
+  passingScore: number; // porcentagem
+  purchases: number;
+  rating: number;
+  questions: Question[];
+  createdAt: string;
+  updatedAt: string; 
 }
 
-export interface Question {
+export type QuestionType = 
+  | 'multiple_choice'      // Múltipla escolha (várias respostas corretas)
+  | 'single_choice'        // Escolha única
+  | 'drag_and_drop'        // Arrastar e soltar
+  | 'practical_scenario'   // Cenário prático
+  | 'fill_in_blank'       // Preencher lacunas
+  | 'command_line'        // Comandos de terminal
+  | 'network_topology';    // Topologia de rede
+
+export interface BaseQuestion {
   id: string;
+  examId: string;
+  type: QuestionType;
   text: string;
-  options: string[];
-  correctAnswer: number;
   explanation: string;
+  category: string;
+  difficulty: 'Fácil' | 'Médio' | 'Difícil';
+  tags: string[];
+  points: number;
 }
+
+export interface MultipleChoiceQuestion extends BaseQuestion {
+  type: 'multiple_choice';
+  options: string[];
+  correctOptions: number[];
+}
+
+export interface SingleChoiceQuestion extends BaseQuestion {
+  type: 'single_choice';
+  options: string[];
+  correctOption: number;
+}
+
+export interface DragAndDropQuestion extends BaseQuestion {
+  type: 'drag_and_drop';
+  items: {
+    id: string;
+    text: string;
+    category: string;
+  }[];
+  correctPlacements: {
+    itemId: string;
+    targetCategory: string;
+  }[];
+}
+
+export interface PracticalScenarioQuestion extends BaseQuestion {
+  type: 'practical_scenario';
+  scenario: {
+    description: string;
+    initialState: any;
+    expectedOutcome: any;
+    validationSteps: {
+      description: string;
+      validator: string; // Função de validação serializada
+    }[];
+  };
+}
+
+export interface FillInBlankQuestion extends BaseQuestion {
+  type: 'fill_in_blank';
+  text: string;
+  blanks: {
+    id: string;
+    correctAnswers: string[];
+    caseSensitive: boolean;
+  }[];
+}
+
+export interface CommandLineQuestion extends BaseQuestion {
+  type: 'command_line';
+  environment: 'linux' | 'windows' | 'cisco_ios' | 'aws_cli';
+  initialState: string;
+  expectedCommands: string[];
+  validationScript: string;
+}
+
+export interface NetworkTopologyQuestion extends BaseQuestion {
+  type: 'network_topology';
+  topology: {
+    nodes: {
+      id: string;
+      type: 'router' | 'switch' | 'host' | 'firewall' | 'cloud';
+      config: any;
+    }[];
+    connections: {
+      from: string;
+      to: string;
+      type: 'ethernet' | 'serial' | 'fiber' | 'wireless';
+    }[];
+  };
+  tasks: {
+    description: string;
+    validator: string;
+  }[];
+}
+
+export type Question =
+  | MultipleChoiceQuestion
+  | SingleChoiceQuestion
+  | DragAndDropQuestion
+  | PracticalScenarioQuestion
+  | FillInBlankQuestion
+  | CommandLineQuestion
+  | NetworkTopologyQuestion;
 
 export type AchievementType = 'certification' | 'streak' | 'mastery' | 'special';
 

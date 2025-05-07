@@ -64,15 +64,15 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <AdminAuthProvider>
-            <PaymentConfigProvider>
-              <CartProvider>
-                <PaymentProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
+        <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <AdminAuthProvider>
+              <PaymentConfigProvider>
+                <CartProvider>
+                  <PaymentProvider>
+                    <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignUpPage />} />
@@ -91,13 +91,13 @@ const App = () => {
                   <Route path="/payment/failure" element={<PaymentResultPage />} />
                   <Route path="/payment/pending" element={<PaymentResultPage />} />
                   <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-                </PaymentProvider>
-              </CartProvider>
-            </PaymentConfigProvider>
-          </AdminAuthProvider>
-        </AuthProvider>
+                    </Routes>
+                  </PaymentProvider>
+                </CartProvider>
+              </PaymentConfigProvider>
+            </AdminAuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -1,5 +1,7 @@
 // React e Hooks
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useToast } from "@/components/ui/use-toast";
+import { api } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useAdminPage } from '@/hooks/useAdminPage';
@@ -183,7 +185,7 @@ const performanceData = MOCK_DATA.performance;
 const certificationsData = MOCK_DATA.achievements;
 
 // Update the mock data to match the required fields in the Exam type
-const mockExams: Exam[] = MOCK_DATA.exams.map(exam => ({
+const mockExamsData: Exam[] = MOCK_DATA.exams.map(exam => ({
   ...exam,
   questions: [],
   questionsCount: 65,
@@ -211,6 +213,84 @@ const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
 }));
 
 const AdminPage = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const { toast } = useToast();
+
+  // Buscar alunos e exames ao carregar a página
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [studentsData, examsData] = await Promise.all([
+          api.get('/api/admin/students'),
+          api.get('/api/admin/exams')
+        ]);
+        setStudents(studentsData.data);
+        setExams(examsData.data);
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar dados. Por favor, tente novamente.',
+          variant: 'destructive',
+        });
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Criar novo aluno
+  const handleCreateStudent = async (data: Partial<Student>) => {
+    try {
+      const response = await api.post('/api/admin/students', data);
+      setStudents(prev => [...prev, response.data]);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar aluno:', error);
+      throw error;
+    }
+  };
+
+  // Atualizar aluno
+  const handleUpdateStudent = async (id: string, data: Partial<Student>) => {
+    try {
+      const response = await api.put(`/api/admin/students/${id}`, data);
+      setStudents(prev =>
+        prev.map(student =>
+          student.id === id ? { ...student, ...response.data } : student
+        )
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar aluno:', error);
+      throw error;
+    }
+  };
+
+  // Excluir aluno
+  const handleDeleteStudent = async (id: string) => {
+    try {
+      await api.delete(`/api/admin/students/${id}`);
+      setStudents(prev => prev.filter(student => student.id !== id));
+    } catch (error) {
+      console.error('Erro ao excluir aluno:', error);
+      throw error;
+    }
+  };
+
+  // Inscrever aluno em simulado
+  const handleEnrollExam = async (studentId: string, examId: string) => {
+    try {
+      await api.post(`/api/admin/students/${studentId}/exams/${examId}`);
+      toast({
+        title: 'Sucesso',
+        description: 'Aluno inscrito no simulado com sucesso!',
+      });
+    } catch (error) {
+      console.error('Erro ao inscrever aluno:', error);
+      throw error;
+    }
+  };
   const navigate = useNavigate();
   const { adminSignOut } = useAdminAuth();
 
@@ -220,7 +300,7 @@ const AdminPage = () => {
   };
 
   const {
-    state: { activeTab, exams, isLoading },
+    state: { activeTab, adminExams, isLoading },
     actions: {
       handleTabChange,
       handleStudentSelect,
@@ -275,8 +355,15 @@ const AdminPage = () => {
 
             <TabsContent value="students">
               <Students
-                students={MOCK_DATA.students}
-                onSelect={handleStudentSelect}
+                students={students}
+                onCreateStudent={handleCreateStudent}
+                onUpdateStudent={handleUpdateStudent}
+                onDeleteStudent={handleDeleteStudent}
+                onEnrollExam={handleEnrollExam}
+                availableExams={exams.map(exam => ({
+                  id: exam.id,
+                  title: exam.title
+                }))}
               />
             </TabsContent>
 
@@ -288,7 +375,7 @@ const AdminPage = () => {
                 </div>
               ) : (
                 <Exams
-                  exams={exams}
+                  exams={adminExams}
                   onSelect={handleExamSelect}
                   onDelete={handleExamDelete}
                   onExamCreated={handleExamCreated}

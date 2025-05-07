@@ -8,7 +8,7 @@ export interface AdminPageState {
   selectedStudent: string | null;
   selectedExam: string | null;
   selectedCoupon: string | null;
-  exams: Exam[];
+  adminExams: Exam[];
   isLoading: boolean;
 }
 
@@ -29,14 +29,14 @@ export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActio
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedExam, setSelectedExam] = useState<string | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
-  const [exams, setExams] = useState<Exam[]>([]);
+  const [adminExams, setAdminExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const refreshExams = async () => {
     setIsLoading(true);
     try {
       const fetchedExams = await fetchExams();
-      setExams(fetchedExams);
+      setAdminExams(fetchedExams);
     } catch (error) {
       console.error('Erro ao carregar simulados:', error);
     } finally {
@@ -66,17 +66,17 @@ export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActio
 
   const handleExamDelete = (examId: string) => {
     // Remover o exame da lista local após exclusão
-    setExams(exams.filter(exam => exam.id !== examId));
+    setAdminExams(adminExams.filter(exam => exam.id !== examId));
   };
 
   const handleExamCreated = (exam: Exam) => {
     // Adicionar novo exame à lista
-    setExams(prevExams => [...prevExams, exam]);
+    setAdminExams(prevExams => [...prevExams, exam]);
   };
 
   const handleExamUpdated = (updatedExam: Exam) => {
     // Atualizar exame na lista
-    setExams(prevExams => 
+    setAdminExams(prevExams => 
       prevExams.map(exam => 
         exam.id === updatedExam.id ? updatedExam : exam
       )
@@ -94,7 +94,7 @@ export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActio
       selectedStudent,
       selectedExam,
       selectedCoupon,
-      exams,
+      adminExams,
       isLoading
     },
     actions: {
