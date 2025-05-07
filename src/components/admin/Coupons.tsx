@@ -1,37 +1,123 @@
-import React from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Edit, Trash, Tag, Percent } from 'lucide-react';
+import { Plus, Edit, Trash, Tag, Percent, Search } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { listCoupons, createCoupon, updateCoupon, deleteCoupon } from '@/lib/admin';
+import { CouponForm } from './CouponForm';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Coupon } from '@/types/admin';
 
-interface Coupon {
-  id: string;
-  code: string;
-  description: string;
-  discountType: 'percentage' | 'fixed';
-  discountValue: number;
-  validFrom: string;
-  validUntil: string;
-  usageLimit: number;
-  usageCount: number;
-  minPurchaseAmount?: number;
-  maxDiscountAmount?: number;
-  applicableExams: string[];
-  active: boolean;
-}
+export const Coupons: React.FC = () => {
+  const { toast } = useToast();
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [search, setSearch] = useState('');
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-interface CouponsProps {
-  coupons: Coupon[];
-  onSelect: (couponId: string) => void;
-  onDelete: (couponId: string) => void;
-}
+  // Buscar cupons
+  const fetchCoupons = async () => {
+    try {
+      const data = await listCoupons();
+      setCoupons(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar cupons:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os cupons',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-export const Coupons: React.FC<CouponsProps> = ({
-  coupons,
-  onSelect,
-  onDelete
-}) => {
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
+
+  // Filtrar cupons
+  const filteredCoupons = coupons.filter(coupon =>
+    coupon.code.toLowerCase().includes(search.toLowerCase()) ||
+    coupon.description.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Criar/Atualizar cupom
+  const handleSubmit = async (data: Omit<Coupon, 'id' | 'usageCount' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      if (selectedCoupon) {
+        // Atualizar
+        const updatedCoupon = await updateCoupon(selectedCoupon.id, data);
+        setCoupons(prev =>
+          prev.map(coupon =>
+            coupon.id === selectedCoupon.id
+              ? updatedCoupon
+              : coupon
+          )
+        );
+      } else {
+        // Criar
+        const newCoupon = await createCoupon(data);
+        setCoupons(prev => [newCoupon, ...prev]);
+      }
+
+      setShowForm(false);
+      setSelectedCoupon(null);
+    } catch (error: any) {
+      console.error('Erro ao salvar cupom:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar o cupom',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Excluir cupom
+  const handleDelete = async () => {
+    if (!couponToDelete) return;
+
+    try {
+      await deleteCoupon(couponToDelete);
+
+      setCoupons(prev => prev.filter(coupon => coupon.id !== couponToDelete));
+      setDeleteDialogOpen(false);
+      setCouponToDelete(null);
+
+      toast({
+        title: 'Sucesso',
+        description: 'Cupom excluído com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Erro ao excluir cupom:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o cupom',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEdit = (coupon: Coupon) => {
+    setSelectedCoupon(coupon);
+    setShowForm(true);
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setSelectedCoupon(null);
+  };
+
+  const confirmDelete = (couponId: string) => {
+    setCouponToDelete(couponId);
+    setDeleteDialogOpen(true);
+  };
   return (
     <div className="space-y-4">
       <Card>
@@ -43,7 +129,7 @@ export const Coupons: React.FC<CouponsProps> = ({
                 Gerenciar cupons de desconto
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => setShowForm(true)}>
               <Plus className="mr-2 h-4 w-4" /> Novo Cupom
             </Button>
           </div>
@@ -51,10 +137,15 @@ export const Coupons: React.FC<CouponsProps> = ({
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <Input
-                placeholder="Buscar cupons..."
-                className="max-w-sm"
-              />
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar cupons..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
             </div>
 
             <Table>
@@ -70,83 +161,97 @@ export const Coupons: React.FC<CouponsProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {coupons.map((coupon) => (
-                  <TableRow key={coupon.id}>
-                    <TableCell className="font-mono uppercase">{coupon.code}</TableCell>
-                    <TableCell>{coupon.description}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {coupon.discountType === 'percentage' ? (
-                          <>
-                            <Percent className="h-4 w-4" />
-                            {coupon.discountValue}%
-                            {coupon.maxDiscountAmount && (
-                              <span className="text-xs text-muted-foreground">
-                                (max: R$ {coupon.maxDiscountAmount})
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <Tag className="h-4 w-4" />
-                            R$ {coupon.discountValue.toFixed(2)}
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{new Date(coupon.validFrom).toLocaleDateString()}</div>
-                        <div className="text-muted-foreground">
-                          até {new Date(coupon.validUntil).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {coupon.usageCount}/{coupon.usageLimit}
-                        <div className="w-full bg-secondary h-1.5 rounded-full mt-1">
-                          <div
-                            className="bg-primary h-1.5 rounded-full"
-                            style={{
-                              width: `${(coupon.usageCount / coupon.usageLimit) * 100}%`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          coupon.active
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        {coupon.active ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onSelect(coupon.id)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => onDelete(coupon.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      Carregando cupons...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filteredCoupons.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      Nenhum cupom encontrado
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCoupons.map((coupon) => (
+                    <TableRow key={coupon.id}>
+                      <TableCell className="font-mono uppercase">{coupon.code}</TableCell>
+                      <TableCell>{coupon.description}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {coupon.discountType === 'percentage' ? (
+                            <>
+                              <Percent className="h-4 w-4" />
+                              {coupon.discountValue}%
+                              {coupon.maxDiscountAmount && (
+                                <span className="text-xs text-muted-foreground">
+                                  (max: R$ {coupon.maxDiscountAmount})
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <Tag className="h-4 w-4" />
+                              R$ {coupon.discountValue.toFixed(2)}
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{new Date(coupon.validFrom).toLocaleDateString()}</div>
+                          <div className="text-muted-foreground">
+                            até {new Date(coupon.validUntil).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {coupon.usageCount}/{coupon.usageLimit}
+                          <div className="w-full bg-secondary h-1.5 rounded-full mt-1">
+                            <div
+                              className="bg-primary h-1.5 rounded-full"
+                              style={{
+                                width: `${(coupon.usageCount / coupon.usageLimit) * 100}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            coupon.active
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {coupon.active ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(coupon)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => confirmDelete(coupon.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -154,87 +259,34 @@ export const Coupons: React.FC<CouponsProps> = ({
       </Card>
 
       {/* Formulário de Criação/Edição */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Adicionar Cupom</CardTitle>
-          <CardDescription>
-            Criar um novo cupom promocional
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Código do Cupom</label>
-                <Input placeholder="Ex: BLACKFRIDAY2025" className="uppercase" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Tipo de Desconto</label>
-                <select className="w-full p-2 border rounded">
-                  <option value="percentage">Porcentagem (%)</option>
-                  <option value="fixed">Valor Fixo (R$)</option>
-                </select>
-              </div>
-            </div>
+      {showForm && (
+        <CouponForm
+          coupon={selectedCoupon}
+          onSubmit={handleSubmit}
+          onCancel={handleCancelForm}
+        />
+      )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Valor do Desconto</label>
-                <Input type="number" placeholder="15" min="0" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Limite de Uso</label>
-                <Input type="number" placeholder="100" min="1" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Data Inicial</label>
-                <Input type="date" min={new Date().toISOString().split('T')[0]} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Data Final</label>
-                <Input type="date" min={new Date().toISOString().split('T')[0]} />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Descrição</label>
-              <Input placeholder="Descreva o propósito deste cupom" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Valor Mínimo da Compra (R$)</label>
-                <Input type="number" placeholder="0.00" min="0" step="0.01" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Desconto Máximo (R$)</label>
-                <Input type="number" placeholder="0.00" min="0" step="0.01" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Simulados Aplicáveis</label>
-              <select className="w-full p-2 border rounded" multiple>
-                <option value="all">Todos os Simulados</option>
-                <option value="aws">AWS Cloud Practitioner</option>
-                <option value="azure">Azure Fundamentals AZ-900</option>
-                <option value="aws-saa">AWS Solutions Architect Associate</option>
-              </select>
-              <span className="text-xs text-muted-foreground">
-                Ctrl + Clique para selecionar múltiplos simulados
-              </span>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline">Cancelar</Button>
-              <Button>Salvar Cupom</Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      {/* Diálogo de confirmação de exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Cupom</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este cupom? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
