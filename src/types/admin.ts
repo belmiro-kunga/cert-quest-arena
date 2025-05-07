@@ -49,12 +49,19 @@ export type QuestionType =
   | 'command_line'        // Comandos de terminal
   | 'network_topology';    // Topologia de rede
 
+export interface ExplanationLink {
+  text: string;
+  url: string;
+  title?: string;
+}
+
 export interface BaseQuestion {
   id: string;
   examId: string;
   type: QuestionType;
   text: string;
   explanation: string;
+  explanationLinks?: ExplanationLink[];
   category: string;
   difficulty: 'Fácil' | 'Médio' | 'Difícil';
   tags: string[];
@@ -64,13 +71,13 @@ export interface BaseQuestion {
 export interface MultipleChoiceQuestion extends BaseQuestion {
   type: 'multiple_choice';
   options: string[];
-  correctOptions: number[];
+  correctOptions: string[];
 }
 
 export interface SingleChoiceQuestion extends BaseQuestion {
   type: 'single_choice';
   options: string[];
-  correctOption: number;
+  correctOption: string;
 }
 
 export interface DragAndDropQuestion extends BaseQuestion {

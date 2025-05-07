@@ -24,14 +24,24 @@ export const DragAndDropFields: React.FC<DragAndDropFieldsProps> = ({ form }) =>
 
   const addItem = () => {
     const currentItems = form.getValues('items') || [];
-    form.setValue('items', [
-      ...currentItems,
-      {
-        id: crypto.randomUUID(),
-        text: '',
-        category: '',
-      }
-    ]);
+    const newItem = {
+      id: crypto.randomUUID(),
+      text: '',
+      category: '',
+    };
+    
+    // Atualiza os itens
+    form.setValue('items', [...currentItems, newItem]);
+
+    // Garante que o array de itens existe no form
+    if (!form.getValues('items')) {
+      form.setValue('items', []);
+    }
+
+    // Garante que o array de correctPlacements existe no form
+    if (!form.getValues('correctPlacements')) {
+      form.setValue('correctPlacements', []);
+    }
   };
 
   const removeItem = (id: string) => {
@@ -67,22 +77,35 @@ export const DragAndDropFields: React.FC<DragAndDropFieldsProps> = ({ form }) =>
         { itemId: id, targetCategory: category }
       ]);
     }
+
+    // Força a atualização do formulário
+    form.trigger('items');
+    form.trigger('correctPlacements');
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <FormLabel>Itens para Arrastar</FormLabel>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addItem}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Item
-        </Button>
-      </div>
+      <FormField
+        control={form.control}
+        name="items"
+        render={() => (
+          <FormItem>
+            <div className="flex items-center justify-between">
+              <FormLabel>Itens para Arrastar</FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addItem}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Item
+              </Button>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Lista de Itens */}

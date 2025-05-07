@@ -96,13 +96,13 @@ const dragAndDropSchema = baseQuestionSchema.extend({
   type: z.literal('drag_and_drop'),
   items: z.array(z.object({
     id: z.string(),
-    text: z.string(),
-    category: z.string(),
-  })),
+    text: z.string().min(1, 'O texto do item é obrigatório'),
+    category: z.string().min(1, 'A categoria é obrigatória'),
+  })).min(2, 'Adicione pelo menos 2 itens'),
   correctPlacements: z.array(z.object({
     itemId: z.string(),
     targetCategory: z.string(),
-  })),
+  })).min(1, 'Defina pelo menos uma categoria para os itens'),
 });
 
 const practicalScenarioSchema = baseQuestionSchema.extend({
