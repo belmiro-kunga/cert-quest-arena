@@ -1,6 +1,21 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+// Import icons from lucide-react
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Book,
+  ClipboardList,
+  Percent,
+  GraduationCap,
+  Award,
+  CreditCard,
+  Settings
+} from 'lucide-react';
 
 interface AdminNavigationProps {
   activeTab: string;
@@ -8,20 +23,33 @@ interface AdminNavigationProps {
 }
 
 export function AdminNavigation({ activeTab, onTabChange }: AdminNavigationProps) {
+  // Admin menu items with icons
+  const menuItems = [
+    { value: "overview", label: "Visão Geral", icon: LayoutDashboard },
+    { value: "students", label: "Alunos", icon: Users },
+    { value: "exams", label: "Simulados", icon: FileText },
+    { value: "questions", label: "Questões", icon: ClipboardList },
+    { value: "content", label: "Conteúdo", icon: Book },
+    { value: "coupons", label: "Cupons", icon: Percent },
+    { value: "study", label: "Sistema de Estudos", icon: GraduationCap },
+    { value: "gamification", label: "Gamificação", icon: Star },
+    { value: "achievements", label: "Conquistas", icon: Award },
+    { value: "payments", label: "Pagamentos", icon: CreditCard },
+    { value: "settings", label: "Configurações", icon: Settings }
+  ];
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="admin-tabs mb-4">
-        <TabsTrigger value="overview" className="admin-tab">Visão Geral</TabsTrigger>
-        <TabsTrigger value="students" className="admin-tab">Alunos</TabsTrigger>
-        <TabsTrigger value="exams" className="admin-tab">Simulados</TabsTrigger>
-        <TabsTrigger value="questions" className="admin-tab">Questões</TabsTrigger>
-        <TabsTrigger value="content" className="admin-tab">Conteúdo</TabsTrigger>
-        <TabsTrigger value="coupons" className="admin-tab">Cupons</TabsTrigger>
-        <TabsTrigger value="study" className="admin-tab">Sistema de Estudos</TabsTrigger>
-        <TabsTrigger value="gamification" className="admin-tab">Gamificação</TabsTrigger>
-        <TabsTrigger value="achievements" className="admin-tab">Conquistas</TabsTrigger>
-        <TabsTrigger value="payments" className="admin-tab">Pagamentos</TabsTrigger>
-        <TabsTrigger value="settings" className="admin-tab">Configurações</TabsTrigger>
+      <TabsList className="admin-tabs">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <TabsTrigger key={item.value} value={item.value} className="admin-tab">
+              <Icon className="h-4 w-4 mr-2" />
+              <span>{item.label}</span>
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
     </Tabs>
   );

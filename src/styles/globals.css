@@ -16,11 +16,14 @@
 
 /* Admin panel styles */
 .admin-tabs {
-  @apply flex flex-wrap gap-1 bg-transparent;
+  @apply flex flex-wrap bg-transparent justify-start gap-2 p-2;
+  width: 100%;
+  min-height: 60px;
 }
 
 .admin-tab {
-  @apply px-3 py-2 rounded-md text-sm font-medium transition-colors;
+  @apply flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors;
+  flex: 0 1 auto;
 }
 
 .admin-tab[data-state="active"] {
