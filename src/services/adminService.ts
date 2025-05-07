@@ -1,43 +1,47 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Payment } from '@/types/payment';
 import { Student } from '@/types/admin';
 
 export const fetchPayments = async (): Promise<Payment[]> => {
-  const { data, error } = await supabase
-    .from('payments')
-    .select(`
-      id,
-      amount,
-      status,
-      method,
-      created_at,
-      updated_at,
-      order_id,
-      transaction_id,
-      user_id,
-      profiles(name)
-    `)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('payments')
+      .select(`
+        id,
+        amount,
+        status,
+        method,
+        created_at,
+        updated_at,
+        order_id,
+        transaction_id,
+        user_id,
+        profiles!payments_user_id_fkey(name)
+      `)
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching payments:', error);
-    throw error;
+    if (error) {
+      console.error('Error fetching payments:', error);
+      throw error;
+    }
+
+    // Transform data to match Payment type
+    return data.map(payment => ({
+      id: payment.id,
+      userId: payment.user_id,
+      userName: payment.profiles?.name || 'Unknown User',
+      amount: payment.amount,
+      status: payment.status as 'pending' | 'completed' | 'failed',
+      method: payment.method,
+      createdAt: payment.created_at,
+      updatedAt: payment.updated_at,
+      orderId: payment.order_id || undefined,
+      transactionId: payment.transaction_id || undefined
+    }));
+  } catch (error) {
+    console.error('Error in fetchPayments:', error);
+    return [];
   }
-
-  // Transform data to match Payment type
-  return data.map(payment => ({
-    id: payment.id,
-    userId: payment.user_id,
-    userName: payment.profiles?.name || 'Unknown User',
-    amount: payment.amount,
-    status: payment.status as 'pending' | 'completed' | 'failed',
-    method: payment.method,
-    createdAt: payment.created_at,
-    updatedAt: payment.updated_at,
-    orderId: payment.order_id || undefined,
-    transactionId: payment.transaction_id || undefined
-  }));
 };
 
 export const fetchStudents = async (): Promise<Student[]> => {

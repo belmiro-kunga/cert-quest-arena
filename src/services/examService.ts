@@ -45,7 +45,8 @@ export const createExam = async (examData: Partial<Exam>): Promise<Exam | null> 
       price: examData.price || 0,
       discount_price: examData.discountPrice,
       discount_percentage: examData.discountPercentage,
-      discount_expires_at: examData.discountExpiresAt,
+      // Convert Date to ISO string for Supabase
+      discount_expires_at: examData.discountExpiresAt ? examData.discountExpiresAt.toISOString() : null,
       questions_count: examData.questionsCount || 0,
       difficulty: examData.difficulty || 'Médio',
       active: true
@@ -93,7 +94,8 @@ export const updateExam = async (id: string, examData: Partial<Exam>): Promise<E
       price: examData.price,
       discount_price: examData.discountPrice,
       discount_percentage: examData.discountPercentage,
-      discount_expires_at: examData.discountExpiresAt,
+      // Convert Date to ISO string for Supabase
+      discount_expires_at: examData.discountExpiresAt ? examData.discountExpiresAt.toISOString() : null,
       questions_count: examData.questionsCount,
       difficulty: examData.difficulty
     };

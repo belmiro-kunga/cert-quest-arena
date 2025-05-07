@@ -121,8 +121,18 @@ export function useSupabaseAuth() {
     }
   }
 
+  // Create a merged user object that includes profile data
+  const enhancedUser = user && profile ? {
+    ...user,
+    name: profile.name,
+    photo: profile.photo_url,
+    planType: profile.plan_type,
+    attemptsLeft: profile.attempts_left,
+    role: profile.role
+  } : null;
+
   return {
-    user,
+    user: enhancedUser,
     profile,
     session,
     loading,
