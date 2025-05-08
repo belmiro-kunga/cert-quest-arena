@@ -7,20 +7,24 @@ import { Badge } from "@/components/ui/badge";
 import { Flashcard } from '@/types/admin';
 import { getDueFlashcards, reviewFlashcard } from '@/lib/flashcards';
 import { useUser } from '@/lib/hooks/useUser';
+import { useAchievements } from '@/lib/hooks/useAchievements';
 
 export const FlashcardReview: React.FC = () => {
   const { toast } = useToast();
   const { user } = useUser();
+  const { handleFlashcardReview, updateStudyStreak } = useAchievements();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
 
   useEffect(() => {
     if (user?.id) {
       fetchFlashcards();
+      updateStudyStreak();
     }
-  }, [user?.id]);
+  }, [user?.id, updateStudyStreak]);
 
   const fetchFlashcards = async () => {
     try {
@@ -48,6 +52,15 @@ export const FlashcardReview: React.FC = () => {
       if (!user?.id || !flashcards[currentIndex]) return;
 
       await reviewFlashcard(user.id, flashcards[currentIndex].id, quality);
+
+      // Atualiza conquistas
+      const isPerfect = quality === 5;
+      if (isPerfect) {
+        setConsecutiveCorrect(prev => prev + 1);
+      } else {
+        setConsecutiveCorrect(0);
+      }
+      await handleFlashcardReview(isPerfect);
 
       // Move para o próximo cartão
       if (currentIndex < flashcards.length - 1) {

@@ -1,5 +1,5 @@
-
 import { createClient } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 
 // Create a Supabase client for admin operations
 const SUPABASE_URL = "https://zspfwjmesflujextcvco.supabase.co";
@@ -40,8 +40,8 @@ export const createAdminUser = async (email: string, password: string, name: str
     }
     
     throw new Error('Failed to create admin user');
-  } catch (error) {
-    console.error("Error creating admin user:", error);
+  } catch (error: any) {
+    toast.error('Erro ao criar usuário administrador: ' + error.message);
     throw error;
   }
 };
@@ -79,8 +79,8 @@ export const createRegularUser = async (email: string, password: string, name: s
     }
     
     throw new Error('Failed to create regular user');
-  } catch (error) {
-    console.error("Error creating regular user:", error);
+  } catch (error: any) {
+    toast.error('Erro ao criar usuário regular: ' + error.message);
     throw error;
   }
 };
@@ -97,7 +97,7 @@ export const initializeDefaultUsers = async () => {
     if (!admins || admins.length === 0) {
       // No admin found, create one
       await createAdminUser('admin@certquest.com', 'admin123', 'Admin CertQuest');
-      console.log('Created admin user: admin@certquest.com / admin123');
+      toast.success('Usuário administrador criado: admin@certquest.com / admin123');
     }
     
     // Check if regular user exists
@@ -110,12 +110,12 @@ export const initializeDefaultUsers = async () => {
     if (!regularUsers || regularUsers.length === 0) {
       // No regular user found, create one
       await createRegularUser('user@certquest.com', 'user123', 'Usuário CertQuest');
-      console.log('Created regular user: user@certquest.com / user123');
+      toast.success('Usuário regular criado: user@certquest.com / user123');
     }
     
     return { success: true };
-  } catch (error) {
-    console.error("Error initializing default users:", error);
+  } catch (error: any) {
+    toast.error('Erro ao inicializar usuários padrão: ' + error.message);
     return { success: false, error };
   }
 };

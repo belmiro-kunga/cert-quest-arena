@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Plus, Edit, Trash, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash, Loader2, Trophy, Star, Target, Award, Crown } from 'lucide-react';
 import { AchievementForm, AchievementFormData } from './AchievementForm'; 
 import { Achievement, AchievementType, PointActionConfig, PointActionKey } from '@/types/admin'; 
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getAchievements,
   createAchievement,
@@ -58,6 +59,7 @@ const mockPointActionConfigs: PointActionConfig[] = [
 ];
 
 export const GamificationAdmin: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("achievements");
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
   const [isSubmittingAchievement, setIsSubmittingAchievement] = useState(false);
@@ -164,61 +166,126 @@ export const GamificationAdmin: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Gerenciamento de Conquistas</CardTitle>
-            <CardDescription>
-              Crie, edite e gerencie as conquistas disponíveis para os alunos.
-            </CardDescription>
-          </div>
-          <Button onClick={() => handleOpenForm(null)} disabled={isLoadingAchievements || isSubmittingAchievement}>
-            <Plus className="mr-2 h-4 w-4" /> Nova Conquista
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {isLoadingAchievements ? (
-            <div className="flex justify-center items-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="ml-2">Carregando conquistas...</p>
-            </div>
-          ) : achievements.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">Nenhuma conquista cadastrada ainda.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>XP</TableHead>
-                  <TableHead>Ícone</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {achievements.map((ach) => (
-                  <TableRow key={ach.id}>
-                    <TableCell className="font-medium">{ach.title}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground truncate max-w-xs">{ach.description}</TableCell>
-                    <TableCell>{ach.type.charAt(0).toUpperCase() + ach.type.slice(1)}</TableCell>
-                    <TableCell>{ach.xp}</TableCell>
-                    <TableCell>{ach.icon}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenForm(ach)} title="Editar" disabled={isSubmittingAchievement || isDeletingAchievement}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(ach.id)} title="Excluir" className="text-red-500 hover:text-red-600" disabled={isSubmittingAchievement || isDeletingAchievement}>
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="achievements">
+            <Trophy className="h-4 w-4 mr-2" />
+            Conquistas
+          </TabsTrigger>
+          <TabsTrigger value="points">
+            <Star className="h-4 w-4 mr-2" />
+            Sistema de Pontos
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="achievements">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Gerenciamento de Conquistas</CardTitle>
+                <CardDescription>
+                  Crie, edite e gerencie as conquistas disponíveis para os alunos.
+                </CardDescription>
+              </div>
+              <Button onClick={() => handleOpenForm(null)} disabled={isLoadingAchievements || isSubmittingAchievement}>
+                <Plus className="mr-2 h-4 w-4" /> Nova Conquista
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoadingAchievements ? (
+                <div className="flex justify-center items-center py-10">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="ml-2">Carregando conquistas...</p>
+                </div>
+              ) : achievements.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">Nenhuma conquista cadastrada ainda.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Título</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>XP</TableHead>
+                      <TableHead>Ícone</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {achievements.map((ach) => (
+                      <TableRow key={ach.id}>
+                        <TableCell className="font-medium">{ach.title}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground truncate max-w-xs">{ach.description}</TableCell>
+                        <TableCell>{ach.type.charAt(0).toUpperCase() + ach.type.slice(1)}</TableCell>
+                        <TableCell>{ach.xp}</TableCell>
+                        <TableCell>{ach.icon}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenForm(ach)} title="Editar" disabled={isSubmittingAchievement || isDeletingAchievement}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(ach.id)} title="Excluir" className="text-red-500 hover:text-red-600" disabled={isSubmittingAchievement || isDeletingAchievement}>
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="points">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuração de Pontos por Ação</CardTitle>
+              <CardDescription>
+                Defina quantos pontos os alunos ganham por diferentes ações na plataforma.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {pointActionConfigs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">Nenhuma configuração de ponto cadastrada.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Ação</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead className="text-right w-[120px]">Pontos</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pointActionConfigs.map((config) => (
+                      <TableRow key={config.id}>
+                        <TableCell className="font-medium">{config.name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground truncate max-w-md">{config.description}</TableCell>
+                        <TableCell className="text-right">
+                          <Input 
+                            type="number"
+                            value={config.points.toString()} 
+                            onChange={(e) => handlePointChange(config.id, e.target.value)}
+                            className="w-20 text-right h-8"
+                            min="0"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              {hasUnsavedPointChanges && (
+                <div className="mt-4 flex justify-end">
+                  <Button onClick={handleSavePointChanges} disabled={isLoadingAchievements}>
+                    Salvar Alterações de Pontos
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {isFormOpen && (
         <AchievementForm
@@ -246,54 +313,6 @@ export const GamificationAdmin: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuração de Pontos por Ação</CardTitle>
-          <CardDescription>
-            Defina quantos pontos os alunos ganham por diferentes ações na plataforma.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {pointActionConfigs.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">Nenhuma configuração de ponto cadastrada.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ação</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead className="text-right w-[120px]">Pontos</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pointActionConfigs.map((config) => (
-                  <TableRow key={config.id}>
-                    <TableCell className="font-medium">{config.name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground truncate max-w-md">{config.description}</TableCell>
-                    <TableCell className="text-right">
-                      <Input 
-                        type="number"
-                        value={config.points.toString()} 
-                        onChange={(e) => handlePointChange(config.id, e.target.value)}
-                        className="w-20 text-right h-8"
-                        min="0"
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-          {hasUnsavedPointChanges && (
-            <div className="mt-4 flex justify-end">
-              <Button onClick={handleSavePointChanges} disabled={isLoadingAchievements}>
-                Salvar Alterações de Pontos
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };

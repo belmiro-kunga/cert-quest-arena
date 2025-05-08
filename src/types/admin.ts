@@ -235,14 +235,10 @@ export interface Flashcard {
   id: string;
   front: string;
   back: string;
-  status: FlashcardStatus;
-  interval: number;
-  repetitions: number;
-  easeFactor: number;
-  nextReview: Date;
-  lastReviewedAt?: Date;
-  created_at: Date;
-  updated_at: Date;
+  category: string;
+  tags: string[];
+  status: 'new' | 'learning' | 'review' | 'graduated';
+  nextReview?: Date;
 }
 
 export interface FlashcardReview {

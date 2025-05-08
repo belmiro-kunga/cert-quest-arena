@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import { Question, Exam, ExplanationLink } from '@/types/admin';
 import { QuestionAnswer } from './QuestionAnswer';
 import { CheckCircle2, XCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAchievements } from '@/lib/hooks/useAchievements';
 
 interface ExamResultProps {
   exam: Exam;
@@ -119,6 +120,8 @@ export const ExamResult: React.FC<ExamResultProps> = ({
   onReview,
   onRetry,
 }) => {
+  const { handleExamCompletion } = useAchievements();
+  
   // Calcula o resultado de cada questão
   const results: QuestionResult[] = exam.questions.map(question => ({
     question,
@@ -133,6 +136,11 @@ export const ExamResult: React.FC<ExamResultProps> = ({
   const earnedPoints = results.reduce((sum, r) => sum + r.score, 0);
   const percentageScore = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
   const passed = percentageScore >= exam.passingScore;
+
+  // Atualiza conquistas quando o componente é montado
+  useEffect(() => {
+    handleExamCompletion(percentageScore);
+  }, [handleExamCompletion, percentageScore]);
 
   // Agrupa questões por categoria
   const categorizedQuestions = results.reduce((acc, result) => {

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -13,7 +12,7 @@ export async function fetchUserProfile(userId: string) {
     if (error) throw error;
     return data;
   } catch (error: any) {
-    console.error('Error fetching user profile:', error);
+    toast.error('Erro ao buscar perfil do usuário: ' + error.message);
     return null;
   }
 }
@@ -32,7 +31,6 @@ export async function updateUserProfile(userId: string, updates: any) {
     toast.success('Perfil atualizado com sucesso');
     return data;
   } catch (error: any) {
-    console.error('Error updating profile:', error);
     toast.error('Erro ao atualizar perfil: ' + error.message);
     return null;
   }
@@ -49,7 +47,7 @@ export async function createPayment(paymentData: any) {
     if (error) throw error;
     return data;
   } catch (error: any) {
-    console.error('Error creating payment:', error);
+    toast.error('Erro ao criar pagamento: ' + error.message);
     throw error;
   }
 }
@@ -65,7 +63,7 @@ export async function fetchExams() {
     if (error) throw error;
     return data;
   } catch (error: any) {
-    console.error('Error fetching exams:', error);
+    toast.error('Erro ao buscar simulados: ' + error.message);
     return [];
   }
 }
@@ -88,7 +86,7 @@ export async function fetchExamAttempts(userId: string) {
     if (error) throw error;
     return data;
   } catch (error: any) {
-    console.error('Error fetching exam attempts:', error);
+    toast.error('Erro ao buscar tentativas de simulado: ' + error.message);
     return [];
   }
 }

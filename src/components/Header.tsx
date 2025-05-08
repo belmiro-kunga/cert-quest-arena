@@ -14,7 +14,7 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart, Menu, X, User, Settings, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Settings, LogOut, Trophy } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -65,6 +65,10 @@ const Header = () => {
               <Settings className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/achievements')}>
+              <Trophy className="mr-2 h-4 w-4" />
+              <span>Conquistas</span>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -112,6 +116,9 @@ const Header = () => {
             </Link>
             <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
               Dashboard
+            </Link>
+            <Link to="/achievements" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Conquistas
             </Link>
           </nav>
 
@@ -176,6 +183,13 @@ const Header = () => {
               >
                 Dashboard
               </Link>
+              <Link 
+                to="/achievements" 
+                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Conquistas
+              </Link>
             </nav>
             <div className="flex flex-col space-y-2 px-2">
               {user ? (
@@ -198,7 +212,7 @@ const Header = () => {
                     }}
                   >
                     <User className="mr-2 h-4 w-4" />
-                    Perfil
+                    <span>Perfil</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -209,7 +223,18 @@ const Header = () => {
                     }}
                   >
                     <Settings className="mr-2 h-4 w-4" />
-                    Dashboard
+                    <span>Dashboard</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
+                    onClick={() => {
+                      navigate('/achievements');
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Trophy className="mr-2 h-4 w-4" />
+                    <span>Conquistas</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -220,7 +245,7 @@ const Header = () => {
                     }}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sair
+                    <span>Sair</span>
                   </Button>
                 </>
               ) : (

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -29,6 +28,7 @@ import { PaymentProvider } from './contexts/PaymentContext';
 import { PaymentPage } from './pages/Payment';
 import { PaymentResultPage } from './pages/PaymentResult';
 import { initializeDefaultUsers } from './utils/supabaseAdmin';
+import AchievementsPage from './app/achievements/page';
 
 const queryClient = new QueryClient();
 
@@ -73,24 +73,25 @@ const App = () => {
                 <CartProvider>
                   <PaymentProvider>
                     <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/signup" element={<SignUpPage />} />
-                  <Route path="/certifications" element={<CertificationsPage />} />
-                  <Route path="/exams/:certificationId" element={<PrivateRoute><QuizPage /></PrivateRoute>} />
-                  <Route path="/results/:certificationId" element={<ResultPage />} />
-                  <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                  <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-                  <Route path="/admin/login" element={<AdminLoginPage />} />
-                  <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/exams/:examId" element={<ExamPage />} />
-                  <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/payment" element={<PaymentPage />} />
-                  <Route path="/payment/success" element={<PaymentResultPage />} />
-                  <Route path="/payment/failure" element={<PaymentResultPage />} />
-                  <Route path="/payment/pending" element={<PaymentResultPage />} />
-                  <Route path="*" element={<NotFound />} />
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/signup" element={<SignUpPage />} />
+                      <Route path="/certifications" element={<CertificationsPage />} />
+                      <Route path="/exams/:certificationId" element={<PrivateRoute><QuizPage /></PrivateRoute>} />
+                      <Route path="/results/:certificationId" element={<ResultPage />} />
+                      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                      <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                      <Route path="/achievements" element={<PrivateRoute><AchievementsPage /></PrivateRoute>} />
+                      <Route path="/admin/login" element={<AdminLoginPage />} />
+                      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/exams/:examId" element={<ExamPage />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/payment" element={<PaymentPage />} />
+                      <Route path="/payment/success" element={<PaymentResultPage />} />
+                      <Route path="/payment/failure" element={<PaymentResultPage />} />
+                      <Route path="/payment/pending" element={<PaymentResultPage />} />
+                      <Route path="*" element={<NotFound />} />
                     </Routes>
                   </PaymentProvider>
                 </CartProvider>
