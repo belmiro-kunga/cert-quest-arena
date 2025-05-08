@@ -1,3 +1,4 @@
+
 export interface Student {
   id: string;
   name: string;
@@ -274,4 +275,25 @@ export interface PointActionConfig {
   description?: string; // Optional description of the action
 }
 
-// Tipos para o sistema de estudo
+// Add Payment and SystemConfig types
+export interface Payment {
+  id: string;
+  amount: number;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  method: string;
+  transaction_id?: string;
+  order_id?: string;
+  user_id: string;
+  userName?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface SystemConfig {
+  id: string;
+  key: string;
+  value: any;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}

@@ -176,9 +176,7 @@ export const getFlashcardStats = async (userId: string) => {
     .from('flashcard_reviews')
     .select(`
       quality,
-      flashcards (
-        status
-      )
+      flashcard:flashcard_id(status)
     `)
     .eq('user_id', userId);
 
@@ -191,7 +189,8 @@ export const getFlashcardStats = async (userId: string) => {
       new: 0,
       learning: 0,
       review: 0,
-      graduated: 0
+      graduated: 0,
+      mastered: 0
     }
   };
 
@@ -199,8 +198,9 @@ export const getFlashcardStats = async (userId: string) => {
     stats.averageQuality = reviews.reduce((sum, r) => sum + r.quality, 0) / reviews.length;
     
     reviews.forEach(r => {
-      if (r.flashcards?.status) {
-        stats.statusCounts[r.flashcards.status]++;
+      if (r.flashcard && r.flashcard.status) {
+        stats.statusCounts[r.flashcard.status as FlashcardStatus] = 
+          (stats.statusCounts[r.flashcard.status as FlashcardStatus] || 0) + 1;
       }
     });
   }

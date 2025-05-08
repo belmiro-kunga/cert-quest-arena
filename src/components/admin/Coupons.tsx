@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -254,10 +255,7 @@ export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSel
         <CouponForm
           coupon={selectedCoupon}
           onSubmit={handleSubmit}
-          onCancel={() => {
-            setShowForm(false);
-            setSelectedCoupon(null);
-          }}
+          onCancel={handleCancelForm}
         />
       )}
 
@@ -273,11 +271,7 @@ export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSel
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (couponToDelete) {
-                  handleDelete(couponToDelete);
-                }
-              }}
+              onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir

@@ -12,7 +12,19 @@ export const fetchStudents = async (): Promise<Student[]> => {
       
     if (error) throw error;
     
-    return data || [];
+    // Transform data to match the Student interface
+    return (data || []).map(profile => ({
+      id: profile.id,
+      name: profile.name,
+      email: profile.email || '',  // Add default value
+      plan_type: profile.plan_type,
+      attempts_left: profile.attempts_left,
+      progress: 0, // Default value
+      achievements: 0, // Default value
+      lastActive: profile.updated_at,
+      exams: [], // Default value
+      created_at: profile.created_at
+    }));
   } catch (error) {
     console.error('Error fetching students:', error);
     return [];
@@ -38,7 +50,7 @@ export const fetchPayments = async (): Promise<Payment[]> => {
     
     return data.map(payment => ({
       ...payment,
-      userName: payment.profiles?.name
+      userName: payment.profiles?.name || 'Unknown User'
     })) || [];
   } catch (error) {
     console.error('Error fetching payments:', error);

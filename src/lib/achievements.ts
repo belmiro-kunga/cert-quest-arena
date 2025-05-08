@@ -1,4 +1,5 @@
-import { Achievement } from '@/types/achievements';
+import { supabase } from './supabase';
+import type { Achievement, AchievementType } from '@/types/admin';
 
 // Tipos de conquistas
 export const ACHIEVEMENT_TYPES = {
@@ -189,4 +190,9 @@ export const getAchievementsByType = (
   }
 ): Achievement[] => {
   return getAllAchievements(stats).filter(achievement => achievement.type === type);
-}; 
+};
+
+// Function to check if an achievement type exists in a list of achievements
+export const hasAchievementType = (achievements: Achievement[], type: AchievementType): boolean => {
+  return achievements.some(a => a.type === type);
+};

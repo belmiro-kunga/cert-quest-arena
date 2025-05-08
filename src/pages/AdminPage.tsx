@@ -2,12 +2,12 @@
 import React from "react";
 import { AdminNavigation } from "@/components/admin/AdminNavigation";
 import { Overview } from "@/components/admin/Overview";
-import Students from "@/components/admin/Students";
-import Exams from "@/components/admin/Exams";
+import { Students } from "@/components/admin/Students";
+import { Exams } from "@/components/admin/Exams";
 import { Coupons } from "@/components/admin/Coupons";
-import GamificationAdmin from "@/components/admin/GamificationAdmin";
-import Payments from "@/components/admin/Payments";
-import StudySystem from "@/components/admin/StudySystem";
+import { GamificationAdmin } from "@/components/admin/GamificationAdmin";
+import { Payments } from "@/components/admin/Payments";
+import { StudySystem } from "@/components/admin/StudySystem";
 import { useAdminPage } from "@/hooks/useAdminPage";
 import LanguagesPage from "./admin/LanguagesPage";
 

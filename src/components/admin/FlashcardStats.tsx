@@ -26,7 +26,7 @@ export const FlashcardStats: React.FC<FlashcardStatsProps> = ({ flashcards }) =>
            lastReview.getDate() === today.getDate();
   }).length;
   const masteredCount = flashcards.filter(f => f.status === 'mastered').length;
-  const averageInterval = flashcards.reduce((acc, f) => acc + (f.interval || 0), 0) / totalFlashcards || 0;
+  const averageInterval = flashcards.reduce((acc, f) => acc + (f.interval || 0), 0) / (totalFlashcards || 1);
 
   const stats = [
     {

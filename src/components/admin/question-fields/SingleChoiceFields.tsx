@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -19,24 +20,29 @@ interface SingleChoiceFieldsProps {
 
 export const SingleChoiceFields: React.FC<SingleChoiceFieldsProps> = ({ form }) => {
   const options = form.watch('options') || [];
-  const correctOption = form.watch('correctOption');
+  const correctOption = form.watch('correctOption') || '';
 
   const addOption = () => {
     const currentOptions = form.getValues('options') || [];
     form.setValue('options', [...currentOptions, '']);
+    
+    // Set first option as correct if none selected
+    if (!correctOption && currentOptions.length === 0) {
+      form.setValue('correctOption', '0');
+    }
   };
 
   const removeOption = (index: number) => {
     const currentOptions = form.getValues('options') || [];
+    const currentCorrectOption = form.getValues('correctOption');
+    
     form.setValue('options', currentOptions.filter((_, i) => i !== index));
     
-    // If the removed option was the correct one, clear the correct option
-    if (correctOption === String(index)) {
+    // Update correctOption if removed option was selected or if it affects indexes
+    if (Number(currentCorrectOption) === index) {
       form.setValue('correctOption', '');
-    } 
-    // If the removed option was before the correct one, adjust the index
-    else if (parseInt(correctOption) > index) {
-      form.setValue('correctOption', String(parseInt(correctOption) - 1));
+    } else if (Number(currentCorrectOption) > index) {
+      form.setValue('correctOption', String(Number(currentCorrectOption) - 1));
     }
   };
 
@@ -60,15 +66,20 @@ export const SingleChoiceFields: React.FC<SingleChoiceFieldsProps> = ({ form }) 
         name="correctOption"
         render={({ field }) => (
           <FormItem>
+            <FormLabel>Selecione a resposta correta:</FormLabel>
             <FormControl>
               <RadioGroup
-                onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value?.toString()}
+                onValueChange={field.onChange}
+                value={field.value}
                 className="space-y-2"
               >
                 {options.map((option, index) => (
                   <div key={index} className="flex items-start gap-2">
-                    <RadioGroupItem value={index.toString()} />
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value={String(index)} />
+                      </FormControl>
+                    </FormItem>
 
                     <FormField
                       control={form.control}

@@ -23,7 +23,7 @@ const transformExamData = (exam: any): Exam => {
     price: exam.price,
     discountPrice: exam.discount_price,
     discountPercentage: exam.discount_percentage,
-    discountExpiresAt: exam.discount_expires_at ? new Date(exam.discount_expires_at) : null,
+    discountExpiresAt: exam.discount_expires_at || null,
     questionsCount: exam.questions_count,
     difficulty: exam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
     purchases: exam.purchases,
