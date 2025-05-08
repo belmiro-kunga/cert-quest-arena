@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import type { Achievement, AchievementType } from '@/types/admin';
+import { Achievement as AchievementSchema } from '@/types/achievements';
 
 // Tipos de conquistas
 export const ACHIEVEMENT_TYPES = {
@@ -167,20 +168,21 @@ export const getAllAchievements = (stats: {
   perfectReviews?: number;
   currentStreak?: number;
   perfectScores?: number;
-}): Achievement[] => {
+}): AchievementSchema[] => {
   return Object.values(ACHIEVEMENT_DEFINITIONS).map(achievement => {
     const progress = calculateAchievementProgress(achievement.id, stats);
     return {
       ...achievement,
       progress,
-      unlocked: isAchievementUnlocked(progress)
-    };
+      unlocked: isAchievementUnlocked(progress),
+      xp: 100 // Default XP value for all achievements
+    } as AchievementSchema;
   });
 };
 
 // Função para obter conquistas por tipo
 export const getAchievementsByType = (
-  type: keyof typeof ACHIEVEMENT_TYPES,
+  type: string,
   stats: {
     examsCompleted?: number;
     flashcardsReviewed?: number;
@@ -188,7 +190,7 @@ export const getAchievementsByType = (
     currentStreak?: number;
     perfectScores?: number;
   }
-): Achievement[] => {
+): AchievementSchema[] => {
   return getAllAchievements(stats).filter(achievement => achievement.type === type);
 };
 

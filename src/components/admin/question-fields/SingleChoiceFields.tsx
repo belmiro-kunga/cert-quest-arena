@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -39,10 +38,10 @@ export const SingleChoiceFields: React.FC<SingleChoiceFieldsProps> = ({ form }) 
     form.setValue('options', currentOptions.filter((_, i) => i !== index));
     
     // Update correctOption if removed option was selected or if it affects indexes
-    if (Number(currentCorrectOption) === index) {
+    if (correctOption === String(index)) {
       form.setValue('correctOption', '');
-    } else if (Number(currentCorrectOption) > index) {
-      form.setValue('correctOption', String(Number(currentCorrectOption) - 1));
+    } else if (parseInt(correctOption, 10) > index) {
+      form.setValue('correctOption', String(parseInt(correctOption, 10) - 1));
     }
   };
 

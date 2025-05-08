@@ -198,9 +198,12 @@ export const getFlashcardStats = async (userId: string) => {
     stats.averageQuality = reviews.reduce((sum, r) => sum + r.quality, 0) / reviews.length;
     
     reviews.forEach(r => {
-      if (r.flashcard && r.flashcard.status) {
-        stats.statusCounts[r.flashcard.status as FlashcardStatus] = 
-          (stats.statusCounts[r.flashcard.status as FlashcardStatus] || 0) + 1;
+      if (r.flashcard && typeof r.flashcard === 'object' && 'status' in r.flashcard) {
+        const status = (r.flashcard as any).status;
+        if (status && typeof status === 'string') {
+          stats.statusCounts[status as FlashcardStatus] = 
+            (stats.statusCounts[status as FlashcardStatus] || 0) + 1;
+        }
       }
     });
   }

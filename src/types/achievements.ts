@@ -1,3 +1,4 @@
+
 export interface Achievement {
   id: string;
   type: 'certification' | 'mastery' | 'streak' | 'special';
@@ -8,6 +9,7 @@ export interface Achievement {
   requirement: number;
   progress?: number;
   unlocked?: boolean;
+  xp: number; // Added xp to match with admin.Achievement
 }
 
 export interface AchievementStats {

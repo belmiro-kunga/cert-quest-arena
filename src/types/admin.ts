@@ -1,4 +1,3 @@
-
 export interface Student {
   id: string;
   name: string;
@@ -20,6 +19,10 @@ export interface Achievement {
   type: AchievementType;
   xp: number;
   icon: string;
+  level?: 'bronze' | 'silver' | 'gold' | 'platinum';
+  requirement?: number;
+  progress?: number;
+  unlocked?: boolean;
 }
 
 export interface Exam {
@@ -190,19 +193,18 @@ export interface Coupon {
   description: string;
   discountType: 'percentage' | 'fixed';
   discountValue: number;
-  validFrom: string; // Changed from Date to string
-  validUntil: string; // Changed from Date to string
+  validFrom: string;
+  validUntil: string;
   usageLimit: number;
   usageCount: number;
-  minPurchaseAmount: number; // Added this field
-  maxDiscountAmount: number; // Added this field
-  applicableExams: string[]; // Added this field
-  active: boolean; // Changed from isActive to active
+  minPurchaseAmount: number;
+  maxDiscountAmount: number;
+  applicableExams: string[];
+  active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-// Novos tipos para o gestor de conteúdo
 export interface ContentItem {
   id: string;
   title: string;
@@ -240,18 +242,18 @@ export interface Flashcard {
   category?: string;
   tags?: string[];
   status: FlashcardStatus;
-  lastReviewedAt: string | null; // Added this field
-  interval: number; // Added this field
-  repetitions: number; // Added this field
-  easeFactor: number; // Added this field
-  nextReview: Date | string; // Added this field
+  lastReviewedAt: string | null;
+  interval: number;
+  repetitions: number;
+  easeFactor: number;
+  nextReview: Date | string;
 }
 
 export interface FlashcardReview {
   id: string;
   flashcard_id: string;
   user_id: string;
-  quality: number; // 0-5 (0: blackout, 5: perfeito)
+  quality: number;
   reviewed_at: string;
 }
 
@@ -275,7 +277,6 @@ export interface PointActionConfig {
   description?: string; // Optional description of the action
 }
 
-// Add Payment and SystemConfig types
 export interface Payment {
   id: string;
   amount: number;
@@ -287,6 +288,11 @@ export interface Payment {
   userName?: string;
   created_at: string;
   updated_at?: string;
+  userId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  transactionId?: string;
+  orderId?: string;
 }
 
 export interface SystemConfig {

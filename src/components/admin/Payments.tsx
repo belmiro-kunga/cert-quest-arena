@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,20 @@ export default function Payments() {
     try {
       setIsLoading(true);
       const paymentsData = await fetchPayments();
-      setPayments(paymentsData);
+      // Convert admin Payment type to payment Payment type
+      const convertedPayments = paymentsData.map(p => ({
+        id: p.id,
+        userId: p.user_id,
+        userName: p.userName || 'Unknown',
+        amount: p.amount,
+        status: p.status as any, // Type assertion to handle string vs union type
+        method: p.method,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at || p.created_at,
+        transactionId: p.transaction_id || undefined,
+        orderId: p.order_id || undefined
+      }));
+      setPayments(convertedPayments);
       setError(null);
     } catch (err) {
       console.error('Error fetching payments:', err);

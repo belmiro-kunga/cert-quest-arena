@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Exam } from '@/types/admin';
 
@@ -27,7 +26,9 @@ const transformExamData = (exam: any): Exam => {
     questionsCount: exam.questions_count,
     difficulty: exam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
     purchases: exam.purchases,
-    rating: exam.rating
+    rating: exam.rating,
+    createdAt: exam.created_at || new Date().toISOString(),
+    updatedAt: exam.updated_at || new Date().toISOString()
   };
 };
 

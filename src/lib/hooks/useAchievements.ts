@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useUser } from './useUser';
 import { useToast } from '@/components/ui/use-toast';
@@ -32,7 +33,9 @@ export const useAchievements = () => {
         perfectScores: 1
       };
       setStats(mockStats);
-      setAchievements(getAllAchievements(mockStats));
+      // Explicitly convert to the type expected by useState
+      const allAchievements = getAllAchievements(mockStats);
+      setAchievements(allAchievements);
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
       toast({

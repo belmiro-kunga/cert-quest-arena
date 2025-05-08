@@ -12,12 +12,12 @@ export const fetchStudents = async (): Promise<Student[]> => {
       
     if (error) throw error;
     
-    // Transform data to match the Student interface
+    // Transform data to match the Student interface with type assertion
     return (data || []).map(profile => ({
       id: profile.id,
       name: profile.name,
       email: profile.email || '',  // Add default value
-      plan_type: profile.plan_type,
+      plan_type: (profile.plan_type || 'free') as 'free' | 'basic' | 'premium',
       attempts_left: profile.attempts_left,
       progress: 0, // Default value
       achievements: 0, // Default value
@@ -48,10 +48,18 @@ export const fetchPayments = async (): Promise<Payment[]> => {
     
     if (error) throw error;
     
-    return data.map(payment => ({
-      ...payment,
-      userName: payment.profiles?.name || 'Unknown User'
-    })) || [];
+    return data.map(payment => {
+      // Safe access of nested properties
+      const profileName = payment.profiles && typeof payment.profiles === 'object' 
+        ? (payment.profiles as any).name || 'Unknown User'
+        : 'Unknown User';
+      
+      return {
+        ...payment,
+        userName: profileName,
+        status: payment.status as 'pending' | 'completed' | 'failed' | 'refunded'
+      };
+    }) || [];
   } catch (error) {
     console.error('Error fetching payments:', error);
     return [];

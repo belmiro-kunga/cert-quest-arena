@@ -6,7 +6,7 @@ import { Students } from "@/components/admin/Students";
 import { Exams } from "@/components/admin/Exams";
 import { Coupons } from "@/components/admin/Coupons";
 import { GamificationAdmin } from "@/components/admin/GamificationAdmin";
-import { Payments } from "@/components/admin/Payments";
+import Payments from "@/components/admin/Payments";
 import { StudySystem } from "@/components/admin/StudySystem";
 import { useAdminPage } from "@/hooks/useAdminPage";
 import LanguagesPage from "./admin/LanguagesPage";
@@ -22,7 +22,13 @@ const AdminPage = () => {
       case "students":
         return <Students />;
       case "exams":
-        return <Exams exams={state.adminExams} onExamCreated={actions.handleExamCreated} onExamUpdated={actions.handleExamUpdated} onExamDeleted={actions.handleExamDelete} isLoading={state.isLoading} />;
+        return <Exams 
+          exams={state.adminExams} 
+          onExamCreated={actions.handleExamCreated} 
+          onExamUpdated={actions.handleExamUpdated} 
+          onExamDelete={actions.handleExamDelete} 
+          isLoading={state.isLoading} 
+        />;
       case "coupons":
         return <Coupons coupons={[]} onSelect={() => Promise.resolve()} onDelete={() => Promise.resolve()} />;
       case "gamification":

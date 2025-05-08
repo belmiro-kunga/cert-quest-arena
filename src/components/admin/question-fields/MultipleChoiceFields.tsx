@@ -35,9 +35,9 @@ export const MultipleChoiceFields: React.FC<MultipleChoiceFieldsProps> = ({ form
     form.setValue(
       'correctOptions',
       currentCorrectOptions
-        .filter((optionIndex: string) => Number(optionIndex) !== index)
+        .filter((optionIndex: string) => optionIndex !== String(index))
         .map((optionIndex: string) => {
-          const numIndex = Number(optionIndex);
+          const numIndex = parseInt(optionIndex, 10);
           return numIndex > index ? String(numIndex - 1) : optionIndex;
         })
     );

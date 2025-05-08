@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,7 +39,9 @@ export const AchievementIntegration: React.FC = () => {
         perfectScores: 1
       };
       setStats(mockStats);
-      setAchievements(getAllAchievements(mockStats));
+      // Explicitly convert to the type expected by useState
+      const allAchievements = getAllAchievements(mockStats);
+      setAchievements(allAchievements);
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);
       toast({
