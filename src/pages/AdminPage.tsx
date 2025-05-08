@@ -207,12 +207,14 @@ const mockCoupons: Coupon[] = MOCK_DATA.coupons.map(coupon => ({
   discountValue: coupon.value,
   usageLimit: coupon.maxUses,
   usageCount: coupon.currentUses,
-  validFrom: coupon.validFrom.toISOString(),
-  validUntil: coupon.validUntil.toISOString(),
+  validFrom: new Date(coupon.validFrom), // Ensure Date object
+  validUntil: new Date(coupon.validUntil), // Ensure Date object
   minPurchaseAmount: coupon.minPurchase,
   maxDiscountAmount: coupon.maxDiscount,
   active: coupon.isActive,
-  applicableExams: [] // Add the required field
+  applicableExams: [], // Add the required field
+  createdAt: new Date(), // Add createdAt
+  updatedAt: new Date()  // Add updatedAt
 }));
 
 const AdminPage = () => {

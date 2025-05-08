@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,6 +17,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,11 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Exam } from '@/types/admin';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   description: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
+  isFree: z.boolean().optional(),
   price: z.number().min(0, 'Preço não pode ser negativo'),
   discountPrice: z.number().min(0, 'Preço com desconto não pode ser negativo').optional().nullable(),
   discountPercentage: z.number().min(0, 'Porcentagem de desconto não pode ser negativa').max(100, 'Porcentagem de desconto não pode ser maior que 100').optional().nullable(),
@@ -63,6 +66,7 @@ export const ExamForm: React.FC<ExamFormProps> = ({
     defaultValues: {
       title: exam?.title || '',
       description: exam?.description || '',
+      isFree: exam ? exam.price === 0 : true,
       price: exam?.price || 0,
       discountPrice: exam?.discountPrice || null,
       discountPercentage: exam?.discountPercentage || null,
@@ -73,6 +77,27 @@ export const ExamForm: React.FC<ExamFormProps> = ({
       passingScore: exam?.passingScore || 70,
     }
   });
+
+  const { watch, setValue, getValues, control } = form;
+  const isFree = watch('isFree');
+
+  useEffect(() => {
+    const currentPrice = getValues('price');
+    if (isFree) {
+      if (currentPrice !== 0) {
+        setValue('price', 0, { shouldValidate: true });
+      }
+      setValue('discountPrice', null, { shouldValidate: true });
+      setValue('discountPercentage', null, { shouldValidate: true });
+      setValue('discountExpiresAt', null, { shouldValidate: true });
+    } else {
+      if (currentPrice === 0) {
+        if (exam && exam.price !== 0) {
+          setValue('price', exam.price, { shouldValidate: true });
+        }
+      }
+    }
+  }, [isFree, exam, setValue, getValues]);
 
   const handleSubmit = async (data: FormData) => {
     try {
@@ -153,6 +178,29 @@ export const ExamForm: React.FC<ExamFormProps> = ({
               )}
             />
 
+            <FormField
+              control={control}
+              name="isFree"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 space-x-3">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Simulado Grátis
+                    </FormLabel>
+                    <FormDescription>
+                      Marque esta opção se o simulado for gratuito. O preço será R$0.00 e os descontos desabilitados.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -166,6 +214,7 @@ export const ExamForm: React.FC<ExamFormProps> = ({
                         step="0.01"
                         {...field}
                         onChange={e => field.onChange(parseFloat(e.target.value))}
+                        disabled={isFree}
                       />
                     </FormControl>
                     <FormMessage />
@@ -173,67 +222,71 @@ export const ExamForm: React.FC<ExamFormProps> = ({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="discountPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço com Desconto (usd)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        {...field}
-                        value={field.value || ''}
-                        onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isFree && (
+                <FormField
+                  control={form.control}
+                  name="discountPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço com Desconto (R$)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          step="0.01"
+                          {...field}
+                          value={field.value || ''}
+                          onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="discountPercentage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Desconto (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        min="0"
-                        max="100"
-                        {...field}
-                        value={field.value || ''}
-                        onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {!isFree && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="discountPercentage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Desconto (%)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          min="0"
+                          max="100"
+                          {...field}
+                          value={field.value || ''}
+                          onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="discountExpiresAt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Validade do Desconto</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date"
-                        {...field}
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="discountExpiresAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Validade do Desconto</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date"
+                          {...field}
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-4">
               <FormField
