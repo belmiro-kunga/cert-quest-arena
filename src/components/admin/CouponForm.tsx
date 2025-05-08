@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
@@ -33,7 +34,6 @@ export const CouponForm: React.FC<CouponFormProps> = ({
     validFrom: new Date().toISOString().split('T')[0],
     validUntil: new Date().toISOString().split('T')[0],
     usageLimit: 100,
-
     minPurchaseAmount: 0,
     maxDiscountAmount: 0,
     applicableExams: [],
@@ -44,13 +44,13 @@ export const CouponForm: React.FC<CouponFormProps> = ({
     if (coupon) {
       setFormData({
         ...coupon,
-        validFrom: new Date(coupon.validFrom).toISOString().split('T')[0],
-        validUntil: new Date(coupon.validUntil).toISOString().split('T')[0]
+        validFrom: typeof coupon.validFrom === 'string' ? coupon.validFrom.split('T')[0] : new Date(coupon.validFrom).toISOString().split('T')[0],
+        validUntil: typeof coupon.validUntil === 'string' ? coupon.validUntil.split('T')[0] : new Date(coupon.validUntil).toISOString().split('T')[0]
       });
     }
   }, [coupon]);
 
-  const handleChange = (field: keyof Coupon, value: any) => {
+  const handleChange = (field: keyof Omit<Coupon, 'id' | 'usageCount' | 'createdAt' | 'updatedAt'>, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -76,7 +76,7 @@ export const CouponForm: React.FC<CouponFormProps> = ({
         throw new Error('O desconto em porcentagem não pode ser maior que 100%');
       }
 
-      if (new Date(formData.validUntil!) < new Date(formData.validFrom!)) {
+      if (new Date(formData.validUntil) < new Date(formData.validFrom)) {
         throw new Error('A data final deve ser posterior à data inicial');
       }
 

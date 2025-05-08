@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FlashcardForm } from './FlashcardForm';
-import { Flashcard, FlashcardStatus } from '@/types/admin';
+import { Flashcard } from '@/types/admin';
 import { Plus, Edit, Trash } from 'lucide-react';
 import { createFlashcard, updateFlashcard, deleteFlashcard, listFlashcards } from '@/lib/flashcards';
 import {
@@ -29,7 +29,7 @@ import {
 interface FlashcardFormData {
   front: string;
   back: string;
-  lastReviewedAt: Date | null;
+  lastReviewedAt: string | null;
 }
 
 export const Flashcards: React.FC = () => {
@@ -65,7 +65,6 @@ export const Flashcards: React.FC = () => {
     try {
       if (selectedFlashcard) {
         await updateFlashcard(selectedFlashcard.id, {
-          ...selectedFlashcard,
           front: formData.front,
           back: formData.back,
           lastReviewedAt: formData.lastReviewedAt
@@ -74,16 +73,14 @@ export const Flashcards: React.FC = () => {
         await createFlashcard({
           front: formData.front,
           back: formData.back,
-          status: 'new' as FlashcardStatus,
-          interval: 0,
-          repetitions: 0,
-          easeFactor: 2.5,
-          nextReview: new Date(),
-          lastReviewedAt: null
-        });
+          status: 'new',
+          lastReviewedAt: null,
+          nextReview: new Date().toISOString()
+        } as Flashcard);
       }
       setShowForm(false);
       setSelectedFlashcard(null);
+      loadFlashcards(); // Refresh the list
     } catch (error) {
       console.error('Error saving flashcard:', error);
     }
@@ -186,21 +183,14 @@ export const Flashcards: React.FC = () => {
 
       {/* Formulário de Criação/Edição */}
       {showForm && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>{selectedFlashcard ? 'Editar' : 'Novo'} Flashcard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FlashcardForm
-              flashcard={selectedFlashcard}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setSelectedFlashcard(null);
-              }}
-            />
-          </CardContent>
-        </Card>
+        <FlashcardForm
+          flashcard={selectedFlashcard}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setShowForm(false);
+            setSelectedFlashcard(null);
+          }}
+        />
       )}
 
       {/* Diálogo de confirmação de exclusão */}

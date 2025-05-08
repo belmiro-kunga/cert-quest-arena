@@ -1,34 +1,13 @@
-import React from 'react';
+
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Users, TrendingUp, Award } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-import { PerformanceData, AchievementData } from '@/types/admin';
+import { Users, FileText, CreditCard, Clock } from "lucide-react";
 
-interface OverviewProps {
-  performanceData: PerformanceData[];
-  certificationsData: AchievementData[];
-  colors: string[];
-}
-
-export const Overview: React.FC<OverviewProps> = ({
-  performanceData,
-  certificationsData,
-  colors
-}) => {
+export const Overview = () => {
   return (
-    <div className="space-y-4">
-      {/* Cards de Estatísticas */}
+    <div className="space-y-6">
+      <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -38,122 +17,84 @@ export const Overview: React.FC<OverviewProps> = ({
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,853</div>
+            <div className="text-2xl font-bold">25</div>
             <p className="text-xs text-muted-foreground">
-              +180 no último mês
+              +2 desde o último mês
             </p>
           </CardContent>
         </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Certificações Obtidas
+              Exames Ativos
             </CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
+            <div className="text-2xl font-bold">12</div>
             <p className="text-xs text-muted-foreground">
-              +42 esta semana
+              +4 novos exames adicionados
             </p>
           </CardContent>
         </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Taxa de Aprovação
+              Receita Mensal
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">85%</div>
+            <div className="text-2xl font-bold">R$ 4.200,00</div>
             <p className="text-xs text-muted-foreground">
-              +2% em relação ao mês anterior
+              +8% desde o último mês
             </p>
           </CardContent>
         </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Conquistas Desbloqueadas
+              Tempo Médio de Estudo
             </CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12,234</div>
+            <div className="text-2xl font-bold">2.5 h</div>
             <p className="text-xs text-muted-foreground">
-              +825 este mês
+              +12 minutos desde a semana passada
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gráficos */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Desempenho</CardTitle>
+            <CardTitle>Desempenho dos Alunos</CardTitle>
             <CardDescription>
-              Taxa de aprovação mensal em certificações
+              Aprovação e reprovação por exame
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="aprovados"
-                    stroke="#0ea5e9"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="total"
-                    stroke="#94a3b8"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-80 flex items-center justify-center">
+              <p className="text-muted-foreground">Gráfico de desempenho será implementado em breve</p>
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardHeader>
-            <CardTitle>Certificações</CardTitle>
+            <CardTitle>Conquistas Mais Comuns</CardTitle>
             <CardDescription>
-              Distribuição por tipo de certificação
+              Conquistas mais obtidas pelos alunos
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={certificationsData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {certificationsData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colors[index % colors.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="h-80 flex items-center justify-center">
+              <p className="text-muted-foreground">Gráfico de conquistas será implementado em breve</p>
             </div>
           </CardContent>
         </Card>
@@ -161,3 +102,5 @@ export const Overview: React.FC<OverviewProps> = ({
     </div>
   );
 };
+
+export default Overview;

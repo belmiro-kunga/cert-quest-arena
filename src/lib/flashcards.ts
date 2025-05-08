@@ -1,9 +1,10 @@
+
 import { supabase } from './supabase';
-import type { Flashcard, FlashcardReview } from '@/types/admin';
+import type { Flashcard, FlashcardReview, FlashcardStatus } from '@/types/admin';
 
 // Algoritmo SM-2 para repetição espaçada
 export const calculateNextReview = (quality: number, card: Flashcard): { interval: number; easeFactor: number } => {
-  let { interval, easeFactor, repetitions } = card;
+  let { interval = 0, easeFactor = 2.5, repetitions = 0 } = card;
 
   // Qualidade < 3 significa que o usuário não lembrou bem o cartão
   if (quality < 3) {
@@ -28,15 +29,20 @@ export const calculateNextReview = (quality: number, card: Flashcard): { interva
 };
 
 // Funções para gerenciar flashcards
-export const createFlashcard = async (flashcard: Omit<Flashcard, 'id' | 'created_at' | 'updated_at'>) => {
+export const createFlashcard = async (flashcard: Partial<Flashcard>) => {
   const { data, error } = await supabase
     .from('flashcards')
     .insert([{
-      ...flashcard,
+      front: flashcard.front,
+      back: flashcard.back,
+      category: flashcard.category || '',
+      tags: flashcard.tags || [],
       interval: 0,
       repetitions: 0,
       easeFactor: 2.5,
-      status: 'new'
+      status: flashcard.status || 'new',
+      nextReview: new Date().toISOString(),
+      lastReviewedAt: null
     }])
     .select()
     .single();
@@ -45,10 +51,21 @@ export const createFlashcard = async (flashcard: Omit<Flashcard, 'id' | 'created
   return data;
 };
 
-export const updateFlashcard = async (id: string, flashcard: Partial<Omit<Flashcard, 'id' | 'created_at' | 'updated_at'>>) => {
+export const updateFlashcard = async (id: string, flashcard: Partial<Flashcard>) => {
   const { data, error } = await supabase
     .from('flashcards')
-    .update(flashcard)
+    .update({
+      front: flashcard.front,
+      back: flashcard.back,
+      category: flashcard.category,
+      tags: flashcard.tags,
+      status: flashcard.status,
+      lastReviewedAt: flashcard.lastReviewedAt,
+      interval: flashcard.interval,
+      repetitions: flashcard.repetitions,
+      easeFactor: flashcard.easeFactor,
+      nextReview: flashcard.nextReview
+    })
     .eq('id', id)
     .select()
     .single();

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -34,20 +35,24 @@ export const MultipleChoiceFields: React.FC<MultipleChoiceFieldsProps> = ({ form
     form.setValue(
       'correctOptions',
       currentCorrectOptions
-        .filter(optionIndex => optionIndex !== index)
-        .map(optionIndex => optionIndex > index ? optionIndex - 1 : optionIndex)
+        .filter((optionIndex: string) => parseInt(optionIndex) !== index)
+        .map((optionIndex: string) => {
+          const numIndex = parseInt(optionIndex);
+          return numIndex > index ? String(numIndex - 1) : optionIndex;
+        })
     );
   };
 
   const toggleCorrectOption = (index: number) => {
     const currentCorrectOptions = form.getValues('correctOptions') || [];
-    const isCorrect = currentCorrectOptions.includes(index);
+    const indexStr = String(index);
+    const isCorrect = currentCorrectOptions.includes(indexStr);
     
     form.setValue(
       'correctOptions',
       isCorrect
-        ? currentCorrectOptions.filter(i => i !== index)
-        : [...currentCorrectOptions, index].sort()
+        ? currentCorrectOptions.filter(i => i !== indexStr)
+        : [...currentCorrectOptions, indexStr].sort()
     );
   };
 
@@ -75,7 +80,7 @@ export const MultipleChoiceFields: React.FC<MultipleChoiceFieldsProps> = ({ form
               <FormItem>
                 <FormControl>
                   <Checkbox
-                    checked={correctOptions.includes(index)}
+                    checked={correctOptions.includes(String(index))}
                     onCheckedChange={() => toggleCorrectOption(index)}
                   />
                 </FormControl>

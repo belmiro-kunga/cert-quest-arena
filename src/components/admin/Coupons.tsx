@@ -108,6 +108,7 @@ export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSel
     setCouponToDelete(couponId);
     setDeleteDialogOpen(true);
   };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -174,7 +175,7 @@ export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSel
                             <>
                               <Percent className="h-4 w-4" />
                               {coupon.discountValue}%
-                              {coupon.maxDiscountAmount && (
+                              {coupon.maxDiscountAmount > 0 && (
                                 <span className="text-xs text-muted-foreground">
                                   (max: R$ {coupon.maxDiscountAmount})
                                 </span>
@@ -253,7 +254,10 @@ export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSel
         <CouponForm
           coupon={selectedCoupon}
           onSubmit={handleSubmit}
-          onCancel={handleCancelForm}
+          onCancel={() => {
+            setShowForm(false);
+            setSelectedCoupon(null);
+          }}
         />
       )}
 
@@ -269,7 +273,11 @@ export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSel
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={() => {
+                if (couponToDelete) {
+                  handleDelete(couponToDelete);
+                }
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir

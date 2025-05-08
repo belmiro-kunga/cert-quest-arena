@@ -28,14 +28,15 @@ export const SingleChoiceFields: React.FC<SingleChoiceFieldsProps> = ({ form }) 
 
   const removeOption = (index: number) => {
     const currentOptions = form.getValues('options') || [];
-    const currentCorrectOption = form.getValues('correctOption');
-    
     form.setValue('options', currentOptions.filter((_, i) => i !== index));
     
-    if (currentCorrectOption === index) {
-      form.setValue('correctOption', undefined);
-    } else if (currentCorrectOption > index) {
-      form.setValue('correctOption', currentCorrectOption - 1);
+    // If the removed option was the correct one, clear the correct option
+    if (correctOption === String(index)) {
+      form.setValue('correctOption', '');
+    } 
+    // If the removed option was before the correct one, adjust the index
+    else if (parseInt(correctOption) > index) {
+      form.setValue('correctOption', String(parseInt(correctOption) - 1));
     }
   };
 

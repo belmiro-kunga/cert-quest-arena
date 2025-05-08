@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
@@ -22,7 +23,11 @@ export const FlashcardForm: React.FC<FlashcardFormProps> = ({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<Omit<Flashcard, 'id' | 'created_at' | 'updated_at' | 'status' | 'interval' | 'repetitions' | 'easeFactor' | 'nextReview'>>(flashcard || {
+  const [formData, setFormData] = useState<{
+    front: string;
+    back: string;
+    lastReviewedAt: string | null;
+  }>({
     front: '',
     back: '',
     lastReviewedAt: null
