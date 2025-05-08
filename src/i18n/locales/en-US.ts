@@ -1,3 +1,4 @@
+
 export default {
   common: {
     overview: 'Overview',
@@ -28,6 +29,13 @@ export default {
       name: 'Name',
       flag: 'Flag',
       actions: 'Actions',
+      languageAdded: 'Language added successfully',
+      languageUpdated: 'Language updated successfully',
+      languageDeleted: 'Language deleted successfully',
+      confirmDelete: 'Confirm deletion',
+      deleteWarning: 'Are you sure you want to delete this language? This action cannot be undone.',
+      cancel: 'Cancel',
+      codeAndNameRequired: 'Code and name are required',
     },
   },
   auth: {
@@ -42,6 +50,7 @@ export default {
     invalidEmail: 'Invalid email',
     invalidPassword: 'Invalid password',
     passwordsDoNotMatch: 'Passwords do not match',
+    errorOccurred: 'An error occurred',
   },
   success: {
     saved: 'Saved successfully',
@@ -49,4 +58,4 @@ export default {
     updated: 'Updated successfully',
     deleted: 'Deleted successfully',
   },
-}; 
+};

@@ -1,7 +1,23 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Payment } from '@/types/payment';
-import { Student } from '@/types/admin';
+import { User } from '@supabase/supabase-js';
+import { Student, Payment, SystemConfig } from '@/types/admin';
+
+export const fetchStudents = async (): Promise<Student[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'user');
+      
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    return [];
+  }
+};
 
 export const fetchPayments = async (): Promise<Payment[]> => {
   try {
@@ -13,115 +29,85 @@ export const fetchPayments = async (): Promise<Payment[]> => {
         status,
         method,
         created_at,
-        updated_at,
-        order_id,
-        transaction_id,
         user_id,
-        profiles:user_id(name)
+        profiles!inner(name)
       `)
       .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching payments:', error);
-      throw error;
-    }
-
-    // Transform data to match Payment type
+    
+    if (error) throw error;
+    
     return data.map(payment => ({
-      id: payment.id,
-      userId: payment.user_id,
-      userName: payment.profiles?.name || 'Unknown User',
-      amount: payment.amount,
-      status: payment.status as 'pending' | 'completed' | 'failed',
-      method: payment.method,
-      createdAt: payment.created_at,
-      updatedAt: payment.updated_at,
-      orderId: payment.order_id || undefined,
-      transactionId: payment.transaction_id || undefined
-    }));
+      ...payment,
+      userName: payment.profiles.name
+    })) || [];
   } catch (error) {
-    console.error('Error in fetchPayments:', error);
+    console.error('Error fetching payments:', error);
     return [];
   }
 };
 
-export const fetchStudents = async (): Promise<Student[]> => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      user_id,
-      name,
-      photo_url,
-      created_at,
-      updated_at,
-      plan_type,
-      attempts_left,
-      exam_attempts(count)
-    `)
-    .eq('role', 'user');
-
-  if (error) {
-    console.error('Error fetching students:', error);
-    throw error;
+// Novas funções para gerenciar idiomas
+export const fetchLanguages = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('languages')
+      .select('*')
+      .order('name');
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching languages:', error);
+    return [];
   }
-
-  // Transform data to match Student type
-  return data.map(student => ({
-    id: student.user_id,
-    name: student.name,
-    email: '', // We don't have access to emails directly due to Supabase security
-    progress: 0, // This would need to be calculated based on completed exams
-    achievements: 0, // This would need a separate query or join
-    lastActive: student.updated_at,
-    photo: student.photo_url || '',
-    plan: student.plan_type,
-    attemptsLeft: student.attempts_left,
-    attemptsCount: student.exam_attempts?.length || 0
-  }));
 };
 
-export const updateExamService = async (id: string, examData: any) => {
-  const { data, error } = await supabase
-    .from('exams')
-    .update(examData)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error updating exam:', error);
+export const createLanguage = async (language: { code: string; name: string; flag: string }) => {
+  try {
+    const { data, error } = await supabase
+      .from('languages')
+      .insert([language])
+      .select();
+    
+    if (error) throw error;
+    
+    return data?.[0];
+  } catch (error) {
+    console.error('Error creating language:', error);
     throw error;
   }
-
-  return data;
 };
 
-export const createExamService = async (examData: any) => {
-  const { data, error } = await supabase
-    .from('exams')
-    .insert(examData)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating exam:', error);
+export const updateLanguage = async (language: { code: string; name: string; flag: string }) => {
+  try {
+    const { data, error } = await supabase
+      .from('languages')
+      .update({ name: language.name, flag: language.flag })
+      .eq('code', language.code)
+      .select();
+    
+    if (error) throw error;
+    
+    return data?.[0];
+  } catch (error) {
+    console.error('Error updating language:', error);
     throw error;
   }
-
-  return data;
 };
 
-export const deleteExamService = async (id: string) => {
-  const { error } = await supabase
-    .from('exams')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting exam:', error);
+export const deleteLanguage = async (code: string) => {
+  try {
+    const { error } = await supabase
+      .from('languages')
+      .delete()
+      .eq('code', code);
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting language:', error);
     throw error;
   }
-
-  return true;
 };

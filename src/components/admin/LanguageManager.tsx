@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,9 +17,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useTranslation } from 'react-i18next';
-import { languages } from '@/i18n/config';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { createLanguage, updateLanguage, deleteLanguage } from '@/services/adminService';
 
 interface Language {
   code: string;
@@ -30,27 +42,133 @@ export function LanguageManager() {
   const { t } = useTranslation();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [newLanguage, setNewLanguage] = useState<Language>({
     code: '',
     name: '',
     flag: '',
   });
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAddLanguage = () => {
-    // TODO: Implement language addition logic
-    setIsAddDialogOpen(false);
-    setNewLanguage({ code: '', name: '', flag: '' });
+  // Fetch languages from i18n config
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      // Import dynamically to avoid circular dependencies
+      const { languages } = await import('@/i18n/config');
+      setLanguages(languages);
+    };
+    fetchLanguages();
+  }, []);
+
+  const handleAddLanguage = async () => {
+    if (!newLanguage.code || !newLanguage.name) {
+      toast({
+        title: t('errors.required'),
+        description: t('admin.languages.codeAndNameRequired'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Try to add to database
+      await createLanguage(newLanguage);
+      
+      // Update local state
+      setLanguages([...languages, newLanguage]);
+      
+      // Close dialog and reset form
+      setIsAddDialogOpen(false);
+      setNewLanguage({ code: '', name: '', flag: '' });
+      
+      toast({
+        title: t('success.created'),
+        description: t('admin.languages.languageAdded'),
+      });
+    } catch (error) {
+      console.error('Error adding language:', error);
+      toast({
+        title: t('errors.errorOccurred'),
+        description: String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEditLanguage = () => {
-    // TODO: Implement language edit logic
-    setIsEditDialogOpen(false);
-    setSelectedLanguage(null);
+  const handleEditLanguage = async () => {
+    if (!selectedLanguage || !selectedLanguage.code || !selectedLanguage.name) {
+      toast({
+        title: t('errors.required'),
+        description: t('admin.languages.codeAndNameRequired'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Try to update in database
+      await updateLanguage(selectedLanguage);
+      
+      // Update local state
+      setLanguages(languages.map(lang => 
+        lang.code === selectedLanguage.code ? selectedLanguage : lang
+      ));
+      
+      // Close dialog and reset form
+      setIsEditDialogOpen(false);
+      setSelectedLanguage(null);
+      
+      toast({
+        title: t('success.updated'),
+        description: t('admin.languages.languageUpdated'),
+      });
+    } catch (error) {
+      console.error('Error updating language:', error);
+      toast({
+        title: t('errors.errorOccurred'),
+        description: String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDeleteLanguage = (code: string) => {
-    // TODO: Implement language deletion logic
+  const handleDeleteLanguage = async () => {
+    if (!selectedLanguage) return;
+    
+    setIsLoading(true);
+    try {
+      // Try to delete from database
+      await deleteLanguage(selectedLanguage.code);
+      
+      // Update local state
+      setLanguages(languages.filter(lang => lang.code !== selectedLanguage.code));
+      
+      // Close dialog and reset selection
+      setIsDeleteDialogOpen(false);
+      setSelectedLanguage(null);
+      
+      toast({
+        title: t('success.deleted'),
+        description: t('admin.languages.languageDeleted'),
+      });
+    } catch (error) {
+      console.error('Error deleting language:', error);
+      toast({
+        title: t('errors.errorOccurred'),
+        description: String(error),
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -102,8 +220,8 @@ export function LanguageManager() {
                   placeholder="🇺🇸"
                 />
               </div>
-              <Button onClick={handleAddLanguage} className="w-full">
-                {t('admin.languages.add')}
+              <Button onClick={handleAddLanguage} className="w-full" disabled={isLoading}>
+                {isLoading ? 'Adding...' : t('admin.languages.add')}
               </Button>
             </div>
           </DialogContent>
@@ -139,7 +257,10 @@ export function LanguageManager() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleDeleteLanguage(language.code)}
+                  onClick={() => {
+                    setSelectedLanguage(language);
+                    setIsDeleteDialogOpen(true);
+                  }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -161,9 +282,8 @@ export function LanguageManager() {
                 <Input
                   id="edit-code"
                   value={selectedLanguage.code}
-                  onChange={(e) =>
-                    setSelectedLanguage({ ...selectedLanguage, code: e.target.value })
-                  }
+                  readOnly // Code shouldn't be editable as it's the primary key
+                  className="bg-gray-100"
                 />
               </div>
               <div className="space-y-2">
@@ -186,13 +306,30 @@ export function LanguageManager() {
                   }
                 />
               </div>
-              <Button onClick={handleEditLanguage} className="w-full">
-                {t('admin.languages.save')}
+              <Button onClick={handleEditLanguage} className="w-full" disabled={isLoading}>
+                {isLoading ? 'Saving...' : t('admin.languages.save')}
               </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.languages.confirmDelete')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.languages.deleteWarning')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('admin.languages.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteLanguage} disabled={isLoading}>
+              {isLoading ? 'Deleting...' : t('admin.languages.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-} 
+}

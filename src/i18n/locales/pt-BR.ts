@@ -1,3 +1,4 @@
+
 export default {
   common: {
     overview: 'Visão Geral',
@@ -28,6 +29,13 @@ export default {
       name: 'Nome',
       flag: 'Bandeira',
       actions: 'Ações',
+      languageAdded: 'Idioma adicionado com sucesso',
+      languageUpdated: 'Idioma atualizado com sucesso',
+      languageDeleted: 'Idioma excluído com sucesso',
+      confirmDelete: 'Confirmar exclusão',
+      deleteWarning: 'Tem certeza de que deseja excluir este idioma? Esta ação não pode ser desfeita.',
+      cancel: 'Cancelar',
+      codeAndNameRequired: 'Código e nome são obrigatórios',
     },
   },
   auth: {
@@ -42,6 +50,7 @@ export default {
     invalidEmail: 'E-mail inválido',
     invalidPassword: 'Senha inválida',
     passwordsDoNotMatch: 'As senhas não coincidem',
+    errorOccurred: 'Ocorreu um erro',
   },
   success: {
     saved: 'Salvo com sucesso',
@@ -49,4 +58,4 @@ export default {
     updated: 'Atualizado com sucesso',
     deleted: 'Excluído com sucesso',
   },
-}; 
+};

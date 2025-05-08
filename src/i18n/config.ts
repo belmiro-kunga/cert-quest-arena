@@ -1,3 +1,4 @@
+
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -12,6 +13,17 @@ export const languages = [
   { code: 'en-US', name: 'English', flag: '🇺🇸' },
   // Add more languages here as needed
 ];
+
+// Function to update languages array (will be used by admin functions)
+export const updateLanguages = (newLanguages: { code: string; name: string; flag: string }[]) => {
+  // Replace the languages array with the new one
+  languages.splice(0, languages.length, ...newLanguages);
+};
+
+// Function to add a new language resource
+export const addLanguageResource = (langCode: string, translations: object) => {
+  i18n.addResourceBundle(langCode, 'translation', translations, true, true);
+};
 
 // Initialize i18n
 i18n
@@ -34,4 +46,4 @@ i18n
     },
   });
 
-export default i18n; 
+export default i18n;
