@@ -258,3 +258,19 @@ export interface ContentTag {
   name: string;
   slug: string;
 }
+
+export type PointActionKey =
+  | 'review_flashcard'
+  | 'complete_flashcard_session'
+  | 'start_exam'
+  | 'complete_exam'
+  | 'daily_login';
+
+export interface PointActionConfig {
+  id: PointActionKey;
+  name: string; // User-friendly name for the action
+  points: number;
+  description?: string; // Optional description of the action
+}
+
+// Tipos para o sistema de estudo

@@ -10,9 +10,19 @@ interface FlashcardStatsProps {
 export const FlashcardStats: React.FC<FlashcardStatsProps> = ({ flashcards }) => {
   const totalFlashcards = flashcards.length;
   const reviewedToday = flashcards.filter(f => {
-    const lastReview = new Date(f.lastReviewedAt || '');
+    if (!f.lastReviewedAt) {
+      return false; // Not reviewed if lastReviewedAt is not set
+    }
+    // Assuming f.lastReviewedAt is either a Date object or a string that can be parsed into a Date
+    const lastReview = new Date(f.lastReviewedAt);
+    // Check if lastReview is a valid date after attempting to parse
+    if (isNaN(lastReview.getTime())) {
+        return false; // Invalid date, so not reviewed today
+    }
     const today = new Date();
-    return lastReview.toDateString() === today.toDateString();
+    return lastReview.getFullYear() === today.getFullYear() &&
+           lastReview.getMonth() === today.getMonth() &&
+           lastReview.getDate() === today.getDate();
   }).length;
   const masteredCount = flashcards.filter(f => f.status === 'mastered').length;
   const averageInterval = flashcards.reduce((acc, f) => acc + f.interval, 0) / totalFlashcards || 0;

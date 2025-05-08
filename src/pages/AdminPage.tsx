@@ -23,6 +23,7 @@ import { Exams } from '@/components/admin/Exams';
 import { Coupons } from '@/components/admin/Coupons';
 import { StudySystem } from '@/components/admin/StudySystem';
 import Payments from '@/components/admin/Payments';
+import { GamificationAdmin } from '@/components/admin/GamificationAdmin';
 
 // Ícones
 import { Settings, Plus, Edit, Trash, Trophy, Book, Target, Users, TrendingUp, Award, Coins, Sword, Star, Calendar, Gift, Gamepad, CreditCard } from 'lucide-react';
@@ -416,6 +417,10 @@ const AdminPage = () => {
                   await handleCouponDelete(couponId);
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="gamification">
+              <GamificationAdmin />
             </TabsContent>
 
             <TabsContent value="study">
