@@ -44,7 +44,7 @@ export default function Payments() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR', {
+    return new Date(dateString).toLocaleString('pt-PT', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

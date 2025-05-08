@@ -11,9 +11,15 @@ import { CouponForm } from './CouponForm';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Coupon } from '@/types/admin';
 
-export const Coupons: React.FC = () => {
+interface CouponsProps {
+  coupons: Coupon[];
+  onSelect: (couponId: string) => Promise<void>;
+  onDelete: (couponId: string) => Promise<void>;
+}
+
+export const Coupons: React.FC<CouponsProps> = ({ coupons: initialCoupons, onSelect, onDelete }) => {
   const { toast } = useToast();
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons);
   const [search, setSearch] = useState('');
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -21,26 +27,10 @@ export const Coupons: React.FC = () => {
   const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Buscar cupons
-  const fetchCoupons = async () => {
-    try {
-      const data = await listCoupons();
-      setCoupons(data || []);
-    } catch (error: any) {
-      console.error('Erro ao buscar cupons:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os cupons',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchCoupons();
-  }, []);
+    setCoupons(initialCoupons);
+    setIsLoading(false);
+  }, [initialCoupons]);
 
   // Filtrar cupons
   const filteredCoupons = coupons.filter(coupon =>

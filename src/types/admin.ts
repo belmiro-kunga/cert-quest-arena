@@ -189,14 +189,15 @@ export interface Coupon {
   description: string;
   discountType: 'percentage' | 'fixed';
   discountValue: number;
-  validFrom: string;
-  validUntil: string;
+  maxDiscount?: number;
+  minPurchase?: number;
+  validFrom: Date;
+  validUntil: Date;
   usageLimit: number;
   usageCount: number;
-  minPurchaseAmount?: number;
-  maxDiscountAmount?: number;
-  applicableExams: string[];
-  active: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Novos tipos para o gestor de conteúdo
@@ -224,6 +225,32 @@ export interface ContentCategory {
   slug: string;
   description?: string;
   parentId?: string;
+}
+
+export type FlashcardDifficulty = 'easy' | 'medium' | 'hard';
+
+export type FlashcardStatus = 'new' | 'learning' | 'review' | 'graduated';
+
+export interface Flashcard {
+  id: string;
+  front: string;
+  back: string;
+  status: FlashcardStatus;
+  interval: number;
+  repetitions: number;
+  easeFactor: number;
+  nextReview: Date;
+  lastReviewedAt?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface FlashcardReview {
+  id: string;
+  flashcard_id: string;
+  user_id: string;
+  quality: number; // 0-5 (0: blackout, 5: perfeito)
+  reviewed_at: string;
 }
 
 export interface ContentTag {

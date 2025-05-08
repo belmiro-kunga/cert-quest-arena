@@ -178,7 +178,7 @@ export const ExamForm: React.FC<ExamFormProps> = ({
                 name="discountPrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preço com Desconto (R$)</FormLabel>
+                    <FormLabel>Preço com Desconto (usd)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number"
