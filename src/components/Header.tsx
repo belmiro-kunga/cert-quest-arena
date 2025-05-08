@@ -17,6 +17,8 @@ import { useCart } from '@/contexts/CartContext';
 import { ShoppingCart, Menu, X, User, Settings, LogOut, Trophy } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import { LanguageSelector } from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -27,6 +29,7 @@ const Header = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     signOut();
@@ -102,9 +105,11 @@ const Header = () => {
     <header className="bg-white/95 shadow sticky top-0 z-10 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-blue-600">
-            CertQuest Arena
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="text-xl font-bold text-blue-600">
+              CertQuest Arena
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-4">
@@ -120,6 +125,14 @@ const Header = () => {
             <Link to="/achievements" className="text-gray-600 hover:text-gray-900 transition-colors">
               Conquistas
             </Link>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" asChild>
+                <Link to="/">{t('common.home')}</Link>
+              </Button>
+              <div className="bg-white shadow rounded-md">
+                <LanguageSelector />
+              </div>
+            </div>
           </nav>
 
           <div className="flex items-center space-x-4">
@@ -190,6 +203,14 @@ const Header = () => {
               >
                 Conquistas
               </Link>
+              <div className="flex items-center gap-2 px-2">
+                <Button variant="outline" asChild>
+                  <Link to="/">{t('common.home')}</Link>
+                </Button>
+                <div className="bg-white shadow rounded-md">
+                  <LanguageSelector />
+                </div>
+              </div>
             </nav>
             <div className="flex flex-col space-y-2 px-2">
               {user ? (
