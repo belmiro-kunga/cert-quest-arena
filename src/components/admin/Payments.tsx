@@ -5,11 +5,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Payment } from '@/types/payment';
 import { fetchPayments } from '@/services/adminService';
 import { formatCurrency } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaymentGateways } from './PaymentGateways';
+import { CreditCard, Settings } from 'lucide-react';
 
 export default function Payments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("transactions");
 
   const loadPayments = async () => {
     try {
@@ -54,56 +58,77 @@ export default function Payments() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pagamentos</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="flex justify-center items-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center p-4 text-red-500">{error}</div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Usuário</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>ID da Transação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.length > 0 ? (
-                payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-mono text-xs">{payment.id}</TableCell>
-                    <TableCell>{payment.userName}</TableCell>
-                    <TableCell>{formatCurrency(payment.amount)}</TableCell>
-                    <TableCell className={getStatusColor(payment.status)}>
-                      {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                    </TableCell>
-                    <TableCell>{payment.method}</TableCell>
-                    <TableCell>{formatDate(payment.createdAt)}</TableCell>
-                    <TableCell>{payment.transactionId || '-'}</TableCell>
-                  </TableRow>
-                ))
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="transactions">
+            <CreditCard className="h-4 w-4 mr-2" />
+            Transações
+          </TabsTrigger>
+          <TabsTrigger value="gateways">
+            <Settings className="h-4 w-4 mr-2" />
+            Gateways
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="transactions">
+          <Card>
+            <CardHeader>
+              <CardTitle>Transações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : error ? (
+                <div className="text-center p-4 text-red-500">{error}</div>
               ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Nenhum pagamento registrado
-                  </TableCell>
-                </TableRow>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Usuário</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Método</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>ID da Transação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.length > 0 ? (
+                      payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-mono text-xs">{payment.id}</TableCell>
+                          <TableCell>{payment.userName}</TableCell>
+                          <TableCell>{formatCurrency(payment.amount)}</TableCell>
+                          <TableCell className={getStatusColor(payment.status)}>
+                            {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                          </TableCell>
+                          <TableCell>{payment.method}</TableCell>
+                          <TableCell>{formatDate(payment.createdAt)}</TableCell>
+                          <TableCell>{payment.transactionId || '-'}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          Nenhum pagamento registrado
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               )}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="gateways">
+          <PaymentGateways />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

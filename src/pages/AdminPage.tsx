@@ -364,9 +364,9 @@ const AdminPage = () => {
           <h1 className="text-3xl font-bold mb-8">Painel de Administração</h1>
           
           {/* Replaced the inline TabsList with our new AdminNavigation component */}
-          <AdminNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+          <AdminNavigation activeTab={adminTab} onTabChange={handleTabChange} />
           
-          <Tabs value={activeTab} className="space-y-4">
+          <Tabs value={adminTab} className="space-y-4">
             <TabsContent value="overview">
               <Overview
                 performanceData={MOCK_DATA.performance}

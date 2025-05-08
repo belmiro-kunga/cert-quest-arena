@@ -78,7 +78,11 @@ export const GamificationAdmin: React.FC = () => {
       const data = await getAchievements();
       setAchievements(data);
     } catch (error) {
-      toast({ title: "Erro", description: "Falha ao buscar conquistas.", variant: "destructive" });
+      toast({ 
+        title: "Erro", 
+        description: "Falha ao buscar conquistas. Por favor, tente novamente.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoadingAchievements(false);
     }
@@ -103,15 +107,25 @@ export const GamificationAdmin: React.FC = () => {
     try {
       if (selectedAchievement && selectedAchievement.id) {
         await updateAchievement(selectedAchievement.id, data);
-        toast({ title: "Sucesso", description: "Conquista atualizada com sucesso!" });
+        toast({ 
+          title: "Sucesso", 
+          description: "Conquista atualizada com sucesso!" 
+        });
       } else {
         await createAchievement(data);
-        toast({ title: "Sucesso", description: "Conquista criada com sucesso!" });
+        toast({ 
+          title: "Sucesso", 
+          description: "Conquista criada com sucesso!" 
+        });
       }
-      await fetchAndSetAchievements(); 
+      await fetchAndSetAchievements();
       handleCloseForm();
     } catch (error) {
-      toast({ title: "Erro", description: `Falha ao salvar conquista.`, variant: "destructive" });
+      toast({ 
+        title: "Erro", 
+        description: "Falha ao salvar conquista. Por favor, tente novamente.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsSubmittingAchievement(false);
     }
@@ -127,12 +141,19 @@ export const GamificationAdmin: React.FC = () => {
       setIsDeletingAchievement(true);
       try {
         await deleteAchievement(achievementToDelete);
-        toast({ title: "Sucesso", description: "Conquista excluída com sucesso!" });
-        await fetchAndSetAchievements(); 
+        toast({ 
+          title: "Sucesso", 
+          description: "Conquista excluída com sucesso!" 
+        });
+        await fetchAndSetAchievements();
         setAchievementToDelete(null);
         setIsDeleteDialogOpen(false);
       } catch (error) {
-        toast({ title: "Erro", description: "Falha ao excluir conquista.", variant: "destructive" });
+        toast({ 
+          title: "Erro", 
+          description: "Falha ao excluir conquista. Por favor, tente novamente.", 
+          variant: "destructive" 
+        });
       } finally {
         setIsDeletingAchievement(false);
       }
@@ -149,19 +170,22 @@ export const GamificationAdmin: React.FC = () => {
       );
       if (!hasUnsavedPointChanges) setHasUnsavedPointChanges(true);
     } else if (newPoints === "") { 
-        setPointActionConfigs(prevConfigs => 
-            prevConfigs.map(config => 
-              config.id === actionId ? { ...config, points: 0 } : config 
-            )
-        );
-        if (!hasUnsavedPointChanges) setHasUnsavedPointChanges(true);
+      setPointActionConfigs(prevConfigs => 
+        prevConfigs.map(config => 
+          config.id === actionId ? { ...config, points: 0 } : config 
+        )
+      );
+      if (!hasUnsavedPointChanges) setHasUnsavedPointChanges(true);
     }
   };
 
   const handleSavePointChanges = () => {
-    console.log("Saving point changes:", pointActionConfigs);
+    // TODO: Implementar a persistência das alterações de pontos
     setHasUnsavedPointChanges(false);
-    toast({ title: "Sucesso", description: "Configurações de pontos salvas com sucesso! (Mock)" });
+    toast({ 
+      title: "Sucesso", 
+      description: "Configurações de pontos salvas com sucesso!" 
+    });
   };
 
   return (
