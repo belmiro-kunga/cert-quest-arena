@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import { languages, updateLanguages, addLanguageResource } from '@/i18n/config';
 import { useState, useCallback } from 'react';
+import { fetchLanguages } from '@/services/adminService';
 
 export function useLanguage() {
   const { i18n } = useTranslation();
@@ -16,10 +17,26 @@ export function useLanguage() {
     return i18n.language;
   };
 
-  const initializeLanguage = useCallback(() => {
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
-      i18n.changeLanguage(savedLanguage);
+  const initializeLanguage = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Attempt to fetch languages from database
+      const dbLanguages = await fetchLanguages();
+      
+      // Update the languages array with data from the database
+      if (dbLanguages && dbLanguages.length > 0) {
+        updateLanguages(dbLanguages);
+      }
+      
+      // Set the language from local storage or use default
+      const savedLanguage = localStorage.getItem('language');
+      if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
+        i18n.changeLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.error('Error initializing languages:', error);
+    } finally {
+      setIsLoading(false);
     }
   }, [i18n]);
 

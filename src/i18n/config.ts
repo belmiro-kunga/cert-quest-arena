@@ -8,16 +8,16 @@ import ptBR from './locales/pt-BR';
 import enUS from './locales/en-US';
 
 // Available languages
-export const languages = [
+export let languages = [
   { code: 'pt-BR', name: 'Português', flag: '🇧🇷' },
   { code: 'en-US', name: 'English', flag: '🇺🇸' },
   // Add more languages here as needed
 ];
 
-// Function to update languages array (will be used by admin functions)
+// Function to update languages array
 export const updateLanguages = (newLanguages: { code: string; name: string; flag: string }[]) => {
   // Replace the languages array with the new one
-  languages.splice(0, languages.length, ...newLanguages);
+  languages = [...newLanguages];
 };
 
 // Function to add a new language resource

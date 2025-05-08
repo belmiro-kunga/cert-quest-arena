@@ -1,7 +1,7 @@
+
 import * as React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { LanguageSelector } from '../LanguageSelector';
 
 // Import icons from lucide-react
@@ -14,7 +14,8 @@ import {
   Star,
   Award,
   CreditCard,
-  Settings
+  Settings,
+  Globe
 } from 'lucide-react';
 
 interface AdminNavigationProps {
@@ -35,6 +36,7 @@ export function AdminNavigation({ activeTab, onTabChange }: AdminNavigationProps
     { value: "gamification", label: t('common.gamification'), icon: Star },
     { value: "achievements", label: t('common.achievements'), icon: Award },
     { value: "payments", label: t('common.payments'), icon: CreditCard },
+    { value: "languages", label: t('common.language'), icon: Globe },
     { value: "settings", label: t('common.settings'), icon: Settings }
   ];
 

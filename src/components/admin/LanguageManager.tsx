@@ -30,7 +30,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { createLanguage, updateLanguage, deleteLanguage } from '@/services/adminService';
+import { fetchLanguages, createLanguage, updateLanguage, deleteLanguage } from '@/services/adminService';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface Language {
   code: string;
@@ -40,6 +41,7 @@ interface Language {
 
 export function LanguageManager() {
   const { t } = useTranslation();
+  const { addNewLanguage, updateLanguage: updateLanguageInConfig, removeLanguage } = useLanguage();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -52,15 +54,27 @@ export function LanguageManager() {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch languages from i18n config
+  // Fetch languages from database
   useEffect(() => {
-    const fetchLanguages = async () => {
-      // Import dynamically to avoid circular dependencies
-      const { languages } = await import('@/i18n/config');
-      setLanguages(languages);
+    const loadLanguages = async () => {
+      setIsLoading(true);
+      try {
+        const dbLanguages = await fetchLanguages();
+        setLanguages(dbLanguages);
+      } catch (error) {
+        console.error('Error fetching languages:', error);
+        toast({
+          title: t('errors.errorOccurred'),
+          description: String(error),
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
-    fetchLanguages();
-  }, []);
+    
+    loadLanguages();
+  }, [t]);
 
   const handleAddLanguage = async () => {
     if (!newLanguage.code || !newLanguage.name) {
@@ -74,11 +88,14 @@ export function LanguageManager() {
 
     setIsLoading(true);
     try {
-      // Try to add to database
-      await createLanguage(newLanguage);
+      // Add to database
+      const dbLanguage = await createLanguage(newLanguage);
+      
+      // Update the local i18n config
+      await addNewLanguage(newLanguage.code, newLanguage.name, newLanguage.flag, {});
       
       // Update local state
-      setLanguages([...languages, newLanguage]);
+      setLanguages([...languages, dbLanguage]);
       
       // Close dialog and reset form
       setIsAddDialogOpen(false);
@@ -112,8 +129,11 @@ export function LanguageManager() {
 
     setIsLoading(true);
     try {
-      // Try to update in database
+      // Update in database
       await updateLanguage(selectedLanguage);
+      
+      // Update in local i18n config
+      updateLanguageInConfig(selectedLanguage.code, selectedLanguage.name, selectedLanguage.flag);
       
       // Update local state
       setLanguages(languages.map(lang => 
@@ -145,8 +165,11 @@ export function LanguageManager() {
     
     setIsLoading(true);
     try {
-      // Try to delete from database
+      // Delete from database
       await deleteLanguage(selectedLanguage.code);
+      
+      // Delete from local i18n config
+      removeLanguage(selectedLanguage.code);
       
       // Update local state
       setLanguages(languages.filter(lang => lang.code !== selectedLanguage.code));

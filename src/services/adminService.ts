@@ -30,7 +30,7 @@ export const fetchPayments = async (): Promise<Payment[]> => {
         method,
         created_at,
         user_id,
-        profiles!inner(name)
+        profiles(name)
       `)
       .order('created_at', { ascending: false });
     
@@ -38,7 +38,7 @@ export const fetchPayments = async (): Promise<Payment[]> => {
     
     return data.map(payment => ({
       ...payment,
-      userName: payment.profiles.name
+      userName: payment.profiles?.name
     })) || [];
   } catch (error) {
     console.error('Error fetching payments:', error);
@@ -46,7 +46,7 @@ export const fetchPayments = async (): Promise<Payment[]> => {
   }
 };
 
-// Novas funções para gerenciar idiomas
+// Language management functions
 export const fetchLanguages = async () => {
   try {
     const { data, error } = await supabase
