@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+      "supabase-mcp-server": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@smithery/cli@1.0.0",
+          "run",
+          "@alexander-zuev/supabase-mcp-server@1.0.0",
+          "--key",
+          "91661481-0811-46df-a4f0-5c41be225e75",
+          "--profile",
+          "horrible-gayal-VfM042"
+        ]
+      }
+    }
+  }

@@ -83,7 +83,7 @@ const App = () => {
                       <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                       <Route path="/achievements" element={<PrivateRoute><AchievementsPage /></PrivateRoute>} />
                       <Route path="/admin/login" element={<AdminLoginPage />} />
-                      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+                      <Route path="/admin/*" element={<AdminRoute><AdminPage /></AdminRoute>} />
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/exams/:examId" element={<ExamPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />

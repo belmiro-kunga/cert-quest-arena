@@ -1,112 +1,226 @@
-
-import { useState, useEffect } from 'react';
-import { fetchExams } from '@/services/examService';
-import { Exam } from '@/types/admin';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export interface AdminPageState {
   activeTab: string;
-  selectedStudent: string | null;
-  selectedExam: string | null;
-  selectedCoupon: string | null;
-  adminExams: Exam[];
+  students: any[];
+  adminExams: any[];
+  coupons: any[];
   isLoading: boolean;
+  error: string | null;
 }
 
 export interface AdminPageActions {
   handleTabChange: (value: string) => void;
-  handleStudentSelect: (studentId: string) => void;
-  handleExamSelect: (examId: string) => void;
-  handleExamDelete: (examId: string) => void;
-  handleExamCreated: (exam: Exam) => void;
-  handleExamUpdated: (exam: Exam) => void;
-  handleCouponSelect: (couponId: string) => void;
-  handleCouponDelete: (couponId: string) => void;
-  refreshExams: () => Promise<void>;
+  handleCreateStudent: (student: any) => Promise<void>;
+  handleUpdateStudent: (student: any) => Promise<void>;
+  handleDeleteStudent: (studentId: string) => Promise<void>;
+  handleExamSelect: (examId: string) => Promise<void>;
+  handleExamDelete: (examId: string) => Promise<void>;
+  handleExamCreated: (exam: any) => Promise<void>;
+  handleExamUpdated: (exam: any) => Promise<void>;
+  handleCouponSelect: (couponId: string) => Promise<void>;
+  handleCouponDelete: (couponId: string) => Promise<void>;
+  handleEnrollExam: (studentId: string, examId: string) => Promise<void>;
 }
 
-export const useAdminPage = (): { state: AdminPageState; actions: AdminPageActions } => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [selectedExam, setSelectedExam] = useState<string | null>(null);
-  const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
-  const [adminExams, setAdminExams] = useState<Exam[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export function useAdminPage() {
+  const [state, setState] = useState<AdminPageState>({
+    activeTab: 'overview',
+    students: [],
+    adminExams: [],
+    coupons: [],
+    isLoading: false,
+    error: null,
+  });
 
-  const refreshExams = async () => {
-    setIsLoading(true);
-    try {
-      const fetchedExams = await fetchExams();
-      setAdminExams(fetchedExams);
-    } catch (error) {
-      console.error('Erro ao carregar simulados:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    refreshExams();
-  }, []);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  const handleStudentSelect = (studentId: string) => {
-    setSelectedStudent(studentId);
-  };
-
-  const handleExamSelect = (examId: string) => {
-    setSelectedExam(examId);
-  };
-
-  const handleCouponSelect = (couponId: string) => {
-    setSelectedCoupon(couponId);
-  };
-
-  const handleExamDelete = (examId: string) => {
-    // Remover o exame da lista local após exclusão
-    setAdminExams(adminExams.filter(exam => exam.id !== examId));
-  };
-
-  const handleExamCreated = (exam: Exam) => {
-    // Adicionar novo exame à lista
-    setAdminExams(prevExams => [...prevExams, exam]);
-  };
-
-  const handleExamUpdated = (updatedExam: Exam) => {
-    // Atualizar exame na lista
-    setAdminExams(prevExams => 
-      prevExams.map(exam => 
-        exam.id === updatedExam.id ? updatedExam : exam
-      )
-    );
-  };
-
-  const handleCouponDelete = (couponId: string) => {
-    // Implementar lógica de exclusão
-    console.log('Deletando cupom:', couponId);
-  };
-
-  return {
-    state: {
-      activeTab,
-      selectedStudent,
-      selectedExam,
-      selectedCoupon,
-      adminExams,
-      isLoading
+  const actions: AdminPageActions = {
+    handleTabChange: (value: string) => {
+      setState(prev => ({ ...prev, activeTab: value }));
     },
-    actions: {
-      handleTabChange,
-      handleStudentSelect,
-      handleExamSelect,
-      handleExamDelete,
-      handleExamCreated,
-      handleExamUpdated,
-      handleCouponSelect,
-      handleCouponDelete,
-      refreshExams
-    }
+
+    handleCreateStudent: async (student: any) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement student creation logic
+        setState(prev => ({ 
+          ...prev, 
+          students: [...prev.students, student],
+          isLoading: false 
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to create student',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleUpdateStudent: async (student: any) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement student update logic
+        setState(prev => ({
+          ...prev,
+          students: prev.students.map(s => s.id === student.id ? student : s),
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to update student',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleDeleteStudent: async (studentId: string) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement student deletion logic
+        setState(prev => ({
+          ...prev,
+          students: prev.students.filter(s => s.id !== studentId),
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to delete student',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleExamSelect: async (examId: string) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement exam selection logic
+        setState(prev => ({ ...prev, isLoading: false }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to select exam',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleExamDelete: async (examId: string) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement exam deletion logic
+        setState(prev => ({
+          ...prev,
+          adminExams: prev.adminExams.filter(e => e.id !== examId),
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to delete exam',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleExamCreated: async (exam: any) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement exam creation logic
+        setState(prev => ({
+          ...prev,
+          adminExams: [...prev.adminExams, exam],
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to create exam',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleExamUpdated: async (exam: any) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement exam update logic
+        setState(prev => ({
+          ...prev,
+          adminExams: prev.adminExams.map(e => e.id === exam.id ? exam : e),
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to update exam',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleCouponSelect: async (couponId: string) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement coupon selection logic
+        setState(prev => ({ ...prev, isLoading: false }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to select coupon',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleCouponDelete: async (couponId: string) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement coupon deletion logic
+        setState(prev => ({
+          ...prev,
+          coupons: prev.coupons.filter(c => c.id !== couponId),
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to delete coupon',
+          isLoading: false 
+        }));
+      }
+    },
+
+    handleEnrollExam: async (studentId: string, examId: string) => {
+      try {
+        setState(prev => ({ ...prev, isLoading: true }));
+        // Implement student enrollment logic
+        setState(prev => ({
+          ...prev,
+          students: prev.students.map(student => {
+            if (student.id === studentId) {
+              return {
+                ...student,
+                exams: [...(student.exams || []), examId]
+              };
+            }
+            return student;
+          }),
+          isLoading: false
+        }));
+      } catch (error) {
+        setState(prev => ({ 
+          ...prev, 
+          error: 'Failed to enroll student in exam',
+          isLoading: false 
+        }));
+      }
+    },
   };
-};
+
+  return { state, actions };
+}
