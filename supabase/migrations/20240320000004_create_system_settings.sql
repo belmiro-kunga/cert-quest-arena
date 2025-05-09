@@ -111,6 +111,24 @@ INSERT INTO email_templates (name, subject, body, variables) VALUES
     'Resultado do Exame - CertQuest Arena',
     'Olá {{name}},\n\nSeu resultado do exame {{exam_name}} está disponível.\n\nPontuação: {{score}}\nStatus: {{status}}\n\nAcesse sua conta para ver mais detalhes.\n\nAtenciosamente,\nEquipe CertQuest',
     '{"name": "Nome do usuário", "exam_name": "Nome do exame", "score": "Pontuação", "status": "Status"}'
+),
+(
+    'simulated_purchase',
+    'Compra de Simulado Confirmada - CertQuest Arena',
+    'Olá {{name}},\n\nSua compra do simulado {{simulated_name}} foi confirmada com sucesso!\n\nValor: {{price}}\n\nO simulado já está disponível em sua conta. Acesse a plataforma para começar a praticar.\n\nAtenciosamente,\nEquipe CertQuest',
+    '{"name": "Nome do usuário", "simulated_name": "Nome do simulado", "price": "Valor da compra"}'
+),
+(
+    'registration_confirmation',
+    'Confirmação de Cadastro - CertQuest Arena',
+    'Olá {{name}},\n\nSeu cadastro no CertQuest Arena foi realizado com sucesso!\n\nPara confirmar seu email, clique no link abaixo:\n\n{{confirmation_link}}\n\nSe você não criou esta conta, ignore este email.\n\nAtenciosamente,\nEquipe CertQuest',
+    '{"name": "Nome do usuário", "confirmation_link": "Link de confirmação de email"}'
+),
+(
+    'password_recovery',
+    'Recuperação de Senha - CertQuest Arena',
+    'Olá {{name}},\n\nVocê solicitou a recuperação de sua senha. Clique no link abaixo para criar uma nova senha:\n\n{{recovery_link}}\n\nEste link é válido por 24 horas.\n\nSe você não solicitou esta recuperação, ignore este email.\n\nAtenciosamente,\nEquipe CertQuest',
+    '{"name": "Nome do usuário", "recovery_link": "Link de recuperação de senha"}'
 ) ON CONFLICT DO NOTHING;
 
 -- Create storage bucket for system files
