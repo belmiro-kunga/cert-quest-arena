@@ -227,6 +227,74 @@ export const emailService = {
     }
   },
 
+  async sendMilestoneEmail(userEmail: string, userName: string, milestone: {
+    name: string;
+    description: string;
+    rewards: string[];
+    nextMilestone?: {
+      name: string;
+      description: string;
+      requirements: string[];
+    };
+  }) {
+    try {
+      // Busca o template de marco alcançado
+      const { data: template } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('name', 'milestone-reached')
+        .single();
+
+      if (!template) {
+        throw new Error('Template de email de marco alcançado não encontrado');
+      }
+
+      // Busca as estatísticas do usuário
+      const { data: userStats } = await supabase
+        .from('user_statistics')
+        .select('total_study_hours, total_questions, correct_answers')
+        .eq('user_id', userEmail)
+        .single();
+
+      // Calcula a taxa de acerto
+      const accuracyRate = userStats
+        ? Math.round((userStats.correct_answers / userStats.total_questions) * 100)
+        : 0;
+
+      // Formata as recompensas
+      const formattedRewards = milestone.rewards
+        .map(reward => `- ${reward}`)
+        .join('\n');
+
+      // Formata o próximo marco
+      const nextMilestoneText = milestone.nextMilestone
+        ? `${milestone.nextMilestone.name}\n\n${milestone.nextMilestone.description}\n\nRequisitos:\n${milestone.nextMilestone.requirements.map(req => `- ${req}`).join('\n')}`
+        : 'Você atingiu o nível máximo! Continue mantendo seu excelente desempenho!';
+
+      // Envia email para o usuário
+      await this.sendEmail({
+        to: userEmail,
+        subject: template.subject,
+        body: template.body,
+        variables: {
+          name: userName,
+          milestoneName: milestone.name,
+          milestoneDescription: milestone.description,
+          rewards: formattedRewards,
+          totalHours: userStats?.total_study_hours.toFixed(1) || '0',
+          questionsAnswered: userStats?.total_questions.toString() || '0',
+          accuracyRate: accuracyRate.toString(),
+          nextMilestone: nextMilestoneText
+        },
+      });
+
+      console.log('Email de marco alcançado enviado com sucesso para:', userEmail);
+    } catch (error) {
+      console.error('Erro ao enviar email de marco alcançado:', error);
+      throw error;
+    }
+  },
+
   async sendWelcomeEmail(userEmail: string, userName: string) {
     try {
       // Busca o template de boas-vindas
