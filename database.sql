@@ -140,6 +140,22 @@ CREATE TABLE IF NOT EXISTS cart_items (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS email_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(50) NOT NULL UNIQUE,
+    subject VARCHAR(200) NOT NULL,
+    body TEXT NOT NULL,
+    variables JSONB,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trigger para atualização automática do updated_at
+CREATE TRIGGER update_email_template_updated_at
+    BEFORE UPDATE ON email_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Create indexes for better performance
 CREATE INDEX idx_user_email ON users(email);
 CREATE INDEX idx_certification_name ON certifications(name);
@@ -210,3 +226,42 @@ CREATE TRIGGER update_payment_transaction_updated_at
     BEFORE UPDATE ON payment_transactions
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Inserir templates de email iniciais
+INSERT INTO email_templates (name, subject, body, variables) VALUES
+('welcome', 'Bem-vindo ao CertQuest Arena - Comece Sua Jornada!',
+'Olá {{name}},
+
+Bem-vindo ao CertQuest Arena! Estamos muito felizes em ter você conosco.
+
+Para ajudar você a começar sua jornada de certificação, preparamos um guia inicial:
+
+1. Primeiros Passos:
+   - Complete seu perfil em: {{profileLink}}
+   - Faça o teste de nivelamento: {{assessmentLink}}
+   - Explore nossa biblioteca de recursos: {{resourcesLink}}
+
+2. Certificações Recomendadas para seu perfil:
+   {{recommendedCerts}}
+
+3. Próximos Passos:
+   - Participe de nossa comunidade: {{communityLink}}
+   - Agende sua primeira sessão de estudo
+   - Configure suas metas de aprendizado
+
+Dicas importantes:
+- Use nosso sistema de flashcards para memorização
+- Participe dos simulados semanais
+- Acompanhe seu progresso no dashboard
+
+Se precisar de ajuda, nossa equipe está disponível em {{supportEmail}}.
+
+Boa jornada de aprendizado!
+
+Atenciosamente,
+Equipe CertQuest Arena',
+'{"variables": ["name", "profileLink", "assessmentLink", "resourcesLink", "recommendedCerts", "communityLink", "supportEmail"]}'
+) ON CONFLICT (name) DO UPDATE SET
+    subject = EXCLUDED.subject,
+    body = EXCLUDED.body,
+    variables = EXCLUDED.variables;

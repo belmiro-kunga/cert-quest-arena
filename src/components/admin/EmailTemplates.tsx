@@ -20,16 +20,38 @@ const defaultTemplates: EmailTemplate[] = [
   {
     id: 'welcome',
     name: 'Bem-vindo',
-    subject: 'Bem-vindo ao CertQuest Arena!',
+    subject: 'Bem-vindo ao CertQuest Arena - Comece Sua Jornada!',
     body: `Olá {{name}},
 
 Bem-vindo ao CertQuest Arena! Estamos muito felizes em ter você conosco.
 
-Para começar sua jornada de estudos, acesse sua conta e explore nossos cursos disponíveis.
+Para ajudar você a começar sua jornada de certificação, preparamos um guia inicial:
+
+1. Primeiros Passos:
+   - Complete seu perfil em: {{profileLink}}
+   - Faça o teste de nivelamento: {{assessmentLink}}
+   - Explore nossa biblioteca de recursos: {{resourcesLink}}
+
+2. Certificações Recomendadas para seu perfil:
+   {{recommendedCerts}}
+
+3. Próximos Passos:
+   - Participe de nossa comunidade: {{communityLink}}
+   - Agende sua primeira sessão de estudo
+   - Configure suas metas de aprendizado
+
+Dicas importantes:
+- Use nosso sistema de flashcards para memorização
+- Participe dos simulados semanais
+- Acompanhe seu progresso no dashboard
+
+Se precisar de ajuda, nossa equipe está disponível em {{supportEmail}}.
+
+Boa jornada de aprendizado!
 
 Atenciosamente,
 Equipe CertQuest Arena`,
-    variables: ['name']
+    variables: ['name', 'profileLink', 'assessmentLink', 'resourcesLink', 'recommendedCerts', 'communityLink', 'supportEmail']
   },
   {
     id: 'exam-completion',

@@ -170,7 +170,7 @@ export const emailService = {
 
   async sendSimulatedPurchaseNotification(userEmail: string, userName: string, simulatedName: string, simulatedPrice: number) {
     try {
-      // Busca o template de compra de simulado
+      // Busca o template de notificação de compra simulada
       const { data: template } = await supabase
         .from('email_templates')
         .select('*')
@@ -188,13 +188,12 @@ export const emailService = {
         body: template.body,
         variables: {
           name: userName,
-          simulated_name: simulatedName,
-          price: simulatedPrice.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-          }),
+          simulatedName,
+          simulatedPrice: simulatedPrice.toFixed(2),
         },
       });
+
+      console.log('Notificação de compra simulada enviada com sucesso');
 
       // Busca o email do administrador
       const { data: adminProfile } = await supabase
@@ -223,8 +222,64 @@ export const emailService = {
         });
       }
     } catch (error) {
-      console.error('Erro ao enviar notificação de compra:', error);
+      console.error('Erro ao enviar notificação de compra simulada:', error);
       throw error;
     }
   },
-}; 
+
+  async sendWelcomeEmail(userEmail: string, userName: string) {
+    try {
+      // Busca o template de boas-vindas
+      const { data: template } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('name', 'welcome')
+        .single();
+
+      if (!template) {
+        throw new Error('Template de email de boas-vindas não encontrado');
+      }
+
+      // Gera os links necessários
+      const profileLink = `${window.location.origin}/profile`;
+      const assessmentLink = `${window.location.origin}/assessment`;
+      const resourcesLink = `${window.location.origin}/resources`;
+      const communityLink = `${window.location.origin}/community`;
+
+      // Busca certificações recomendadas para iniciantes
+      const { data: recommendedCertifications } = await supabase
+        .from('certifications')
+        .select('name, description')
+        .eq('level', 'beginner')
+        .limit(3);
+
+      // Formata as certificações recomendadas
+      const recommendedCerts = recommendedCertifications
+        ? recommendedCertifications
+          .map(cert => `- ${cert.name}: ${cert.description}`)
+          .join('\n')
+        : 'Carregando recomendações...';
+
+      // Envia email para o usuário
+      await this.sendEmail({
+        to: userEmail,
+        subject: template.subject,
+        body: template.body,
+        variables: {
+          name: userName,
+          profileLink,
+          assessmentLink,
+          resourcesLink,
+          recommendedCerts,
+          communityLink,
+          supportEmail: 'suporte@certquestarena.com'
+        },
+      });
+
+      console.log('Email de boas-vindas enviado com sucesso para:', userEmail);
+    } catch (error) {
+      console.error('Erro ao enviar email de boas-vindas:', error);
+      throw error;
+    }
+  },
+};
