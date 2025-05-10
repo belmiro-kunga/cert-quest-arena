@@ -229,6 +229,46 @@ CREATE TRIGGER update_payment_transaction_updated_at
 
 -- Inserir templates de email iniciais
 INSERT INTO email_templates (name, subject, body, variables) VALUES
+('exam-results', 'Seus Resultados do Exame {{examName}} 📝',
+'Olá {{name}},
+
+Os resultados do seu exame {{examName}} estão prontos!
+
+🏅 Pontuação Final: {{score}}/{{totalPoints}}
+⏱️ Tempo de Conclusão: {{completionTime}}
+✅ Questões Corretas: {{correctAnswers}}/{{totalQuestions}}
+📈 Taxa de Acerto: {{accuracyRate}}%
+
+Análise Detalhada:
+
+📗 Áreas de Domínio:
+{{strongAreas}}
+
+📋 Áreas para Melhorar:
+{{improvementAreas}}
+
+💡 Recomendações de Estudo:
+{{studyRecommendations}}
+
+Próximos Passos:
+{{nextSteps}}
+
+Você pode revisar suas respostas em detalhes aqui:
+{{reviewLink}}
+
+{{passingMessage}}
+
+Continue se dedicando!
+
+Atenciosamente,
+Equipe CertQuest Arena',
+'{"variables": ["name", "examName", "score", "totalPoints", "completionTime", "correctAnswers", "totalQuestions", "accuracyRate", "strongAreas", "improvementAreas", "studyRecommendations", "nextSteps", "reviewLink", "passingMessage"]}'
+) ON CONFLICT (name) DO UPDATE SET
+    subject = EXCLUDED.subject,
+    body = EXCLUDED.body,
+    variables = EXCLUDED.variables;
+
+INSERT INTO email_templates (name, subject, body, variables) VALUES
 ('milestone-reached', 'Parabéns! Você alcançou um novo marco! 🏆',
 'Olá {{name}},
 

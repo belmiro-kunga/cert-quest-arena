@@ -227,6 +227,92 @@ export const emailService = {
     }
   },
 
+  async sendExamResultsEmail(userEmail: string, userName: string, examResult: {
+    examName: string;
+    score: number;
+    totalPoints: number;
+    completionTime: string;
+    correctAnswers: number;
+    totalQuestions: number;
+    strongAreas: string[];
+    improvementAreas: string[];
+    studyRecommendations: string[];
+    nextSteps: string[];
+    passingScore: number;
+  }) {
+    try {
+      // Busca o template de resultados do exame
+      const { data: template } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('name', 'exam-results')
+        .single();
+
+      if (!template) {
+        throw new Error('Template de email de resultados do exame não encontrado');
+      }
+
+      // Calcula a taxa de acerto
+      const accuracyRate = Math.round((examResult.correctAnswers / examResult.totalQuestions) * 100);
+
+      // Formata as áreas de domínio
+      const strongAreasFormatted = examResult.strongAreas
+        .map(area => `- ${area}`)
+        .join('\n');
+
+      // Formata as áreas para melhorar
+      const improvementAreasFormatted = examResult.improvementAreas
+        .map(area => `- ${area}`)
+        .join('\n');
+
+      // Formata as recomendações de estudo
+      const studyRecommendationsFormatted = examResult.studyRecommendations
+        .map(rec => `- ${rec}`)
+        .join('\n');
+
+      // Formata os próximos passos
+      const nextStepsFormatted = examResult.nextSteps
+        .map(step => `- ${step}`)
+        .join('\n');
+
+      // Gera o link de revisão
+      const reviewLink = `${window.location.origin}/exam-review/${examResult.examName}`;
+
+      // Define a mensagem de aprovação/reprovação
+      const passingMessage = examResult.score >= examResult.passingScore
+        ? `🎉 Parabéns! Você foi APROVADO neste exame! Sua pontuação (${examResult.score}) superou a pontuação mínima necessária (${examResult.passingScore}).`
+        : `Continue se esforçando! Você precisa de ${examResult.passingScore} pontos para ser aprovado. Com mais prática, você conseguirá!`;
+
+      // Envia email para o usuário
+      await this.sendEmail({
+        to: userEmail,
+        subject: template.subject.replace('{{examName}}', examResult.examName),
+        body: template.body,
+        variables: {
+          name: userName,
+          examName: examResult.examName,
+          score: examResult.score.toString(),
+          totalPoints: examResult.totalPoints.toString(),
+          completionTime: examResult.completionTime,
+          correctAnswers: examResult.correctAnswers.toString(),
+          totalQuestions: examResult.totalQuestions.toString(),
+          accuracyRate: accuracyRate.toString(),
+          strongAreas: strongAreasFormatted,
+          improvementAreas: improvementAreasFormatted,
+          studyRecommendations: studyRecommendationsFormatted,
+          nextSteps: nextStepsFormatted,
+          reviewLink,
+          passingMessage
+        },
+      });
+
+      console.log('Email de resultados do exame enviado com sucesso para:', userEmail);
+    } catch (error) {
+      console.error('Erro ao enviar email de resultados do exame:', error);
+      throw error;
+    }
+  },
+
   async sendMilestoneEmail(userEmail: string, userName: string, milestone: {
     name: string;
     description: string;

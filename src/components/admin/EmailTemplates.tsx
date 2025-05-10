@@ -18,6 +18,44 @@ interface EmailTemplate {
 
 const defaultTemplates: EmailTemplate[] = [
   {
+    id: 'exam-results',
+    name: 'Resultados do Exame',
+    subject: 'Seus Resultados do Exame {{examName}} 📝',
+    body: `Olá {{name}},
+
+Os resultados do seu exame {{examName}} estão prontos!
+
+🏅 Pontuação Final: {{score}}/{{totalPoints}}
+⏱️ Tempo de Conclusão: {{completionTime}}
+✅ Questões Corretas: {{correctAnswers}}/{{totalQuestions}}
+📈 Taxa de Acerto: {{accuracyRate}}%
+
+Análise Detalhada:
+
+📗 Áreas de Domínio:
+{{strongAreas}}
+
+📋 Áreas para Melhorar:
+{{improvementAreas}}
+
+💡 Recomendações de Estudo:
+{{studyRecommendations}}
+
+Próximos Passos:
+{{nextSteps}}
+
+Você pode revisar suas respostas em detalhes aqui:
+{{reviewLink}}
+
+{{passingMessage}}
+
+Continue se dedicando!
+
+Atenciosamente,
+Equipe CertQuest Arena`,
+    variables: ['name', 'examName', 'score', 'totalPoints', 'completionTime', 'correctAnswers', 'totalQuestions', 'accuracyRate', 'strongAreas', 'improvementAreas', 'studyRecommendations', 'nextSteps', 'reviewLink', 'passingMessage']
+  },
+  {
     id: 'milestone-reached',
     name: 'Marco Alcançado',
     subject: 'Parabéns! Você alcançou um novo marco! 🏆',
