@@ -18,6 +18,49 @@ interface EmailTemplate {
 
 const defaultTemplates: EmailTemplate[] = [
   {
+    id: 'certificate-earned',
+    name: 'Certificado Conquistado',
+    subject: 'Parabéns! Você conquistou o certificado {{certName}} 🎓',
+    body: `Olá {{name}},
+
+🎉 PARABÉNS! 🎉
+
+Você acaba de conquistar o certificado:
+
+🎓 {{certName}}
+
+Detalhes da Conquista:
+✅ Nível: {{certLevel}}
+🏆 Pontuação Final: {{finalScore}}%
+⏱️ Tempo de Preparação: {{prepTime}}
+📈 Progresso Total: {{progress}}%
+
+Suas Conquistas:
+{{achievements}}
+
+Seu certificado digital está disponível em:
+{{certificateLink}}
+
+Compartilhe sua conquista:
+👨‍💻 LinkedIn: {{linkedinShareLink}}
+👥 Twitter: {{twitterShareLink}}
+
+Próximos Passos:
+{{nextSteps}}
+
+Certificações Recomendadas:
+{{recommendedCerts}}
+
+Você pode visualizar seu certificado e adicionar ao seu perfil aqui:
+{{profileLink}}
+
+Parabéns novamente por essa importante conquista!
+
+Atenciosamente,
+Equipe CertQuest Arena`,
+    variables: ['name', 'certName', 'certLevel', 'finalScore', 'prepTime', 'progress', 'achievements', 'certificateLink', 'linkedinShareLink', 'twitterShareLink', 'nextSteps', 'recommendedCerts', 'profileLink']
+  },
+  {
     id: 'exam-results',
     name: 'Resultados do Exame',
     subject: 'Seus Resultados do Exame {{examName}} 📝',

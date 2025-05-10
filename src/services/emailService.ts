@@ -227,6 +227,87 @@ export const emailService = {
     }
   },
 
+  async sendCertificateEarnedEmail(userEmail: string, userName: string, certData: {
+    certName: string;
+    certLevel: string;
+    finalScore: number;
+    prepTime: string;
+    progress: number;
+    achievements: string[];
+    certificateId: string;
+    nextSteps: string[];
+    recommendedCerts: Array<{
+      name: string;
+      level: string;
+      description: string;
+    }>;
+  }) {
+    try {
+      // Busca o template de certificado conquistado
+      const { data: template } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('name', 'certificate-earned')
+        .single();
+
+      if (!template) {
+        throw new Error('Template de email de certificado conquistado não encontrado');
+      }
+
+      // Formata as conquistas
+      const achievementsFormatted = certData.achievements
+        .map(achievement => `- ${achievement}`)
+        .join('\n');
+
+      // Gera links
+      const baseUrl = window.location.origin;
+      const certificateLink = `${baseUrl}/certificates/${certData.certificateId}`;
+      const profileLink = `${baseUrl}/profile/certificates`;
+
+      // Gera links de compartilhamento
+      const linkedinShareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(certificateLink)}&title=${encodeURIComponent(`Acabei de conquistar o certificado ${certData.certName} na plataforma CertQuest Arena! 🎓`)}`;
+      
+      const twitterShareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`Acabei de conquistar o certificado ${certData.certName} na plataforma CertQuest Arena! 🎓\nConfira aqui: ${certificateLink}`)}`;
+
+      // Formata os próximos passos
+      const nextStepsFormatted = certData.nextSteps
+        .map(step => `- ${step}`)
+        .join('\n');
+
+      // Formata as certificações recomendadas
+      const recommendedCertsFormatted = certData.recommendedCerts
+        .map(cert => `- ${cert.name} (${cert.level})\n  ${cert.description}`)
+        .join('\n\n');
+
+      // Envia email para o usuário
+      await this.sendEmail({
+        to: userEmail,
+        subject: template.subject.replace('{{certName}}', certData.certName),
+        body: template.body,
+        variables: {
+          name: userName,
+          certName: certData.certName,
+          certLevel: certData.certLevel,
+          finalScore: certData.finalScore.toString(),
+          prepTime: certData.prepTime,
+          progress: certData.progress.toString(),
+          achievements: achievementsFormatted,
+          certificateLink,
+          linkedinShareLink,
+          twitterShareLink,
+          nextSteps: nextStepsFormatted,
+          recommendedCerts: recommendedCertsFormatted,
+          profileLink
+        },
+      });
+
+      console.log('Email de certificado conquistado enviado com sucesso para:', userEmail);
+    } catch (error) {
+      console.error('Erro ao enviar email de certificado conquistado:', error);
+      throw error;
+    }
+  },
+
   async sendExamResultsEmail(userEmail: string, userName: string, examResult: {
     examName: string;
     score: number;
