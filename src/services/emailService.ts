@@ -227,6 +227,144 @@ export const emailService = {
     }
   },
 
+  async sendStudySessionEmail(userEmail: string, userName: string, sessionData: {
+    date: Date;
+    studyTime: number; // em minutos
+    focusScore: number;
+    progressGained: number;
+    questionsAnswered: number;
+    correctAnswers: number;
+    xpGained: number;
+    achievements: string[];
+    topics: Array<{
+      name: string;
+      timeSpent: number;
+      masteryLevel: number;
+    }>;
+    reviewTopics: Array<{
+      name: string;
+      reason: string;
+    }>;
+    insights: Array<{
+      topic: string;
+      insight: string;
+    }>;
+    nextSession: {
+      date: Date;
+      duration: number;
+      topics: string[];
+    };
+    goals: {
+      daily: {
+        target: number;
+        current: number;
+      };
+      weekly: {
+        target: number;
+        current: number;
+      };
+    };
+  }) {
+    try {
+      // Busca o template de sessão de estudo
+      const { data: template } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('name', 'study-session')
+        .single();
+
+      if (!template) {
+        throw new Error('Template de email de sessão de estudo não encontrado');
+      }
+
+      // Formata a data
+      const formattedDate = sessionData.date.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      // Formata o tempo de estudo
+      const hours = Math.floor(sessionData.studyTime / 60);
+      const minutes = sessionData.studyTime % 60;
+      const formattedStudyTime = hours > 0
+        ? `${hours}h ${minutes}min`
+        : `${minutes}min`;
+
+      // Calcula a taxa de acerto
+      const accuracyRate = Math.round((sessionData.correctAnswers / sessionData.questionsAnswered) * 100);
+
+      // Formata as conquistas
+      const achievementsFormatted = sessionData.achievements
+        .map(achievement => `- ${achievement}`)
+        .join('\n');
+
+      // Formata os tópicos estudados
+      const topicsFormatted = sessionData.topics
+        .map(topic => `- ${topic.name}\n  ⏱️ ${Math.round(topic.timeSpent)}min | ⭐ Domínio: ${topic.masteryLevel}%`)
+        .join('\n');
+
+      // Formata os tópicos para revisão
+      const reviewTopicsFormatted = sessionData.reviewTopics
+        .map(topic => `- ${topic.name}\n  ${topic.reason}`)
+        .join('\n');
+
+      // Formata os insights
+      const insightsFormatted = sessionData.insights
+        .map(insight => `- ${insight.topic}: ${insight.insight}`)
+        .join('\n');
+
+      // Formata a próxima sessão
+      const nextSessionDate = sessionData.nextSession.date.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: 'numeric',
+        minute: 'numeric'
+      });
+
+      const nextSessionFormatted = `Data: ${nextSessionDate}\nDuração: ${sessionData.nextSession.duration}min\nTópicos: ${sessionData.nextSession.topics.join(', ')}`;
+
+      // Calcula progresso das metas
+      const dailyGoalProgress = Math.round((sessionData.goals.daily.current / sessionData.goals.daily.target) * 100);
+      const weeklyGoalProgress = Math.round((sessionData.goals.weekly.current / sessionData.goals.weekly.target) * 100);
+
+      // Gera link para próxima sessão
+      const nextSessionLink = `${window.location.origin}/study-session/new?topics=${encodeURIComponent(sessionData.nextSession.topics.join(','))}&duration=${sessionData.nextSession.duration}`;
+
+      // Envia email para o usuário
+      await this.sendEmail({
+        to: userEmail,
+        subject: template.subject.replace('{{date}}', formattedDate),
+        body: template.body,
+        variables: {
+          name: userName,
+          date: formattedDate,
+          studyTime: formattedStudyTime,
+          focusScore: sessionData.focusScore.toString(),
+          progressGained: sessionData.progressGained.toString(),
+          questionsAnswered: sessionData.questionsAnswered.toString(),
+          accuracyRate: accuracyRate.toString(),
+          xpGained: sessionData.xpGained.toString(),
+          achievements: achievementsFormatted,
+          topics: topicsFormatted,
+          reviewTopics: reviewTopicsFormatted,
+          insights: insightsFormatted,
+          nextSession: nextSessionFormatted,
+          dailyGoalProgress: dailyGoalProgress.toString(),
+          weeklyGoalProgress: weeklyGoalProgress.toString(),
+          nextSessionLink
+        },
+      });
+
+      console.log('Email de resumo da sessão de estudo enviado com sucesso para:', userEmail);
+    } catch (error) {
+      console.error('Erro ao enviar email de resumo da sessão de estudo:', error);
+      throw error;
+    }
+  },
+
   async sendCertificateEarnedEmail(userEmail: string, userName: string, certData: {
     certName: string;
     certLevel: string;
