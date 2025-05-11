@@ -338,7 +338,6 @@ export function PoliciesSettings() {
       });
     }
   };
-  }
 
   return (
     <div className="space-y-6">
@@ -1040,7 +1039,7 @@ export function PoliciesSettings() {
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
-    </div>
-  );
-}
+        </Card>
+      </div>
+    );
+  }
