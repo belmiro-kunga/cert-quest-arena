@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmação de Pagamento</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background-color: #2563eb;
+      color: white;
+      border-radius: 8px 8px 0 0;
+    }
+    .content {
+      padding: 20px;
+      background-color: #f9fafb;
+      border-radius: 0 0 8px 8px;
+    }
+    .details {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 0.9em;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #2563eb;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Pagamento Confirmado</h1>
+  </div>
+  
+  <div class="content">
+    <p>Olá {{customerName}},</p>
+    
+    <p>Seu pagamento foi processado com sucesso! Abaixo estão os detalhes da transação:</p>
+    
+    <div class="details">
+      <div class="detail-row">
+        <strong>ID do Pagamento:</strong>
+        <span>{{paymentId}}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Valor:</strong>
+        <span>{{amount}}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Método de Pagamento:</strong>
+        <span>{{paymentMethod}}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Data:</strong>
+        <span>{{paymentDate}}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Hora:</strong>
+        <span>{{paymentTime}}</span>
+      </div>
+    </div>
+    
+    <p>Você pode acessar o comprovante completo e suas certificações através do botão abaixo:</p>
+    
+    <div style="text-align: center;">
+      <a href="https://certquest.arena/minha-conta/pagamentos" class="button">
+        Acessar Minha Conta
+      </a>
+    </div>
+    
+    <p>Se você tiver alguma dúvida ou precisar de ajuda, não hesite em entrar em contato com nossa equipe de suporte.</p>
+    
+    <p>Atenciosamente,<br>Equipe CertQuest Arena</p>
+  </div>
+  
+  <div class="footer">
+    <p>Este é um email automático. Por favor, não responda.</p>
+    <p>© 2025 CertQuest Arena. Todos os direitos reservados.</p>
+  </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { PaymentDetails } from '@/components/notifications/PaymentNotification';
 
 export interface PaymentGateway {
   id: string;

@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Globe, Clock, DollarSign, Palette, Image, Mail, Bell, Shield } from 'lucide-react';
+import { Globe, Clock, DollarSign, Palette, Image, Mail, Bell, Shield, CreditCard, MapPin } from 'lucide-react';
+import { PaymentSettings } from '@/components/admin/settings/PaymentSettings';
 import { settingsService, SystemSettings, EmailTemplate, EmailSubscription } from '@/services/settingsService';
 import { useToast } from '@/components/ui/use-toast';
 import { getLocalizedLanguageName } from '@/utils/language';
@@ -261,10 +262,26 @@ const SettingsPage = () => {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="appearance">Aparência</TabsTrigger>
-            <TabsTrigger value="localization">Localização</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="general">
+              <Globe className="h-4 w-4 mr-2" />
+              Geral
+            </TabsTrigger>
+            <TabsTrigger value="appearance">
+              <Palette className="h-4 w-4 mr-2" />
+              Aparência
+            </TabsTrigger>
+            <TabsTrigger value="localization">
+              <MapPin className="h-4 w-4 mr-2" />
+              Localização
+            </TabsTrigger>
+            <TabsTrigger value="email">
+              <Mail className="h-4 w-4 mr-2" />
+              Email
+            </TabsTrigger>
+            <TabsTrigger value="payment">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Pagamentos
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general">
@@ -700,6 +717,10 @@ const SettingsPage = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="payment">
+            <PaymentSettings />
           </TabsContent>
         </Tabs>
 
