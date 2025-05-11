@@ -52,8 +52,8 @@ const defaultValues: Partial<BillingSettingsFormValues> = {
   defaultPaymentTerms: 30,
   defaultDueDate: 15,
   taxRate: 0,
-  defaultCurrency: 'AOA',
-  displayCurrency: 'AOA',
+  defaultCurrency: 'USD',
+  displayCurrency: 'USD',
   roundingMethod: 'nearest',
   decimalPlaces: 2,
 };
@@ -65,8 +65,7 @@ const PROVINCES = [
 ];
 
 const CURRENCIES = [
-  { value: 'AOA', label: 'Kwanza (Kz)' },
-  { value: 'USD', label: 'Dólar ($)' },
+  { value: 'USD', label: 'Dólar Americano ($)' },
   { value: 'EUR', label: 'Euro (€)' },
 ];
 
