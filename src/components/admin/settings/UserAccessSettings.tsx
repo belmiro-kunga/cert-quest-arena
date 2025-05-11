@@ -124,6 +124,9 @@ const PERMISSIONS = [
   { id: 'manage', name: 'Gerenciar' },
 ];
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UserManagement } from './UserManagement';
+
 export function UserAccessSettings() {
   const form = useForm<AccessLevel>({
     resolver: zodResolver(accessLevelSchema),
@@ -153,6 +156,21 @@ export function UserAccessSettings() {
   }
 
   return (
+    <Tabs defaultValue="users" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="users">
+          Usuários
+        </TabsTrigger>
+        <TabsTrigger value="permissions">
+          Permissões
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="users">
+        <UserManagement />
+      </TabsContent>
+
+      <TabsContent value="permissions">
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -292,5 +310,7 @@ export function UserAccessSettings() {
         </CardContent>
       </Card>
     </div>
+      </TabsContent>
+    </Tabs>
   );
 }
