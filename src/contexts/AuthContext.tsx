@@ -1,130 +1,90 @@
-
-import React, { createContext, useContext } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { useToast } from '@/components/ui/use-toast';
+import React, { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Profile, EnhancedUser } from '@/types/user';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useToast } from '@/components/ui/use-toast';
+
+// Tipos simplificados
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'user' | 'admin';
+}
 
 interface AuthContextType {
-  user: EnhancedUser | null;
-  profile: Profile | null;
-  session: Session | null;
+  user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{
-    user: any | null;
-    session: Session | null;
-  } | undefined>;
-  signUp: (email: string, password: string, name: string) => Promise<{
-    user: any | null;
-    session: Session | null;
-  } | undefined>;
-  signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => void;
   isAdmin: () => boolean;
-  updateUserProfile: (updates: Partial<Profile>) => Promise<void>;
 }
+
+// Usuário de teste padrão
+const DEFAULT_USER: User = {
+  id: '1',
+  email: 'user@certquest.com',
+  name: 'Test User',
+  role: 'user'
+};
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  profile: null,
-  session: null,
-  loading: true,
-  signIn: async () => undefined,
-  signUp: async () => undefined,
-  signOut: async () => {},
+  loading: false,
+  signIn: async () => {},
+  signOut: () => {},
   isAdmin: () => false,
-  updateUserProfile: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const {
-    user,
-    profile,
-    session,
-    loading,
-    signIn: supabaseSignIn,
-    signUp: supabaseSignUp,
-    signOut: supabaseSignOut,
-    updateUserProfile,
-    isAdmin,
-  } = useSupabaseAuth();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      const data = await supabaseSignIn(email, password);
-      
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo de volta!",
-      });
-      
-      return data;
+      // Simular verificação de credenciais
+      if (email === 'user@certquest.com' && password === 'user123') {
+        setUser(DEFAULT_USER);
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo de volta!",
+        });
+        navigate('/dashboard');
+      } else {
+        throw new Error('Email ou senha incorretos');
+      }
     } catch (error: any) {
-      console.error("Login error:", error);
       toast({
         title: "Erro ao fazer login",
-        description: error.message || "Verifique suas credenciais e tente novamente",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const signUp = async (email: string, password: string, name: string) => {
-    try {
-      const data = await supabaseSignUp(email, password, name);
-
-      toast({
-        title: "Conta criada com sucesso",
-        description: "Verifique seu email para confirmar o cadastro.",
-      });
-      
-      return data;
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      toast({
-        title: "Erro ao criar conta",
         description: error.message,
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const signOut = async () => {
-    try {
-      await supabaseSignOut();
-      
-      toast({
-        title: "Logout realizado",
-        description: "Até logo!",
-      });
-      navigate('/');
-    } catch (error: any) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Erro ao fazer logout",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+  const signOut = () => {
+    setUser(null);
+    toast({
+      title: "Logout realizado",
+      description: "Até logo!",
+    });
+    navigate('/');
   };
+
+  const isAdmin = () => user?.role === 'admin';
 
   return (
     <AuthContext.Provider 
       value={{ 
         user, 
-        profile,
-        session,
-        loading, 
-        signIn, 
-        signUp, 
-        signOut, 
-        isAdmin, 
-        updateUserProfile 
+        loading,
+        signIn,
+        signOut,
+        isAdmin,
       }}
     >
       {children}

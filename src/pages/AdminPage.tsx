@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AdminNavigation } from "@/components/admin/AdminNavigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { Overview } from "@/components/admin/Overview";
@@ -10,6 +11,7 @@ import Payments from "@/components/admin/Payments";
 import { StudySystem } from "@/components/admin/StudySystem";
 import { EmailTemplates } from "@/components/admin/EmailTemplates";
 import { useAdminPage } from "@/hooks/useAdminPage";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import LanguagesPage from "./admin/LanguagesPage";
 import SettingsPage from "./admin/settings/SettingsPage";
 import CurrenciesPage from "./admin/settings/CurrenciesPage";
@@ -24,6 +26,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const AdminPage = () => {
   const { state, actions } = useAdminPage();
+  const { adminUser, isAuthenticated, adminSignOut } = useAdminAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/admin/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!adminUser) {
+    return null;
+  }
+
+  const handleSignOut = () => {
+    adminSignOut();
+    navigate('/admin/login');
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -50,7 +69,10 @@ const AdminPage = () => {
                 <AvatarImage src="/placeholder-avatar.jpg" alt="Admin" />
                 <AvatarFallback className="bg-blue-600 text-white">A</AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium">Admin</span>
+              <span className="text-sm font-medium">{adminUser.name}</span>
+              <Button variant="ghost" onClick={handleSignOut}>
+                Sair
+              </Button>
             </div>
           </div>
         </div>

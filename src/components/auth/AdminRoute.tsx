@@ -7,10 +7,10 @@ interface AdminRouteProps {
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAdminAuth();
+  const { adminUser, isAuthenticated } = useAdminAuth();
 
-  if (!isAuthenticated()) {
-    return <Navigate to="/admin/login" replace />;
+  if (!adminUser || !isAuthenticated()) {
+    return <Navigate to="/admin/login" />;
   }
 
   return <>{children}</>;

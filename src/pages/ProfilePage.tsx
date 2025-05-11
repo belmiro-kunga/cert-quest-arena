@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { EnhancedUser } from '@/types/user';
 
 // Import our components
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
@@ -13,6 +11,7 @@ import ProfileTab from '@/components/profile/tabs/ProfileTab';
 import PaymentTab from '@/components/profile/tabs/PaymentTab';
 import HistoryTab from '@/components/profile/tabs/HistoryTab';
 import SecurityTab from '@/components/profile/tabs/SecurityTab';
+import AffiliateTab from '@/components/profile/tabs/AffiliateTab';
 
 const ProfilePage = () => {
   const { user: authUser, updateUserProfile } = useAuth();
@@ -41,7 +40,13 @@ const ProfilePage = () => {
     ],
     certificates: [
       { id: 'aws-cloud-practitioner', name: 'AWS Cloud Practitioner', acquired: '04/25/2025' }
-    ]
+    ],
+    affiliate: {
+      status: null,
+      earnings: 0,
+      referrals: 0,
+      link: ''
+    }
   });
 
   // Update user data when authUser changes
@@ -97,6 +102,10 @@ const ProfilePage = () => {
                 
                 <TabsContent value="history">
                   <HistoryTab user={user} />
+                </TabsContent>
+
+                <TabsContent value="affiliate">
+                  <AffiliateTab user={user} />
                 </TabsContent>
                 
                 <TabsContent value="security">
