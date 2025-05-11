@@ -2,12 +2,20 @@ import React, { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
-// Tipos simplificados
+interface AffiliateInfo {
+  status: 'pending' | 'approved' | 'rejected' | null;
+  earnings: number;
+  referrals: number;
+  link: string;
+  applicationDate?: string;
+}
+
 interface User {
   id: string;
   email: string;
   name: string;
   role: 'user' | 'admin';
+  affiliate: AffiliateInfo;
 }
 
 interface AuthContextType {
@@ -23,7 +31,14 @@ const DEFAULT_USER: User = {
   id: '1',
   email: 'user@certquest.com',
   name: 'Test User',
-  role: 'user'
+  role: 'user',
+  affiliate: {
+    status: 'pending',
+    earnings: 0,
+    referrals: 0,
+    link: 'https://certquest.com/ref/user123',
+    applicationDate: '2025-05-11'
+  }
 };
 
 const AuthContext = createContext<AuthContextType>({

@@ -30,18 +30,13 @@ export interface Exam {
   title: string;
   description: string;
   price: number;
-  discountPrice?: number | null;
-  discountPercentage?: number | null;
-  discountExpiresAt?: string | null;
-  questionsCount: number;
-  duration: number; // em minutos
-  difficulty: 'Fácil' | 'Médio' | 'Difícil';
-  passingScore: number; // porcentagem
-  purchases: number;
-  rating: number;
-  questions: Question[];
-  createdAt: string;
-  updatedAt: string; 
+  duration: number;
+  questions_count: number;
+  difficulty: string;
+  created_at: string;
+  updated_at: string;
+  category: string;
+  image_url: string;
 }
 
 export type QuestionType = 

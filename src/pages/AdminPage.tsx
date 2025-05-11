@@ -12,6 +12,7 @@ import { StudySystem } from "@/components/admin/StudySystem";
 import { EmailTemplates } from "@/components/admin/EmailTemplates";
 import { useAdminPage } from "@/hooks/useAdminPage";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { AffiliateRequests } from "@/components/admin/AffiliateRequests";
 import LanguagesPage from "./admin/LanguagesPage";
 import SettingsPage from "./admin/settings/SettingsPage";
 import CurrenciesPage from "./admin/settings/CurrenciesPage";
@@ -175,6 +176,7 @@ const AdminPage = () => {
             <Route path="/marketplace/sales-metrics" element={<MarketplaceSalesMetrics />} />
             <Route path="/marketplace/sales-policies" element={<MarketplaceSalesPolicies />} />
             <Route path="/marketplace/affiliate-settings" element={<MarketplaceAffiliateSettings />} />
+            <Route path="/marketplace/affiliate-requests" element={<AffiliateRequests />} />
           </Routes>
         </div>
       </div>

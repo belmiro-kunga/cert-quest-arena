@@ -102,6 +102,11 @@ const sidebarItems = [
         href: '/admin/marketplace/affiliate-settings',
         icon: Settings,
       },
+      {
+        title: 'Solicitações de Afiliados',
+        href: '/admin/marketplace/affiliate-requests',
+        icon: Users,
+      },
     ],
   },
   {

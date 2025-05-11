@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart } from 'lucide-react';
 import TestimonialsSection from '@/components/TestimonialsSection';
-import { fetchExams } from '@/services/examService';
+import { mockExams } from '@/mocks/examsMock';
 import { Exam } from '@/types/admin';
 
 const Index = () => {
@@ -24,20 +24,9 @@ const Index = () => {
   
   // Buscar simulados do servidor
   useEffect(() => {
-    const getExams = async () => {
-      try {
-        console.log("Tentando buscar exames");
-        const examData = await fetchExams();
-        console.log("Exames obtidos:", examData);
-        setExams(examData);
-      } catch (error) {
-        console.error('Erro ao buscar simulados:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    getExams();
+    // Usando os mocks ao invés do Supabase
+    setExams(mockExams);
+    setIsLoading(false);
   }, []);
 
   // Removing the redirect to dashboard, as this might be causing the blank page
@@ -186,18 +175,12 @@ const Index = () => {
                           {isServerExam && (
                             <div className="pt-2">
                               <div className="flex justify-between text-sm">
-                                <span>Questões: {(exam as Exam).questionsCount}</span>
-                                <span>Duração: {(exam as Exam).duration} min</span>
+                                <span>Questões: {exam.questions_count}</span>
+                                <span>Duração: {exam.duration} min</span>
                               </div>
                               <div className="mt-1">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  (exam as Exam).difficulty === 'Fácil'
-                                    ? 'bg-green-100 text-green-700'
-                                    : (exam as Exam).difficulty === 'Médio'
-                                    ? 'bg-yellow-100 text-yellow-700'
-                                    : 'bg-red-100 text-red-700'
-                                }`}>
-                                  {(exam as Exam).difficulty}
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${exam.difficulty === 'easy' ? 'bg-green-100 text-green-700' : exam.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                                  {exam.difficulty === 'easy' ? 'Fácil' : exam.difficulty === 'intermediate' ? 'Médio' : 'Avançado'}
                                 </span>
                               </div>
                             </div>
