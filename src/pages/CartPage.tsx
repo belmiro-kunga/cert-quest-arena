@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Trash2 } from 'lucide-react';
 const CartPage = () => {
   const navigate = useNavigate();
   const { items, removeItem } = useCart();
+  const { formatPrice } = useCurrency();
 
   const subtotal = items.reduce((total, item) => total + (item.discountPrice || item.price), 0);
   const savings = items.reduce((total, item) => total + (item.price - (item.discountPrice || item.price)), 0);
@@ -51,14 +53,14 @@ const CartPage = () => {
                     <div className="mt-2">
                       {item.discountPrice ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-cert-blue">${item.discountPrice.toFixed(2)}</span>
-                          <span className="text-sm text-gray-500 line-through">${item.price.toFixed(2)}</span>
+                          <span className="text-lg font-bold text-cert-blue">{formatPrice(item.discountPrice)}</span>
+                          <span className="text-sm text-gray-500 line-through">{formatPrice(item.price)}</span>
                           <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                            Save ${(item.price - item.discountPrice).toFixed(2)}
+                            Save {formatPrice(item.price - item.discountPrice)}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-lg font-bold text-cert-blue">${item.price.toFixed(2)}</span>
+                        <span className="text-lg font-bold text-cert-blue">{formatPrice(item.price)}</span>
                       )}
                     </div>
                   </div>
@@ -77,17 +79,17 @@ const CartPage = () => {
               <div className="w-full space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 {savings > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-green-600">Total Savings</span>
-                    <span className="text-green-600 font-medium">-${savings.toFixed(2)}</span>
+                    <span className="text-green-600 font-medium">-{formatPrice(savings)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
                   <span>Total</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full">

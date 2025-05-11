@@ -33,7 +33,7 @@ const DEFAULT_USER: User = {
   name: 'Test User',
   role: 'user',
   affiliate: {
-    status: 'pending',
+    status: 'approved',
     earnings: 0,
     referrals: 0,
     link: 'https://certquest.com/ref/user123',

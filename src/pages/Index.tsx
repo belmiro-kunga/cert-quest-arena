@@ -13,10 +13,12 @@ import { ShoppingCart } from 'lucide-react';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import { mockExams } from '@/mocks/examsMock';
 import { Exam } from '@/types/admin';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const Index = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { formatPrice } = useCurrency();
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -157,7 +159,7 @@ const Index = () => {
                               </div>
                             ) : (
                               <div className="text-3xl font-bold text-cert-blue">
-                                R${exam.price.toFixed(2).replace('.', ',')}
+                                {formatPrice(exam.price)}
                               </div>
                             )}
                           </div>

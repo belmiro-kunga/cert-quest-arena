@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/components/ui/use-toast';
@@ -14,6 +15,76 @@ const AffiliateTab: React.FC = () => {
   const applicationDate = user?.affiliate?.applicationDate;
 
   if (!user) return null;
+
+  if (affiliateStatus === 'approved') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Badge variant="success" className="bg-green-500">
+              Afiliado Ativo
+            </Badge>
+          </CardTitle>
+          <CardDescription>
+            Você é um afiliado ativo da CertQuest
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Ganhos Totais</h4>
+                <p className="text-2xl font-bold text-green-600">R$ {user.affiliate.earnings.toFixed(2)}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Total de Indicações</h4>
+                <p className="text-2xl font-bold text-blue-600">{user.affiliate.referrals}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Seu Link de Afiliado</h3>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={user.affiliate.link}
+                  readOnly
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.affiliate.link);
+                    toast({
+                      title: "Link copiado!",
+                      description: "O link foi copiado para sua área de transferência",
+                    });
+                  }}
+                >
+                  Copiar
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Materiais de Marketing</h3>
+              <div className="grid gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Banners</h4>
+                  <p className="text-sm text-gray-600 mb-2">Banners otimizados para diferentes plataformas</p>
+                  <Button variant="outline" className="w-full">Download</Button>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Textos Prontos</h4>
+                  <p className="text-sm text-gray-600 mb-2">Modelos de posts para redes sociais</p>
+                  <Button variant="outline" className="w-full">Acessar</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (affiliateStatus === 'pending') {
     return (
@@ -72,6 +143,7 @@ const AffiliateTab: React.FC = () => {
     );
   }
 
+  // Se não for nem approved nem pending, mostra a tela inicial
   return (
     <Card>
       <CardHeader>

@@ -19,6 +19,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSelector } from './LanguageSelector';
 import { useTranslation } from 'react-i18next';
+import { CurrencySelect } from './CurrencySelect';
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -116,7 +117,7 @@ const Header = () => {
             <Link to="/" className="text-gray-600 hover:text-gray-900 transition-colors">
               Home
             </Link>
-            <Link to="/exams" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link to="/certifications" className="text-gray-600 hover:text-gray-900 transition-colors">
               Exams
             </Link>
             <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
@@ -126,11 +127,13 @@ const Header = () => {
               Conquistas
             </Link>
             <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
-                <Link to="/">{t('common.home')}</Link>
-              </Button>
-              <div className="bg-white shadow rounded-md">
-                <LanguageSelector />
+
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <LanguageSelector />
+                  <CurrencySelect />
+                </div>
+                {renderAuthButton()}
               </div>
             </div>
           </nav>
@@ -150,10 +153,7 @@ const Header = () => {
               )}
             </Button>
 
-            {/* Desktop Authentication Buttons */}
-            <div className="hidden md:flex items-center space-x-2">
-              {renderAuthButton()}
-            </div>
+
 
             {/* Mobile Menu Button */}
             <Button
@@ -183,7 +183,7 @@ const Header = () => {
                 Home
               </Link>
               <Link 
-                to="/exams" 
+                to="/certifications" 
                 className="text-gray-600 hover:text-gray-900 transition-colors px-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -204,9 +204,7 @@ const Header = () => {
                 Conquistas
               </Link>
               <div className="flex items-center gap-2 px-2">
-                <Button variant="outline" asChild>
-                  <Link to="/">{t('common.home')}</Link>
-                </Button>
+
                 <div className="bg-white shadow rounded-md">
                   <LanguageSelector />
                 </div>

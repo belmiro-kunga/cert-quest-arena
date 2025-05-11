@@ -31,6 +31,7 @@ import AchievementsPage from './app/achievements/page';
 // Components
 import PrivateRoute from './components/PrivateRoute';
 import { PaymentProvider } from './contexts/PaymentContext';
+import { CurrencyProvider } from './contexts/CurrencyContext';
 
 const queryClient = new QueryClient();
 
@@ -45,7 +46,8 @@ const App = () => {
             <AdminAuthProvider>
               <PaymentConfigProvider>
                 <CartProvider>
-                  <PaymentProvider>
+                  <CurrencyProvider>
+                    <PaymentProvider>
                     <Routes>
                       {/* Public Routes */}
                       <Route path="/" element={<Index />} />
@@ -105,7 +107,8 @@ const App = () => {
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                  </PaymentProvider>
+                    </PaymentProvider>
+                  </CurrencyProvider>
                 </CartProvider>
               </PaymentConfigProvider>
             </AdminAuthProvider>
