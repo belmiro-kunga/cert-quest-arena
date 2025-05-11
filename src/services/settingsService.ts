@@ -1,29 +1,72 @@
 import { supabase } from '@/lib/supabase';
 import { getDefaultLanguage } from '@/utils/language';
 
+export interface PolicySettings {
+  enabled: boolean;
+  lastUpdated: string;
+  version: string;
+  content: string;
+  requiresAcceptance: boolean;
+  customization: {
+    headerText: string;
+    acceptButtonText: string;
+    rejectButtonText: string;
+    popupMessage: string;
+  };
+}
+
+export interface CookiePolicyCustomization {
+  headerText: string;
+  bannerText: string;
+  acceptAllButtonText: string;
+  acceptSelectedButtonText: string;
+  rejectAllButtonText: string;
+  settingsButtonText: string;
+}
+
+export interface CookieType {
+  id: string;
+  name: string;
+  description: string;
+  required: boolean;
+  enabled: boolean;
+}
+
+export interface CookiePolicySettings extends Omit<PolicySettings, 'customization'> {
+  showBanner: boolean;
+  bannerPosition: BannerPosition;
+  customization: CookiePolicyCustomization;
+  cookieTypes: CookieType[];
+}
+
+export type BannerPosition = 'top' | 'bottom';
+
 export interface SystemSettings {
   id: string;
   platformName: string;
-  logoUrl?: string;
-  faviconUrl?: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
   primaryColor: string;
   secondaryColor: string;
   language: string;
   timezone: string;
   currency: string;
   // Email Settings
-  smtpHost?: string;
-  smtpPort?: number;
-  smtpUsername?: string;
-  smtpPassword?: string;
+  smtpHost: string | null;
+  smtpPort: number | null;
+  smtpUsername: string | null;
+  smtpPassword: string | null;
   smtpSecure: boolean;
-  smtpFromEmail?: string;
-  smtpFromName?: string;
+  smtpFromEmail: string | null;
+  smtpFromName: string | null;
   emailNotificationsEnabled: boolean;
   emailSubscriptionsEnabled: boolean;
   spamProtectionEnabled: boolean;
   createdAt: string;
   updatedAt: string;
+  privacyPolicy: PolicySettings;
+  termsOfUse: PolicySettings;
+  cookiePolicy: CookiePolicySettings;
 }
 
 export interface EmailTemplate {
@@ -47,6 +90,96 @@ export interface EmailSubscription {
   updatedAt: string;
 }
 
+export const defaultPolicySettings: PolicySettings = {
+  enabled: true,
+  lastUpdated: new Date().toISOString().split('T')[0],
+  version: '1.0',
+  content: '',
+  requiresAcceptance: true,
+  customization: {
+    headerText: '',
+    acceptButtonText: 'Aceitar',
+    rejectButtonText: 'Rejeitar',
+    popupMessage: '',
+  },
+};
+
+export const defaultCookiePolicy: CookiePolicySettings = {
+  enabled: true,
+  lastUpdated: new Date().toISOString().split('T')[0],
+  version: '1.0',
+  content: '',
+  requiresAcceptance: true,
+  showBanner: true,
+  bannerPosition: 'bottom',
+  customization: {
+    headerText: 'Política de Cookies',
+    bannerText: 'Utilizamos cookies para melhorar sua experiência. Escolha quais tipos de cookies aceitar.',
+    acceptAllButtonText: 'Aceitar Todos',
+    acceptSelectedButtonText: 'Aceitar Selecionados',
+    rejectAllButtonText: 'Rejeitar Todos',
+    settingsButtonText: 'Configurações',
+  },
+  cookieTypes: [
+    {
+      id: 'essential',
+      name: 'Cookies Essenciais',
+      description: 'Necessários para o funcionamento básico do site.',
+      required: true,
+      enabled: true,
+    },
+    {
+      id: 'performance',
+      name: 'Cookies de Desempenho',
+      description: 'Ajudam a melhorar a experiência coletando informações anônimas.',
+      required: false,
+      enabled: true,
+    },
+    {
+      id: 'functional',
+      name: 'Cookies de Funcionalidade',
+      description: 'Permitem que o site lembre suas preferências.',
+      required: false,
+      enabled: true,
+    },
+    {
+      id: 'marketing',
+      name: 'Cookies de Marketing',
+      description: 'Usados para rastrear visitantes entre sites para publicidade.',
+      required: false,
+      enabled: false,
+    },
+  ],
+};
+
+export const defaultSystemSettings: SystemSettings = {
+  id: '1',
+  platformName: 'Cert Quest Arena',
+  logoUrl: null,
+  faviconUrl: null,
+  primaryColor: '#007bff',
+  secondaryColor: '#6c757d',
+  language: getDefaultLanguage(),
+  timezone: 'UTC',
+  currency: 'USD',
+  smtpHost: null,
+  smtpPort: null,
+  smtpUsername: null,
+  smtpPassword: null,
+  smtpSecure: true,
+  smtpFromEmail: null,
+  smtpFromName: null,
+  emailNotificationsEnabled: false,
+  emailSubscriptionsEnabled: false,
+  spamProtectionEnabled: true,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  privacyPolicy: defaultPolicySettings,
+  termsOfUse: defaultPolicySettings,
+  cookiePolicy: defaultCookiePolicy,
+};
+
+// Define settings service
 export const settingsService = {
   async getSettings(): Promise<SystemSettings> {
     const { data, error } = await supabase
@@ -54,42 +187,101 @@ export const settingsService = {
       .select('*')
       .single();
 
-    if (error) {
-      console.error('Erro ao buscar configurações:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    // Se não houver configurações, cria com valores padrão
     if (!data) {
       return this.createDefaultSettings();
     }
 
-    return {
+    const settings: SystemSettings = {
       id: data.id,
-      platformName: data.platform_name,
+      platformName: data.platform_name || 'Cert Quest Arena',
       logoUrl: data.logo_url,
       faviconUrl: data.favicon_url,
-      primaryColor: data.primary_color,
-      secondaryColor: data.secondary_color,
-      language: data.language,
-      timezone: data.timezone,
-      currency: data.currency,
+      primaryColor: data.primary_color || '#007bff',
+      secondaryColor: data.secondary_color || '#6c757d',
+      language: data.language || getDefaultLanguage(),
+      timezone: data.timezone || 'UTC',
+      currency: data.currency || 'USD',
       smtpHost: data.smtp_host,
       smtpPort: data.smtp_port,
       smtpUsername: data.smtp_username,
       smtpPassword: data.smtp_password,
-      smtpSecure: data.smtp_secure,
+      smtpSecure: data.smtp_secure ?? true,
       smtpFromEmail: data.smtp_from_email,
       smtpFromName: data.smtp_from_name,
-      emailNotificationsEnabled: data.email_notifications_enabled,
-      emailSubscriptionsEnabled: data.email_subscriptions_enabled,
-      spamProtectionEnabled: data.spam_protection_enabled,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      emailNotificationsEnabled: data.email_notifications_enabled ?? false,
+      emailSubscriptionsEnabled: data.email_subscriptions_enabled ?? false,
+      spamProtectionEnabled: data.spam_protection_enabled ?? true,
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
+      privacyPolicy: data.privacy_policy || defaultPolicySettings,
+      termsOfUse: data.terms_of_use || defaultPolicySettings,
+      cookiePolicy: data.cookie_policy || defaultCookiePolicy
     };
+
+    return settings;
   },
 
   async createDefaultSettings(): Promise<SystemSettings> {
+    const defaultPolicySettings: PolicySettings = {
+      enabled: true,
+      lastUpdated: new Date().toISOString().split('T')[0],
+      version: '1.0',
+      content: '',
+      requiresAcceptance: true,
+      customization: {
+        headerText: '',
+        acceptButtonText: 'Aceitar',
+        rejectButtonText: 'Rejeitar',
+        popupMessage: '',
+      },
+    };
+
+    const defaultCookiePolicy: CookiePolicySettings = {
+      ...defaultPolicySettings,
+      showBanner: true,
+      bannerPosition: 'bottom',
+      customization: {
+        headerText: 'Política de Cookies',
+        bannerText: 'Utilizamos cookies para melhorar sua experiência. Escolha quais tipos de cookies aceitar.',
+        acceptAllButtonText: 'Aceitar Todos',
+        acceptSelectedButtonText: 'Aceitar Selecionados',
+        rejectAllButtonText: 'Rejeitar Todos',
+        settingsButtonText: 'Configurações',
+      },
+      cookieTypes: [
+        {
+          id: 'essential',
+          name: 'Cookies Essenciais',
+          description: 'Necessários para o funcionamento básico do site.',
+          required: true,
+          enabled: true,
+        },
+        {
+          id: 'performance',
+          name: 'Cookies de Desempenho',
+          description: 'Ajudam a melhorar a experiência coletando informações anônimas.',
+          required: false,
+          enabled: true,
+        },
+        {
+          id: 'functional',
+          name: 'Cookies de Funcionalidade',
+          description: 'Permitem que o site lembre suas preferências.',
+          required: false,
+          enabled: true,
+        },
+        {
+          id: 'marketing',
+          name: 'Cookies de Marketing',
+          description: 'Usados para rastrear visitantes entre sites para publicidade.',
+          required: false,
+          enabled: false,
+        },
+      ],
+    };
+
     const defaultSettings = {
       platform_name: 'CertQuest Arena',
       primary_color: '#2563eb',
@@ -101,6 +293,9 @@ export const settingsService = {
       email_notifications_enabled: true,
       email_subscriptions_enabled: true,
       spam_protection_enabled: true,
+      privacy_policy: defaultPolicySettings,
+      terms_of_use: defaultPolicySettings,
+      cookie_policy: defaultCookiePolicy,
     };
 
     const { data, error } = await supabase
@@ -136,21 +331,26 @@ export const settingsService = {
       spamProtectionEnabled: data.spam_protection_enabled,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
+      privacyPolicy: data.privacy_policy || defaultPolicySettings,
+      termsOfUse: data.terms_of_use || defaultPolicySettings,
+      cookiePolicy: data.cookie_policy || defaultCookiePolicy,
     };
   },
 
   async updateSettings(settings: Partial<SystemSettings>): Promise<SystemSettings> {
-    const { data: currentSettings } = await supabase
+    const { data: currentSettings, error: fetchError } = await supabase
       .from('system_settings')
       .select('*')
       .single();
 
-    if (!currentSettings) {
-      throw new Error('Configurações não encontradas');
+    if (fetchError || !currentSettings) {
+      throw new Error('Settings not found');
     }
 
     const updateData = {
       platform_name: settings.platformName,
+      logo_url: settings.logoUrl,
+      favicon_url: settings.faviconUrl,
       primary_color: settings.primaryColor,
       secondary_color: settings.secondaryColor,
       language: settings.language,
@@ -166,6 +366,10 @@ export const settingsService = {
       email_notifications_enabled: settings.emailNotificationsEnabled,
       email_subscriptions_enabled: settings.emailSubscriptionsEnabled,
       spam_protection_enabled: settings.spamProtectionEnabled,
+      privacy_policy: settings.privacyPolicy,
+      terms_of_use: settings.termsOfUse,
+      cookie_policy: settings.cookiePolicy,
+      updated_at: new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -202,113 +406,9 @@ export const settingsService = {
       spamProtectionEnabled: data.spam_protection_enabled,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
-    };
-  },
-
-  // Email Templates
-  async getEmailTemplates(): Promise<EmailTemplate[]> {
-    const { data, error } = await supabase
-      .from('email_templates')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      console.error('Erro ao buscar templates de email:', error);
-      throw error;
-    }
-
-    return data.map(template => ({
-      id: template.id,
-      name: template.name,
-      subject: template.subject,
-      body: template.body,
-      variables: template.variables,
-      isActive: template.is_active,
-      createdAt: template.created_at,
-      updatedAt: template.updated_at,
-    }));
-  },
-
-  async updateEmailTemplate(template: Partial<EmailTemplate>): Promise<EmailTemplate> {
-    const { data, error } = await supabase
-      .from('email_templates')
-      .update({
-        name: template.name,
-        subject: template.subject,
-        body: template.body,
-        variables: template.variables,
-        is_active: template.isActive,
-      })
-      .eq('id', template.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao atualizar template de email:', error);
-      throw error;
-    }
-
-    return {
-      id: data.id,
-      name: data.name,
-      subject: data.subject,
-      body: data.body,
-      variables: data.variables,
-      isActive: data.is_active,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
-  },
-
-  // Email Subscriptions
-  async getEmailSubscriptions(): Promise<EmailSubscription[]> {
-    const { data, error } = await supabase
-      .from('email_subscriptions')
-      .select('*')
-      .order('email');
-
-    if (error) {
-      console.error('Erro ao buscar assinaturas de email:', error);
-      throw error;
-    }
-
-    return data.map(subscription => ({
-      id: subscription.id,
-      email: subscription.email,
-      name: subscription.name,
-      preferences: subscription.preferences,
-      isActive: subscription.is_active,
-      createdAt: subscription.created_at,
-      updatedAt: subscription.updated_at,
-    }));
-  },
-
-  async updateEmailSubscription(subscription: Partial<EmailSubscription>): Promise<EmailSubscription> {
-    const { data, error } = await supabase
-      .from('email_subscriptions')
-      .update({
-        email: subscription.email,
-        name: subscription.name,
-        preferences: subscription.preferences,
-        is_active: subscription.isActive,
-      })
-      .eq('id', subscription.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao atualizar assinatura de email:', error);
-      throw error;
-    }
-
-    return {
-      id: data.id,
-      email: data.email,
-      name: data.name,
-      preferences: data.preferences,
-      isActive: data.is_active,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      privacyPolicy: data.privacy_policy || defaultPolicySettings,
+      termsOfUse: data.terms_of_use || defaultPolicySettings,
+      cookiePolicy: data.cookie_policy || defaultCookiePolicy,
     };
   },
 
@@ -318,32 +418,24 @@ export const settingsService = {
     const filePath = `logos/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('system')
+      .from('public')
       .upload(filePath, file);
 
     if (uploadError) {
-      console.error('Erro ao fazer upload do logo:', uploadError);
-      throw uploadError;
+      throw new Error('Error uploading logo');
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('system')
+    const { data } = supabase.storage
+      .from('public')
       .getPublicUrl(filePath);
 
-    // Atualiza o URL do logo nas configurações
-    const { data: currentSettings } = await supabase
-      .from('system_settings')
-      .select('*')
-      .single();
-
-    if (currentSettings) {
-      await supabase
-        .from('system_settings')
-        .update({ logo_url: publicUrl })
-        .eq('id', currentSettings.id);
+    if (!data || !data.publicUrl) {
+      throw new Error('Error getting public URL');
     }
 
-    return publicUrl;
+    await this.updateSettings({ logoUrl: data.publicUrl });
+
+    return data.publicUrl;
   },
 
   async uploadFavicon(file: File): Promise<string> {
