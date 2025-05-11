@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Globe, Clock, DollarSign, Palette, Image, Mail, Bell, Shield, CreditCard, MapPin, Receipt, XCircle } from 'lucide-react';
+import { Globe, Clock, DollarSign, Palette, Image, Mail, Bell, Shield, CreditCard, MapPin, Receipt, XCircle, Users } from 'lucide-react';
 import { PaymentSettings } from '@/components/admin/settings/PaymentSettings';
 import { BillingSettings } from '@/components/admin/settings/BillingSettings';
 import { CancellationSettings } from '@/components/admin/settings/CancellationSettings';
+import { UserAccessSettings } from '@/components/admin/settings/UserAccessSettings';
 import { settingsService, SystemSettings, EmailTemplate, EmailSubscription } from '@/services/settingsService';
 import { useToast } from '@/components/ui/use-toast';
 import { getLocalizedLanguageName } from '@/utils/language';
@@ -291,6 +292,10 @@ const SettingsPage = () => {
             <TabsTrigger value="cancellation">
               <XCircle className="h-4 w-4 mr-2" />
               Cancelamentos
+            </TabsTrigger>
+            <TabsTrigger value="users">
+              <Users className="h-4 w-4 mr-2" />
+              Usuários
             </TabsTrigger>
           </TabsList>
 
@@ -739,6 +744,10 @@ const SettingsPage = () => {
 
           <TabsContent value="cancellation">
             <CancellationSettings />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserAccessSettings />
           </TabsContent>
         </Tabs>
 
