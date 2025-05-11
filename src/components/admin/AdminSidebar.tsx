@@ -15,6 +15,8 @@ import {
   BarChart,
   Bell,
   Mail,
+  ShoppingBag,
+  FileText,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -77,6 +79,28 @@ const sidebarItems = [
         title: 'Templates de Email',
         href: '/admin/email-templates',
         icon: Mail,
+      },
+    ],
+  },
+  {
+    title: 'Marketplace',
+    href: '/admin/marketplace',
+    icon: ShoppingBag,
+    subItems: [
+      {
+        title: 'Métricas de Vendas',
+        href: '/admin/marketplace/sales-metrics',
+        icon: BarChart,
+      },
+      {
+        title: 'Políticas de Venda',
+        href: '/admin/marketplace/sales-policies',
+        icon: FileText,
+      },
+      {
+        title: 'Configurações de Afiliados',
+        href: '/admin/marketplace/affiliate-settings',
+        icon: Settings,
       },
     ],
   },

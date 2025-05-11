@@ -13,6 +13,9 @@ import { useAdminPage } from "@/hooks/useAdminPage";
 import LanguagesPage from "./admin/LanguagesPage";
 import SettingsPage from "./admin/settings/SettingsPage";
 import CurrenciesPage from "./admin/settings/CurrenciesPage";
+import MarketplaceAffiliateSettings from "./admin/MarketplaceAffiliateSettings";
+import MarketplaceSalesMetrics from "./admin/MarketplaceSalesMetrics";
+import MarketplaceSalesPolicies from "./admin/MarketplaceSalesPolicies";
 import { Routes, Route } from "react-router-dom";
 import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -147,6 +150,9 @@ const AdminPage = () => {
             <Route path="/settings/currencies" element={<CurrenciesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/email-templates" element={<EmailTemplates />} />
+            <Route path="/marketplace/sales-metrics" element={<MarketplaceSalesMetrics />} />
+            <Route path="/marketplace/sales-policies" element={<MarketplaceSalesPolicies />} />
+            <Route path="/marketplace/affiliate-settings" element={<MarketplaceAffiliateSettings />} />
           </Routes>
         </div>
       </div>
