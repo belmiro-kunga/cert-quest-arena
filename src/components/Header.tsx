@@ -14,7 +14,7 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart, Menu, X, User, Settings, LogOut, Trophy } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { LanguageSelector } from './LanguageSelector';
@@ -65,14 +65,7 @@ const Header = () => {
               <User className="mr-2 h-4 w-4" />
               <span>Perfil</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/achievements')}>
-              <Trophy className="mr-2 h-4 w-4" />
-              <span>Conquistas</span>
-            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -120,12 +113,7 @@ const Header = () => {
             <Link to="/certifications" className="text-gray-600 hover:text-gray-900 transition-colors">
               Exams
             </Link>
-            <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Dashboard
-            </Link>
-            <Link to="/achievements" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Conquistas
-            </Link>
+
             <div className="flex items-center gap-2">
 
               <div className="flex items-center gap-4">
@@ -171,7 +159,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Menu - updated with dashboard link */}
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-4 mb-4">
@@ -189,20 +177,7 @@ const Header = () => {
               >
                 Exams
               </Link>
-              <Link 
-                to="/dashboard" 
-                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <Link 
-                to="/achievements" 
-                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Conquistas
-              </Link>
+
               <div className="flex items-center gap-2 px-2">
 
                 <div className="bg-white shadow rounded-md">
@@ -233,28 +208,10 @@ const Header = () => {
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
                   </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
-                    onClick={() => {
-                      navigate('/dashboard');
-                      setIsMobileMenuOpen(false);
                     }}
                   >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"
-                    onClick={() => {
-                      navigate('/achievements');
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    <Trophy className="mr-2 h-4 w-4" />
-                    <span>Conquistas</span>
-                  </Button>
+
+
                   <Button
                     variant="ghost"
                     className="justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100 w-full"

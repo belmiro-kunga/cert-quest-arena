@@ -85,6 +85,30 @@ const Dashboard = () => {
       progress: 40,
       achieved: false,
     },
+    {
+      id: 4,
+      title: 'Maratonista',
+      description: 'Complete 3 simulados em um dia',
+      icon: Target,
+      achieved: true,
+      date: '03/05/2025',
+    },
+    {
+      id: 5,
+      title: 'Estudante Dedicado',
+      description: 'Acumule 50 horas de estudo',
+      icon: Clock,
+      progress: 65,
+      achieved: false,
+    },
+    {
+      id: 6,
+      title: 'Mestre do Conhecimento',
+      description: 'Acerte 100 questões consecutivas',
+      icon: Award,
+      progress: 25,
+      achieved: false,
+    },
   ];
 
   // Dados de recomendação simulados
@@ -145,13 +169,7 @@ const Dashboard = () => {
                 <User size={16} />
                 Meu Perfil
               </Button>
-              <Button 
-                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-primary hover:bg-primary/90"
-                size="sm"
-              >
-                Atualizar para Premium
-              </Button>
+
             </div>
           </div>
           
@@ -358,15 +376,7 @@ const Dashboard = () => {
                   })}
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate('/achievements')}
-                >
-                  Ver Todas as Conquistas
-                </Button>
-              </CardFooter>
+
             </Card>
           </div>
         </div>

@@ -46,19 +46,13 @@ const PricingSection: React.FC = () => {
               </li>
             </ul>
 
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-              Get Premium
-            </Button>
+
           </div>
         </div>
 
         <div className="mt-8 md:mt-12 text-center">
-          <p className="text-gray-600 text-sm md:text-base">
-            Premium exams starting at <span className="font-bold text-gray-900">$19.99</span>
-          </p>
-          <p className="text-xs md:text-sm text-gray-500 mt-2">
-            Prices may vary by certification
-          </p>
+
+
         </div>
       </div>
     </section>

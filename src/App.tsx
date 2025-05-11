@@ -26,7 +26,6 @@ import CheckoutPage from '@/pages/CheckoutPage';
 import CartPage from '@/pages/CartPage';
 import { PaymentPage } from './pages/Payment';
 import { PaymentResultPage } from './pages/PaymentResult';
-import AchievementsPage from './app/achievements/page';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -82,14 +81,7 @@ const App = () => {
                           </PrivateRoute>
                         } 
                       />
-                      <Route 
-                        path="/achievements" 
-                        element={
-                          <PrivateRoute>
-                            <AchievementsPage />
-                          </PrivateRoute>
-                        } 
-                      />
+
 
                       {/* Admin Routes */}
                       <Route path="/admin/login" element={<AdminLoginPage />} />

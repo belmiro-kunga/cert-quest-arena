@@ -22,7 +22,7 @@ const ProfilePage = () => {
     email: '',
     photo: '',
     phone: '',
-    planType: 'Freemium',
+
     attemptsLeft: 1,
     paymentMethod: {
       type: 'credit',

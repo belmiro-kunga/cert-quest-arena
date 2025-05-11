@@ -82,22 +82,6 @@ const PaymentTab: React.FC<PaymentTabProps> = ({ user }) => {
         
         <div className="bg-gray-50 p-4 rounded-md">
           <h3 className="text-lg font-medium mb-2">Current Plan: {user.planType}</h3>
-          {user.planType === 'Freemium' ? (
-            <div>
-              <p className="text-sm text-gray-500 mb-3">Upgrade to Premium plan to access additional features.</p>
-              <Button 
-                className="w-full bg-cert-purple hover:bg-cert-purple/90"
-                onClick={() => navigate('/#pricing')}
-              >
-                Upgrade to Premium
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm text-gray-500 mb-3">You are currently on the Premium plan.</p>
-              <Button variant="outline" className="w-full">Cancel Subscription</Button>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
