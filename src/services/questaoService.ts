@@ -125,6 +125,7 @@ export interface Questao {
   enunciado: string;
   alternativas: Alternativa[];
   resposta_correta?: string;
+  explicacao?: string;
 }
 
 // Buscar todas as questões de um simulado para o simulado em andamento
@@ -148,7 +149,8 @@ export const getQuestoesBySimuladoId = async (simuladoId: number): Promise<Quest
           texto: opcao.texto,
           correta: opcao.correta || false
         })) : [],
-        resposta_correta: corretaId ? String(corretaId) : undefined
+        resposta_correta: corretaId ? String(corretaId) : undefined,
+        explicacao: questao.explicacao || 'Nenhuma explicação disponível para esta questão.'
       };
     });
     

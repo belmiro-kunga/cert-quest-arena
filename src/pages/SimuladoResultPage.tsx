@@ -287,8 +287,7 @@ const SimuladoResultPage: React.FC = () => {
                         <h4 className="font-medium">Explicação:</h4>
                       </div>
                       <p className="text-gray-700">
-                        {/* Aqui você precisaria adicionar a explicação da questão */}
-                        Explicação detalhada sobre a resposta correta e por que as outras alternativas estão incorretas.
+                        {questao.explicacao || "Nenhuma explicação disponível para esta questão."}
                       </p>
                     </div>
                   </CardContent>
