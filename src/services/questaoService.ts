@@ -22,6 +22,8 @@ export interface QuestaoBackend {
   pontos?: number;
   tags?: string[];
   opcoes?: OpcaoQuestao[];
+  url_referencia?: string;
+  referencia_ativa?: boolean;
 }
 
 // Interface para opções de questões
@@ -79,7 +81,9 @@ export const questionToQuestao = (question: BaseQuestion): QuestaoBackend => {
     categoria: question.category,
     dificuldade: question.difficulty,
     pontos: question.points,
-    tags: question.tags
+    tags: question.tags,
+    url_referencia: (question as any).url_referencia || '',
+    referencia_ativa: typeof (question as any).referencia_ativa === 'boolean' ? (question as any).referencia_ativa : true
   };
 
   // Converter opções baseado no tipo de questão
@@ -127,6 +131,7 @@ export interface Questao {
   resposta_correta?: string;
   explicacao?: string;
   url_referencia?: string; // URL externa para documentação ou material de referência
+  referencia_ativa?: boolean; // indica se o botão de referência deve aparecer
 }
 
 // Buscar todas as questões de um simulado para o simulado em andamento
@@ -152,7 +157,8 @@ export const getQuestoesBySimuladoId = async (simuladoId: number): Promise<Quest
         })) : [],
         resposta_correta: corretaId ? String(corretaId) : undefined,
         explicacao: questao.explicacao || 'Nenhuma explicação disponível para esta questão.',
-        url_referencia: questao.url_referencia || ''
+        url_referencia: questao.url_referencia || '',
+        referencia_ativa: typeof questao.referencia_ativa === 'boolean' ? questao.referencia_ativa : true
       };
     });
     

@@ -1,59 +1,37 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import CertificationCard, { Certification } from './CertificationCard';
-
-const certifications: Certification[] = [
-  {
-    id: 'aws-cloud-practitioner',
-    name: 'AWS Certified Cloud Practitioner',
-    provider: 'AWS',
-    level: 'Fundamental',
-    image: '/placeholder.svg',
-    description: 'Validação dos conhecimentos básicos da AWS Cloud, independentemente de função ou especialidade técnica específica.'
-  },
-  {
-    id: 'azure-fundamentals',
-    name: 'Microsoft Azure Fundamentals (AZ-900)',
-    provider: 'Microsoft',
-    level: 'Fundamental',
-    image: '/placeholder.svg',
-    description: 'Conhecimentos fundamentais sobre conceitos de nuvem, serviços Azure e gerenciamento de serviços Azure.'
-  },
-  {
-    id: 'comptia-a-plus',
-    name: 'CompTIA A+',
-    provider: 'CompTIA',
-    level: 'Fundamental',
-    image: '/placeholder.svg',
-    description: 'Certificação básica para profissionais de TI, abrangendo hardware, software, redes e solução de problemas.'
-  },
-  {
-    id: 'cisco-ccna',
-    name: 'Cisco CCNA',
-    provider: 'Cisco',
-    level: 'Associado',
-    image: '/placeholder.svg',
-    description: 'Habilidades de instalação, configuração, operação e troubleshooting de redes de tamanho médio.'
-  },
-  {
-    id: 'google-cloud-associate',
-    name: 'Google Cloud Associate Engineer',
-    provider: 'Google',
-    level: 'Associado',
-    image: '/placeholder.svg',
-    description: 'Implantação de aplicativos, monitoramento de operações e manutenção de implantações no Google Cloud.'
-  },
-  {
-    id: 'vmware-vcp',
-    name: 'VMware VCP-DCV',
-    provider: 'VMware',
-    level: 'Profissional',
-    image: '/placeholder.svg',
-    description: 'Instalação, implementação e gerenciamento de infraestruturas virtuais usando o VMware vSphere.'
-  }
-];
+import { getActiveExams, Exam } from '@/services/simuladoService';
 
 const Certifications: React.FC = () => {
+  const [simulados, setSimulados] = useState<Exam[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSimulados = async () => {
+      try {
+        setIsLoading(true);
+        const exams = await getActiveExams();
+        setSimulados(exams);
+      } catch (error) {
+        setSimulados([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSimulados();
+  }, []);
+
+  // Adaptar Exam para CertificationCard
+  const mapExamToCertification = (exam: Exam): Certification => ({
+    id: exam.id,
+    name: exam.title,
+    provider: exam.difficulty || 'Simulado',
+    level: exam.duration ? `${exam.duration} min` : '',
+    image: '/placeholder.svg',
+    description: exam.description || '',
+  });
+
   return (
     <section id="certifications" className="py-10 md:py-16 px-4">
       <div className="container mx-auto">
@@ -64,11 +42,16 @@ const Certifications: React.FC = () => {
             com nossos simulados personalizados.
           </p>
         </div>
-        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {certifications.map((cert) => (
-            <CertificationCard key={cert.id} certification={cert} />
-          ))}
+          {isLoading ? (
+            <div className="col-span-full text-center">Carregando simulados...</div>
+          ) : simulados.length === 0 ? (
+            <div className="col-span-full text-center">Nenhum simulado disponível.</div>
+          ) : (
+            simulados.map((exam) => (
+              <CertificationCard key={exam.id} certification={mapExamToCertification(exam)} />
+            ))
+          )}
         </div>
       </div>
     </section>

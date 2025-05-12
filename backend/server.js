@@ -6,6 +6,7 @@ const db = require('./db'); // Import the db configuration
 // Importar rotas
 const simuladoRoutes = require('./routes/simuladoRoutes');
 const questaoRoutes = require('./routes/questaoRoutes');
+const resultRoutes = require('./routes/resultRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -66,6 +67,9 @@ console.log('Registrando rotas de questões...');
 app.use('/api/questoes', questaoRoutes);
 console.log('Rotas de questões registradas!');
 
+console.log('Registrando rotas de resultados...');
+app.use('/api/resultados', resultRoutes);
+console.log('Rotas de resultados registradas!');
 
 // Start the server
 app.listen(PORT, () => {

@@ -59,6 +59,7 @@ const SimuladoResultPage: React.FC = () => {
         
         // Carregar questões do simulado
         const questoesData = await getQuestoesBySimuladoId(parseInt(id));
+        console.log('QUESTOES RESULT PAGE:', questoesData);
         setQuestoes(questoesData);
       } catch (error) {
         console.error(`Erro ao carregar resultado do simulado ${id}:`, error);
@@ -105,10 +106,12 @@ const SimuladoResultPage: React.FC = () => {
 
   if (isLoading || !simulado || !result) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-white">
         <Header />
-        <main className="flex-grow flex justify-center items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <main className="flex-grow container mx-auto py-8 px-4">
+          <div className="flex justify-center items-center py-24">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
         </main>
         <Footer />
       </div>
@@ -204,130 +207,87 @@ const SimuladoResultPage: React.FC = () => {
           <div className="space-y-6 mb-8">
             <h3 className="text-xl font-bold">Revisão das Questões</h3>
 
-            {questoes.map((questao, index) => {
+            {questoes.map((questao, idx) => {
+  console.log(`QUESTAO #${questao.id} referencia_ativa:`, questao.referencia_ativa, 'url_referencia:', questao.url_referencia);
+
               const userAnswer = result.answers[questao.id];
               const isCorrect = isAnswerCorrect(questao, userAnswer);
               
               return (
-                <Card 
-                  key={questao.id} 
-                  className={`border-l-4 ${isCorrect ? 'border-l-green-500' : 'border-l-red-500'}`}
-                >
-                  <CardHeader>
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg font-medium">
-                            Questão {index + 1}
-                          </span>
-                        </div>
-                        <p className="mt-2">{questao.enunciado}</p>
+                <Card key={questao.id} className={`shadow border ${isCorrect ? 'border-green-200 bg-green-50/60' : 'border-red-200 bg-red-50/60'} transition-all duration-200`}>
+                  <React.Fragment>
+                    <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div>
+                        <CardTitle className="text-2xl font-bold text-blue-800 mb-2 flex items-center gap-2">
+                          {isCorrect ? (
+                            <CheckCircle className="w-6 h-6 text-green-500" />
+                          ) : (
+                            <XCircle className="w-6 h-6 text-red-500" />
+                          )}
+                          Questão {idx + 1}
+                        </CardTitle>
+                        
+                        <CardDescription className="text-lg text-gray-700">
+                          {questao.enunciado}
+                        </CardDescription>
                       </div>
-                      {isCorrect ? (
-                        <CheckCircle className="w-6 h-6 text-green-500" />
-                      ) : (
-                        <XCircle className="w-6 h-6 text-red-500" />
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Sua Resposta:</h4>
-                      <div className="pl-4">
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge className={isCorrect ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'}>
+                          {isCorrect ? 'Correta' : 'Incorreta'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-col gap-2">
+                        <span className="text-gray-500">Sua resposta:</span>
                         {questao.alternativas.map(alternativa => (
-                          <div 
+                          <span
                             key={alternativa.id}
-                            className={`flex items-center gap-2 py-1 ${
-                              alternativa.id === userAnswer 
-                                ? isCorrect 
-                                  ? 'text-green-600 font-medium' 
-                                  : 'text-red-600 font-medium'
-                                : ''
-                            }`}
+                            className={`inline-flex items-center gap-2 px-2 py-1 rounded-lg ${alternativa.id === userAnswer ? (isCorrect ? 'bg-green-100 text-green-700 font-bold' : 'bg-red-100 text-red-700 font-bold') : 'bg-gray-100 text-gray-700'}`}
                           >
-                            {alternativa.id === userAnswer && (
-                              isCorrect 
-                                ? <CheckCircle className="w-4 h-4 text-green-500" /> 
-                                : <XCircle className="w-4 h-4 text-red-500" />
-                            )}
-                            <span>{alternativa.texto}</span>
-                          </div>
+                            {alternativa.id === userAnswer && (isCorrect ? <CheckCircle className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-red-500" />)}
+                            {alternativa.texto}
+                          </span>
                         ))}
                       </div>
-                    </div>
-
-                    {!isCorrect && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium">Resposta Correta:</h4>
-                        <div className="pl-4">
-                          {questao.alternativas.map(alternativa => (
-                            alternativa.id === userAnswer ? null : (
-                              <div 
-                                key={alternativa.id}
-                                className={`flex items-center gap-2 py-1 ${
-                                  isAnswerCorrect(questao, alternativa.id) 
-                                    ? 'text-green-600 font-medium' 
-                                    : ''
-                                }`}
-                              >
-                                {isAnswerCorrect(questao, alternativa.id) && (
-                                  <CheckCircle className="w-4 h-4 text-green-500" />
-                                )}
-                                <span>{alternativa.texto}</span>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        {questao.url_referencia ? (
-                          <a 
-                            href={questao.url_referencia} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center hover:text-blue-600 transition-colors"
-                            title="Ver documentação oficial"
-                          >
-                            <AlertCircle className="w-5 h-5 text-blue-500 hover:text-blue-700" />
-                          </a>
-                        ) : (
-                          <button
-                            className="inline-flex items-center hover:text-gray-700 transition-colors"
-                            title="Explicação da questão"
-                            onClick={() => {
-                              // You can add any action here, like showing a tooltip or modal
-                              // For now, we'll just scroll to the explanation
-                              const explanationElement = document.getElementById(`explanation-${questao.id}`);
-                              if (explanationElement) {
-                                explanationElement.scrollIntoView({ behavior: 'smooth' });
-                              }
-                            }}
-                          >
-                            <AlertCircle className="w-5 h-5 text-gray-500" />
-                          </button>
-                        )}
+                      <div className="flex flex-col gap-2 mt-2">
+                        <span className="text-gray-500">Resposta correta:</span>
+                        {questao.alternativas.map(alternativa => (
+                          alternativa.id === questao.resposta_correta ? (
+                            <span
+                              key={alternativa.id}
+                              className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-green-100 text-green-700 font-bold"
+                            >
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              {alternativa.texto}
+                            </span>
+                          ) : null
+                        ))}
                         <h4 className="font-medium">Explicação:</h4>
                       </div>
                       <p id={`explanation-${questao.id}`} className="text-gray-700">
                         {questao.explicacao || "Nenhuma explicação disponível para esta questão."}
                       </p>
-                      {questao.url_referencia && (
-                        <div className="text-right">
-                          <a 
-                            href={questao.url_referencia}
+                      {questao.referencia_ativa && questao.url_referencia && (
+                        <div className="mt-4">
+                          <a
+                            href={questao.url_referencia.startsWith('http') ? questao.url_referencia : `https://${questao.url_referencia}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                            className="inline-flex items-center gap-2 px-3 py-1 rounded bg-blue-500 text-white font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                            title="Ver referência da questão"
+                            tabIndex={0}
+                            role="link"
+                            aria-label="Abrir referência da questão em nova aba"
+                            style={{ pointerEvents: 'auto' }}
                           >
-                            Ver documentação oficial
+                            <AlertCircle className="w-5 h-5 text-white" />
+                            Referência
                           </a>
                         </div>
                       )}
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  </React.Fragment>
                 </Card>
               );
             })}

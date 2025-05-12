@@ -15,6 +15,7 @@ const SimuladoDetailPage: React.FC = () => {
   const { toast } = useToast();
   const [simulado, setSimulado] = useState<Exam | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedLevel, setSelectedLevel] = useState<string>("");
 
   useEffect(() => {
     const loadSimulado = async () => {
@@ -80,15 +81,21 @@ const SimuladoDetailPage: React.FC = () => {
       });
       return;
     }
-    
+    if (!selectedLevel) {
+      toast({
+        title: 'Selecione o nível',
+        description: 'Escolha o nível de dificuldade antes de iniciar.',
+        variant: 'destructive',
+      });
+      return;
+    }
     // Notificar o usuário
     toast({
       title: 'Simulado iniciado',
-      description: 'Boa sorte!',
+      description: `Nível escolhido: ${selectedLevel}`,
     });
-    
-    // Navegar para a página do simulado em andamento
-    navigate(`/simulados/${id}/start`);
+    // Navegar para a página do simulado em andamento, passando o nível como query param
+    navigate(`/simulados/${id}/start?nivel=${encodeURIComponent(selectedLevel)}`);
   };
 
   return (
@@ -194,7 +201,23 @@ const SimuladoDetailPage: React.FC = () => {
                       Certifique-se de que você tem tempo suficiente para completar o simulado sem interrupções.
                     </p>
                   </div>
-                  
+                  {/* Seleção de nível */}
+                  <div className="space-y-2">
+                    <label className="block font-medium mb-1">Escolha o nível de dificuldade:</label>
+                    <div className="flex gap-2 flex-wrap">
+                      {['Fácil', 'Médio', 'Difícil', 'Avançado'].map((nivel) => (
+                        <Button
+                          key={nivel}
+                          type="button"
+                          variant={selectedLevel === nivel ? 'default' : 'outline'}
+                          className={selectedLevel === nivel ? 'bg-cert-blue text-white' : ''}
+                          onClick={() => setSelectedLevel(nivel)}
+                        >
+                          {nivel}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Duração:</span>

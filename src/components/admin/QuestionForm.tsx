@@ -78,6 +78,8 @@ const baseQuestionSchema = z.object({
   difficulty: z.enum(['Fácil', 'Médio', 'Difícil']),
   tags: z.array(z.string()),
   points: z.number().min(1, 'A pontuação deve ser maior que 0'),
+  url_referencia: z.string().optional(),
+  referencia_ativa: z.boolean().optional().default(true),
 });
 
 const multipleChoiceSchema = baseQuestionSchema.extend({
@@ -356,6 +358,50 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                 Quantidade de pontos que esta questão vale
                               </FormDescription>
                               <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Campo URL de Referência */}
+                        <FormField
+                          control={form.control}
+                          name="url_referencia"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL de Referência</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="url"
+                                  placeholder="https://exemplo.com/material-ou-documentacao"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Link para material de apoio ou documentação oficial. Caso não queira disponibilizar referência, deixe em branco ou desative abaixo.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Toggle para ativar/desativar botão de referência */}
+                        <FormField
+                          control={form.control}
+                          name="referencia_ativa"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center gap-2 mt-2">
+                              <FormLabel>Ativar botão de referência</FormLabel>
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value}
+                                  onChange={e => field.onChange(e.target.checked)}
+                                  className="ml-2 w-4 h-4"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Se desativado, o botão de referência não aparecerá para o aluno, mesmo que o link esteja preenchido.
+                              </FormDescription>
                             </FormItem>
                           )}
                         />

@@ -5,47 +5,20 @@ import SimuladosList from '@/components/simulado/SimuladosList';
 import { getActiveExams, Exam } from '@/services/simuladoService';
 
 const SimuladosPage: React.FC = () => {
-  const [debug, setDebug] = useState<{ loading: boolean; data: Exam[] | null; error: string | null }>({ 
-    loading: true, 
-    data: null, 
-    error: null 
-  });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setDebug(prev => ({ ...prev, loading: true }));
-        console.log('SimuladosPage: Buscando simulados ativos...');
-        const exams = await getActiveExams();
-        console.log('SimuladosPage: Simulados recebidos:', exams);
-        setDebug({ loading: false, data: exams, error: null });
-      } catch (error) {
-        console.error('SimuladosPage: Erro ao buscar simulados:', error);
-        setDebug({ loading: false, data: null, error: String(error) });
-      }
-    };
-
-    fetchData();
-  }, []);
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-grow">
-        <SimuladosList />
-        
-        {/* Componente de depuração - remover após resolver o problema */}
-        <div className="container mx-auto mt-8 p-4 bg-gray-100 rounded-lg">
-          <h2 className="text-lg font-bold mb-2">Depuração</h2>
-          <div className="text-sm">
-            <p><strong>Status:</strong> {debug.loading ? 'Carregando...' : 'Concluído'}</p>
-            <p><strong>Erro:</strong> {debug.error || 'Nenhum'}</p>
-            <p><strong>Dados:</strong></p>
-            <pre className="bg-gray-200 p-2 rounded mt-2 overflow-auto max-h-40">
-              {debug.data ? JSON.stringify(debug.data, null, 2) : 'Nenhum dado'}
-            </pre>
+        <div className="bg-cert-blue text-white py-12 px-4">
+          <div className="container mx-auto text-center">
+            <h1 className="text-3xl font-bold mb-4">Simulados Disponíveis</h1>
+            <p className="max-w-2xl mx-auto">
+              Escolha entre diversos simulados e prepare-se adequadamente para o exame real
+              com nossos simulados personalizados.
+            </p>
           </div>
         </div>
+        <SimuladosList />
       </main>
       <Footer />
     </div>

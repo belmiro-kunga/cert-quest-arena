@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Clock, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Check, CircleAlert } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -199,12 +199,33 @@ const SimuladoRunningPage: React.FC = () => {
       <Card className="mb-6">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-xl">Questão {currentQuestionIndex + 1} de {questoes.length}</CardTitle>
+            <CardTitle className="text-xl flex items-center gap-2">
+              Questão {currentQuestionIndex + 1} de {questoes.length}
+              {currentQuestion.url_referencia ? (
+                <a
+                  href={currentQuestion.url_referencia.startsWith('http') ? currentQuestion.url_referencia : `https://${currentQuestion.url_referencia}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Ver referência da questão"
+                  className="ml-1 hover:text-blue-600 transition-colors cursor-pointer"
+                  tabIndex={0}
+                  role="link"
+                  aria-label="Abrir referência da questão em nova aba"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <CircleAlert className="w-5 h-5 text-blue-500 hover:text-blue-700" />
+                </a>
+              ) : (
+                <span title="Nenhuma referência disponível">
+                  <CircleAlert className="w-5 h-5 text-gray-400" />
+                </span>
+              )}
+            </CardTitle>
             <Badge variant="outline" className="px-2 py-1">
               <Clock className="mr-1 h-4 w-4" /> {formatTimeLeft()}
             </Badge>
           </div>
-          <CardDescription className="text-base">
+          <CardDescription className="text-base mt-2">
             {currentQuestion.enunciado}
           </CardDescription>
         </CardHeader>
@@ -253,32 +274,42 @@ const SimuladoRunningPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow container mx-auto py-8 px-4">
-        {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+  <Header />
+  <main className="flex-grow flex items-center justify-center py-10 px-2">
+    {isLoading ? (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    ) : (
+      <div className="w-full max-w-2xl">
+        <Card className="shadow-xl rounded-3xl border-blue-100 bg-white/90">
+          <CardHeader className="pb-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="text-3xl font-extrabold text-cert-blue drop-shadow mb-2">
+                {simulado?.title}
+              </CardTitle>
+              <Badge className={`px-3 py-2 text-base font-bold rounded-lg ${timeLeft < 300 && timeLeft > 0 ? 'bg-red-100 text-red-700 border-red-300 animate-pulse' : 'bg-blue-100 text-blue-800 border-blue-300'}`}>
+                <Clock className="inline mr-1 h-5 w-5 align-middle" /> {formatTimeLeft()}
+              </Badge>
+            </div>
+            <CardDescription className="text-lg text-gray-700 mt-2">
+              {simulado?.description}
+            </CardDescription>
+            <div className="flex flex-wrap gap-4 mt-4">
+              <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium border border-blue-100">{questoes.length} questões</span>
+              <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-100">Duração: {simulado?.duration} min</span>
+              <span className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium border border-yellow-100">Nível: {new URLSearchParams(window.location.search).get('nivel') || 'N/A'}</span>
+            </div>
+          </CardHeader>
+          <CardContent>
             <div className="mb-6">
-              <h1 className="text-2xl font-bold mb-2">{simulado?.title}</h1>
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <Clock className="mr-1 h-4 w-4" />
-                  <span>Tempo restante: {formatTimeLeft()}</span>
-                </div>
-                <div>
-                  <span>Questões respondidas: {Object.keys(selectedAnswers).length} de {questoes.length}</span>
-                </div>
+              <Progress value={calculateProgress()} className="h-3 rounded-full bg-blue-100 [&>div]:bg-cert-blue transition-all duration-300" />
+              <div className="flex justify-between text-xs mt-1 text-gray-500">
+                <span>Respondidas: {Object.keys(selectedAnswers).length}</span>
+                <span>Total: {questoes.length}</span>
               </div>
             </div>
-
-            <div className="mb-6">
-              <Progress value={calculateProgress()} className="h-2" />
-            </div>
-
             {timeLeft < 300 && timeLeft > 0 && (
               <Alert variant="destructive" className="mb-6">
                 <Clock className="h-4 w-4" />
@@ -288,23 +319,24 @@ const SimuladoRunningPage: React.FC = () => {
                 </AlertDescription>
               </Alert>
             )}
-
-            {renderCurrentQuestion()}
-            
-            <div className="mt-6 flex justify-center">
-              <Button 
-                variant="outline" 
-                className="text-red-600 border-red-600 hover:bg-red-50"
-                onClick={handleFinishSimulado}
-              >
-                Finalizar simulado
-              </Button>
-            </div>
-          </>
-        )}
-      </main>
-      <Footer />
-    </div>
+            {questoes.length > 0 && renderCurrentQuestion()}
+          </CardContent>
+          <CardFooter className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
+            <Button 
+              variant="outline" 
+              className="text-red-600 border-red-600 hover:bg-red-50 transition-colors text-base px-6 py-2 rounded-lg"
+              onClick={handleFinishSimulado}
+            >
+              Finalizar simulado
+            </Button>
+            <div className="flex-1"></div>
+          </CardFooter>
+        </Card>
+      </div>
+    )}
+  </main>
+  <Footer />
+</div>
   );
 };
 

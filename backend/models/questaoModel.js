@@ -18,7 +18,9 @@ const createTableIfNotExists = async () => {
         categoria VARCHAR(100),
         dificuldade VARCHAR(50) DEFAULT 'Médio',
         pontos INTEGER DEFAULT 1,
-        tags TEXT[]
+        tags TEXT[],
+        url_referencia TEXT,
+        referencia_ativa BOOLEAN DEFAULT TRUE
       )
     `);
     
@@ -61,8 +63,8 @@ const createQuestao = async (questao) => {
     // Inserir a questão principal
     const questaoResult = await client.query(
       `INSERT INTO questoes 
-        (simulado_id, texto, tipo, explicacao, categoria, dificuldade, pontos, tags) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        (simulado_id, texto, tipo, explicacao, categoria, dificuldade, pontos, tags, url_referencia, referencia_ativa) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING *`,
       [
         questao.simulado_id,
@@ -72,7 +74,9 @@ const createQuestao = async (questao) => {
         questao.categoria || '',
         questao.dificuldade || 'Médio',
         questao.pontos || 1,
-        questao.tags || []
+        questao.tags || [],
+        questao.url_referencia || '',
+        typeof questao.referencia_ativa === 'boolean' ? questao.referencia_ativa : true
       ]
     );
     
@@ -170,11 +174,23 @@ const updateQuestao = async (questaoId, questao) => {
     await client.query('BEGIN');
     
     // Atualizar a questão principal
-    await client.query(
+    console.log('DEBUG updateQuestao - dados recebidos:', {
+  texto: questao.texto,
+  tipo: questao.tipo,
+  explicacao: questao.explicacao,
+  categoria: questao.categoria,
+  dificuldade: questao.dificuldade,
+  pontos: questao.pontos,
+  tags: questao.tags,
+  url_referencia: questao.url_referencia,
+  referencia_ativa: questao.referencia_ativa,
+  questaoId: questaoId
+});
+await client.query(
       `UPDATE questoes 
        SET texto = $1, tipo = $2, explicacao = $3, categoria = $4, 
-           dificuldade = $5, pontos = $6, tags = $7
-       WHERE id = $8`,
+           dificuldade = $5, pontos = $6, tags = $7, url_referencia = $8, referencia_ativa = $9
+       WHERE id = $10`,
       [
         questao.texto,
         questao.tipo,
@@ -183,6 +199,8 @@ const updateQuestao = async (questaoId, questao) => {
         questao.dificuldade || 'Médio',
         questao.pontos || 1,
         questao.tags || [],
+        questao.url_referencia || '',
+        typeof questao.referencia_ativa === 'boolean' ? questao.referencia_ativa : true,
         questaoId
       ]
     );
