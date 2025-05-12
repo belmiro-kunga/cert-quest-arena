@@ -4,7 +4,7 @@ import { AdminNavigation } from "@/components/admin/AdminNavigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { Overview } from "@/components/admin/Overview";
 import { Students } from "@/components/admin/Students";
-import { Exams } from "@/components/admin/Exams";
+import SimuladoAdmin from '@/components/admin/simulado/SimuladoAdmin';
 import { Coupons } from "@/components/admin/Coupons";
 import { GamificationAdmin } from "@/components/admin/GamificationAdmin";
 import Payments from "@/components/admin/Payments";
@@ -111,30 +111,14 @@ const AdminPage = () => {
               } 
             />
 
-            {/* Exams Routes */}
+            {/* Simulados Routes */}
             <Route 
               path="/exams" 
-              element={
-                <Exams 
-                  exams={state.adminExams}
-                  onSelect={actions.handleExamSelect}
-                  onDelete={actions.handleExamDelete}
-                  onExamCreated={actions.handleExamCreated}
-                  onExamUpdated={actions.handleExamUpdated}
-                />
-              } 
+              element={<SimuladoAdmin />} 
             />
             <Route 
               path="/exams/new" 
-              element={
-                <Exams 
-                  exams={state.adminExams}
-                  onSelect={actions.handleExamSelect}
-                  onDelete={actions.handleExamDelete}
-                  onExamCreated={actions.handleExamCreated}
-                  onExamUpdated={actions.handleExamUpdated}
-                />
-              } 
+              element={<SimuladoAdmin />} 
             />
 
             {/* Coupons Routes */}

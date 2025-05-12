@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit, Plus, Search, Trash } from 'lucide-react';
-import { Exam } from '@/types/admin';
+import { Edit, Plus, Trash } from 'lucide-react';
+import { Exam as AdminExam } from '@/types/admin';
+import { Exam as ServiceExam, getExams, createExam, updateExam, deleteExam } from '@/services/simuladoService';
 import { ExamForm } from './ExamForm';
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,40 +21,130 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 
 interface ExamsProps {
-  exams: Exam[];
+  exams: AdminExam[];
   onSelect: (examId: string) => void;
   onDelete: (examId: string) => Promise<void>;
-  onExamCreated: (exam: Exam) => void;
-  onExamUpdated: (exam: Exam) => void;
+  onExamCreated: (exam: AdminExam) => void;
+  onExamUpdated: (exam: AdminExam) => void;
 }
 
 export const Exams: React.FC<ExamsProps> = ({
-  exams,
+  exams: propExams,
   onSelect,
-  onDelete,
+  onDelete: propOnDelete,
   onExamCreated,
   onExamUpdated
 }) => {
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
-
+  const [selectedExam, setSelectedExam] = useState<AdminExam | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Estado local para armazenar os exames carregados do backend
+  const [exams, setExams] = useState<AdminExam[]>(propExams || []);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Carregar exames do backend quando o componente montar
+  useEffect(() => {
+    const loadExams = async () => {
+      try {
+        setIsLoading(true);
+        const loadedExams = await getExams();
+        
+        // Converter para o formato AdminExam
+        const adminExams: AdminExam[] = loadedExams.map(serviceExam => ({
+          id: serviceExam.id,
+          title: serviceExam.title,
+          description: serviceExam.description,
+          price: serviceExam.price,
+          duration: serviceExam.duration,
+          questions_count: serviceExam.questionsCount,
+          difficulty: serviceExam.difficulty,
+          created_at: serviceExam.createdAt || new Date().toISOString(),
+          updated_at: serviceExam.createdAt || new Date().toISOString(),
+          category: '',  // Campo obrigatório em AdminExam
+          image_url: ''  // Campo obrigatório em AdminExam
+        }));
+        
+        setExams(adminExams);
+        
+        // Notificar o componente pai sobre os exames carregados
+        if (onExamCreated && adminExams.length > 0) {
+          adminExams.forEach(exam => onExamCreated(exam));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar exames:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os simulados.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadExams();
+  }, []);
 
   const filteredExams = exams.filter(exam =>
     exam.title.toLowerCase().includes(search.toLowerCase()) ||
     exam.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleCreateExam = async (data: Partial<Exam>) => {
+  const handleCreateExam = async (data: Partial<AdminExam>) => {
     try {
-      onExamCreated(data as Exam);
+      setIsLoading(true);
+      
+      // Converter AdminExam para ServiceExam
+      const serviceExam: ServiceExam = {
+        id: data.id || '',
+        title: data.title || '',
+        description: data.description || '',
+        price: data.price || 0,
+        duration: data.duration || 0,
+        questionsCount: data.questions_count || 0,
+        difficulty: data.difficulty || '',
+        passingScore: 70, // Valor padrão
+        active: true,
+        isFree: data.price === 0
+      };
+      
+      // Criar o exame no backend
+      const createdServiceExam = await createExam(serviceExam);
+      
+      // Converter de volta para AdminExam
+      const createdAdminExam: AdminExam = {
+        id: createdServiceExam.id,
+        title: createdServiceExam.title,
+        description: createdServiceExam.description,
+        price: createdServiceExam.price,
+        duration: createdServiceExam.duration,
+        questions_count: createdServiceExam.questionsCount,
+        difficulty: createdServiceExam.difficulty,
+        created_at: createdServiceExam.createdAt || new Date().toISOString(),
+        updated_at: createdServiceExam.createdAt || new Date().toISOString(),
+        category: '',  // Campo obrigatório em AdminExam
+        image_url: ''  // Campo obrigatório em AdminExam
+      };
+      
+      // Atualizar o estado local
+      setExams(prevExams => [...prevExams, createdAdminExam]);
+      
+      // Notificar o componente pai
+      if (onExamCreated) {
+        onExamCreated(createdAdminExam);
+      }
+      
       toast({
         title: "Sucesso",
         description: "Simulado criado com sucesso!",
       });
+      
+      // Fechar o formulário
+      setFormOpen(false);
     } catch (error) {
       console.error('Erro ao criar simulado:', error);
       toast({
@@ -61,18 +152,69 @@ export const Exams: React.FC<ExamsProps> = ({
         description: "Erro ao criar simulado.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleUpdateExam = async (data: Partial<Exam>) => {
+  const handleUpdateExam = async (data: Partial<AdminExam>) => {
     if (!selectedExam) return;
     try {
-      const updatedExam = { ...selectedExam, ...data };
-      onExamUpdated(updatedExam);
+      setIsLoading(true);
+      const updatedAdminExam = { ...selectedExam, ...data };
+      
+      // Converter AdminExam para ServiceExam
+      const serviceExam: ServiceExam = {
+        id: updatedAdminExam.id,
+        title: updatedAdminExam.title,
+        description: updatedAdminExam.description,
+        price: updatedAdminExam.price,
+        duration: updatedAdminExam.duration,
+        questionsCount: updatedAdminExam.questions_count,
+        difficulty: updatedAdminExam.difficulty,
+        passingScore: 70, // Valor padrão
+        active: true,
+        isFree: updatedAdminExam.price === 0
+      };
+      
+      // Atualizar o exame no backend
+      const resultServiceExam = await updateExam(serviceExam.id, serviceExam);
+      
+      // Converter de volta para AdminExam
+      const resultAdminExam: AdminExam = {
+        id: resultServiceExam.id,
+        title: resultServiceExam.title,
+        description: resultServiceExam.description,
+        price: resultServiceExam.price,
+        duration: resultServiceExam.duration,
+        questions_count: resultServiceExam.questionsCount,
+        difficulty: resultServiceExam.difficulty,
+        created_at: resultServiceExam.createdAt || updatedAdminExam.created_at,
+        updated_at: new Date().toISOString(),
+        category: updatedAdminExam.category,
+        image_url: updatedAdminExam.image_url
+      };
+      
+      // Atualizar o estado local
+      setExams(prevExams => 
+        prevExams.map(exam => 
+          exam.id === resultAdminExam.id ? resultAdminExam : exam
+        )
+      );
+      
+      // Notificar o componente pai
+      if (onExamUpdated) {
+        onExamUpdated(resultAdminExam);
+      }
+      
       toast({
         title: "Sucesso",
         description: "Simulado atualizado com sucesso!",
       });
+      
+      // Fechar o formulário
+      setFormOpen(false);
+      setSelectedExam(null);
     } catch (error) {
       console.error('Erro ao atualizar simulado:', error);
       toast({
@@ -80,20 +222,36 @@ export const Exams: React.FC<ExamsProps> = ({
         description: "Erro ao atualizar simulado.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCloseDialog = () => {
     setSelectedExam(null);
-
   };
 
   const handleDeleteExam = async () => {
     if (!examToDelete) return;
     try {
-      await onDelete(examToDelete);
+      setIsLoading(true);
+      
+      // Excluir o exame no backend
+      await deleteExam(examToDelete);
+      
+      // Atualizar o estado local
+      setExams(prevExams => 
+        prevExams.filter(exam => exam.id !== examToDelete)
+      );
+      
+      // Notificar o componente pai
+      if (propOnDelete) {
+        await propOnDelete(examToDelete);
+      }
+      
       setDeleteDialogOpen(false);
       setExamToDelete(null);
+      
       toast({
         title: "Sucesso",
         description: "Simulado excluído com sucesso!",
@@ -105,6 +263,8 @@ export const Exams: React.FC<ExamsProps> = ({
         description: "Erro ao excluir simulado.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,17 +297,24 @@ export const Exams: React.FC<ExamsProps> = ({
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+            
+            {isLoading && (
+              <div className="flex justify-center py-4">
+                <div className="flex items-center space-x-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  <span className="text-sm text-muted-foreground">Carregando simulados...</span>
+                </div>
+              </div>
+            )}
 
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Título</TableHead>
                   <TableHead>Preço</TableHead>
-                  <TableHead>Desconto</TableHead>
                   <TableHead>Questões</TableHead>
                   <TableHead>Duração</TableHead>
                   <TableHead>Dificuldade</TableHead>
-                  <TableHead>Nota Mínima</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -158,21 +325,9 @@ export const Exams: React.FC<ExamsProps> = ({
                     <TableCell>
                       <div className="flex flex-col">
                         <span>R$ {exam.price.toFixed(2)}</span>
-                        {exam.discountPrice && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            R$ {exam.price.toFixed(2)}
-                          </span>
-                        )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {exam.discountPercentage ? (
-                        <Badge variant="secondary">{exam.discountPercentage}% OFF</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{exam.questionsCount || 0}</TableCell>
+                    <TableCell>{exam.questions_count}</TableCell>
                     <TableCell>{exam.duration} min</TableCell>
                     <TableCell>
                       <Badge
@@ -185,7 +340,6 @@ export const Exams: React.FC<ExamsProps> = ({
                         {exam.difficulty}
                       </Badge>
                     </TableCell>
-                    <TableCell>{exam.passingScore}%</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
@@ -229,7 +383,6 @@ export const Exams: React.FC<ExamsProps> = ({
           exam={selectedExam}
         />
       )}
-
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

@@ -17,6 +17,7 @@ import {
   Mail,
   ShoppingBag,
   FileText,
+  ClipboardCheck,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -31,7 +32,7 @@ const sidebarItems = [
     icon: Users,
   },
   {
-    title: 'Exames',
+    title: 'Simulados',
     href: '/admin/exams',
     icon: BookOpen,
   },
