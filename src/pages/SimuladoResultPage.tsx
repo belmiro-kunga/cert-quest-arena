@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSimuladoResult } from '@/hooks/useSimuladoResult';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getSimuladoById, Exam } from '@/services/simuladoService';
@@ -25,57 +26,7 @@ interface SimuladoResult {
 const SimuladoResultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [simulado, setSimulado] = useState<Exam | null>(null);
-  const [questoes, setQuestoes] = useState<Questao[]>([]);
-  const [result, setResult] = useState<SimuladoResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadResultAndData = async () => {
-      if (!id) return;
-      
-      try {
-        setIsLoading(true);
-        
-        // Carregar resultado do simulado do localStorage
-        const storedResult = localStorage.getItem(`simulado_result_${id}`);
-        if (!storedResult) {
-          toast({
-            title: 'Erro',
-            description: 'Resultado do simulado não encontrado.',
-            variant: 'destructive',
-          });
-          navigate(`/simulados/${id}`);
-          return;
-        }
-        
-        const resultData = JSON.parse(storedResult) as SimuladoResult;
-        setResult(resultData);
-        
-        // Carregar dados do simulado
-        const simuladoData = await getSimuladoById(parseInt(id));
-        setSimulado(simuladoData);
-        
-        // Carregar questões do simulado
-        const questoesData = await getQuestoesBySimuladoId(parseInt(id));
-        console.log('QUESTOES RESULT PAGE:', questoesData);
-        setQuestoes(questoesData);
-      } catch (error) {
-        console.error(`Erro ao carregar resultado do simulado ${id}:`, error);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar os dados do resultado.',
-          variant: 'destructive',
-        });
-        navigate('/simulados');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadResultAndData();
-  }, [id, navigate, toast]);
+  const { simulado, questoes, result, isLoading } = useSimuladoResult(id);
 
   // Formatar tempo gasto
   const formatTimeSpent = (seconds: number) => {
@@ -99,9 +50,16 @@ const SimuladoResultPage: React.FC = () => {
   // Verificar se uma resposta está correta
   const isAnswerCorrect = (questao: Questao, selectedAnswerId: string) => {
     if (!result || !selectedAnswerId) return false;
-    
-    // Verificar se a resposta selecionada é a resposta correta da questão
-    return questao.resposta_correta === selectedAnswerId;
+    // Log de depuração para investigar o bug
+    console.log('[DEBUG isAnswerCorrect]', {
+      resposta_correta: questao.resposta_correta,
+      selectedAnswerId,
+      tipo_resposta_correta: typeof questao.resposta_correta,
+      tipo_selectedAnswerId: typeof selectedAnswerId,
+      comparacao: String(questao.resposta_correta) === String(selectedAnswerId)
+    });
+    // Comparação segura como string
+    return String(questao.resposta_correta) === String(selectedAnswerId);
   };
 
   if (isLoading || !simulado || !result) {

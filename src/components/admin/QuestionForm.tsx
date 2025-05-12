@@ -3,6 +3,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
+  baseQuestionSchema,
+  multipleChoiceSchema,
+  singleChoiceSchema,
+  dragAndDropSchema,
+  practicalScenarioSchema,
+  fillInBlankSchema,
+  commandLineSchema,
+  networkTopologySchema,
+  questionSchema
+} from '@/schemas/questionSchemas';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -70,102 +81,6 @@ const questionTypes: { value: QuestionType; label: string; description: string }
     description: 'Configure e solucione problemas em uma topologia de rede'
   }
 ];
-
-const baseQuestionSchema = z.object({
-  text: z.string().min(1, 'O enunciado é obrigatório'),
-  explanation: z.string().min(1, 'A explicação é obrigatória'),
-  category: z.string().min(1, 'A categoria é obrigatória'),
-  difficulty: z.enum(['Fácil', 'Médio', 'Difícil', 'Avançado']),
-  tags: z.array(z.string()),
-  points: z.number().min(1, 'A pontuação deve ser maior que 0'),
-  url_referencia: z.string().optional(),
-  referencia_ativa: z.boolean().optional().default(true),
-});
-
-const multipleChoiceSchema = baseQuestionSchema.extend({
-  type: z.literal('multiple_choice'),
-  options: z.array(z.string()).min(2, 'Adicione pelo menos 2 opções'),
-  correctOptions: z.array(z.number()).min(1, 'Selecione pelo menos uma opção correta'),
-});
-
-const singleChoiceSchema = baseQuestionSchema.extend({
-  type: z.literal('single_choice'),
-  options: z.array(z.string()).min(2, 'Adicione pelo menos 2 opções'),
-  correctOption: z.number(),
-});
-
-const dragAndDropSchema = baseQuestionSchema.extend({
-  type: z.literal('drag_and_drop'),
-  items: z.array(z.object({
-    id: z.string(),
-    text: z.string().min(1, 'O texto do item é obrigatório'),
-    category: z.string().min(1, 'A categoria é obrigatória'),
-  })).min(2, 'Adicione pelo menos 2 itens'),
-  correctPlacements: z.array(z.object({
-    itemId: z.string(),
-    targetCategory: z.string(),
-  })).min(1, 'Defina pelo menos uma categoria para os itens'),
-});
-
-const practicalScenarioSchema = baseQuestionSchema.extend({
-  type: z.literal('practical_scenario'),
-  scenario: z.object({
-    description: z.string(),
-    initialState: z.any(),
-    expectedOutcome: z.any(),
-    validationSteps: z.array(z.object({
-      description: z.string(),
-      validator: z.string(),
-    })),
-  }),
-});
-
-const fillInBlankSchema = baseQuestionSchema.extend({
-  type: z.literal('fill_in_blank'),
-  blanks: z.array(z.object({
-    id: z.string(),
-    correctAnswers: z.array(z.string()),
-    caseSensitive: z.boolean(),
-  })),
-});
-
-const commandLineSchema = baseQuestionSchema.extend({
-  type: z.literal('command_line'),
-  environment: z.enum(['linux', 'windows', 'cisco_ios', 'aws_cli']),
-  initialState: z.string(),
-  expectedCommands: z.array(z.string()),
-  validationScript: z.string(),
-});
-
-const networkTopologySchema = baseQuestionSchema.extend({
-  type: z.literal('network_topology'),
-  topology: z.object({
-    nodes: z.array(z.object({
-      id: z.string(),
-      type: z.enum(['router', 'switch', 'host', 'firewall', 'cloud']),
-      config: z.any(),
-    })),
-    connections: z.array(z.object({
-      from: z.string(),
-      to: z.string(),
-      type: z.enum(['ethernet', 'serial', 'fiber', 'wireless']),
-    })),
-  }),
-  tasks: z.array(z.object({
-    description: z.string(),
-    validator: z.string(),
-  })),
-});
-
-const questionSchema = z.discriminatedUnion('type', [
-  multipleChoiceSchema,
-  singleChoiceSchema,
-  dragAndDropSchema,
-  practicalScenarioSchema,
-  fillInBlankSchema,
-  commandLineSchema,
-  networkTopologySchema,
-]);
 
 interface QuestionFormProps {
   open: boolean;
