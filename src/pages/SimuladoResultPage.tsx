@@ -283,12 +283,36 @@ const SimuladoResultPage: React.FC = () => {
 
                     <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-gray-500" />
+                        {questao.url_referencia ? (
+                          <a 
+                            href={questao.url_referencia} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center hover:text-blue-600 transition-colors"
+                            title="Ver documentação oficial"
+                          >
+                            <AlertCircle className="w-5 h-5 text-blue-500 hover:text-blue-700" />
+                          </a>
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-gray-500" />
+                        )}
                         <h4 className="font-medium">Explicação:</h4>
                       </div>
                       <p className="text-gray-700">
                         {questao.explicacao || "Nenhuma explicação disponível para esta questão."}
                       </p>
+                      {questao.url_referencia && (
+                        <div className="text-right">
+                          <a 
+                            href={questao.url_referencia}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            Ver documentação oficial
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

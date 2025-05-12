@@ -60,6 +60,7 @@ export interface BaseQuestion {
   type: QuestionType;
   text: string;
   explanation: string;
+  url_referencia?: string; // URL para documentação ou material de referência externo
   explanationLinks?: ExplanationLink[];
   category: string;
   difficulty: 'Fácil' | 'Médio' | 'Difícil';

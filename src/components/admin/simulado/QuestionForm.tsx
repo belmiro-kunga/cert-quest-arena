@@ -72,6 +72,7 @@ const formSchema = z.object({
   text: z.string().min(1, 'O texto da questão é obrigatório'),
   type: z.enum(['multiple_choice', 'single_choice', 'drag_and_drop', 'practical_scenario', 'fill_in_blank', 'command_line', 'network_topology']),
   explanation: z.string().optional(),
+  url_referencia: z.string().url('Insira uma URL válida').optional(),
   category: z.string().optional(),
   difficulty: z.enum(['Fácil', 'Médio', 'Difícil']),
   points: z.number().min(1).default(1),
@@ -161,6 +162,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       type: data.type,
       text: data.text,
       explanation: data.explanation || '',
+      url_referencia: data.url_referencia || '',
       category: data.category || '',
       difficulty: data.difficulty,
       points: data.points,
@@ -368,6 +370,26 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                   </FormControl>
                   <FormDescription>
                     Forneça uma explicação detalhada sobre a resposta correta.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="url_referencia"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL de Referência</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Insira uma URL para documentação oficial ou material de referência sobre o tópico da questão.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

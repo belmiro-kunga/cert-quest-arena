@@ -126,6 +126,7 @@ export interface Questao {
   alternativas: Alternativa[];
   resposta_correta?: string;
   explicacao?: string;
+  url_referencia?: string; // URL externa para documentação ou material de referência
 }
 
 // Buscar todas as questões de um simulado para o simulado em andamento
@@ -150,7 +151,8 @@ export const getQuestoesBySimuladoId = async (simuladoId: number): Promise<Quest
           correta: opcao.correta || false
         })) : [],
         resposta_correta: corretaId ? String(corretaId) : undefined,
-        explicacao: questao.explicacao || 'Nenhuma explicação disponível para esta questão.'
+        explicacao: questao.explicacao || 'Nenhuma explicação disponível para esta questão.',
+        url_referencia: questao.url_referencia || ''
       };
     });
     
