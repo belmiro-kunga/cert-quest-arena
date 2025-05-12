@@ -110,19 +110,46 @@ const createTableIfNotExists = async () => {
 // Obter todos os simulados
 const getAllSimulados = async () => {
   try {
-    const result = await db.query('SELECT * FROM simulados ORDER BY data_criacao DESC');
+    const result = await db.query('SELECT * FROM simulados ORDER BY id');
     return result.rows;
   } catch (error) {
-    console.error('Erro ao buscar simulados:', error);
+    console.error('Erro ao buscar todos os simulados:', error);
     throw error;
   }
 };
 
-// Obter um simulado pelo ID
+// Obter todos os simulados ativos para os alunos
+const getActiveSimulados = async () => {
+  try {
+    const result = await db.query('SELECT * FROM simulados WHERE ativo = TRUE ORDER BY id');
+    return result.rows;
+  } catch (error) {
+    console.error('Erro ao buscar simulados ativos:', error);
+    throw error;
+  }
+};
+
+// Obter um simulado pelo ID com contagem de questões
 const getSimuladoById = async (id) => {
   try {
-    const result = await db.query('SELECT * FROM simulados WHERE id = $1', [id]);
-    return result.rows[0]; // Retorna o primeiro resultado ou undefined se não encontrar
+    // Primeiro, buscar o simulado
+    const simuladoResult = await db.query('SELECT * FROM simulados WHERE id = $1', [id]);
+    const simulado = simuladoResult.rows[0]; // Retorna o primeiro resultado ou undefined se não encontrar
+    
+    if (!simulado) {
+      return null; // Simulado não encontrado
+    }
+    
+    // Buscar a contagem de questões associadas a este simulado
+    const questoesResult = await db.query('SELECT COUNT(*) as quantidade_questoes FROM questoes WHERE simulado_id = $1', [id]);
+    const quantidadeQuestoes = parseInt(questoesResult.rows[0].quantidade_questoes, 10);
+    
+    // Atualizar o objeto simulado com a contagem de questões
+    simulado.quantidade_questoes = quantidadeQuestoes;
+    
+    console.log(`Simulado ID ${id} tem ${quantidadeQuestoes} questões`);
+    
+    return simulado;
   } catch (error) {
     console.error(`Erro ao buscar simulado com ID ${id}:`, error);
     throw error;
@@ -244,6 +271,8 @@ const deleteSimulado = async (id) => {
   }
 };
 
+
+
 // Inicializar o modelo (criar tabela se necessário)
 const initialize = async () => {
   await createTableIfNotExists();
@@ -252,6 +281,7 @@ const initialize = async () => {
 module.exports = {
   initialize,
   getAllSimulados,
+  getActiveSimulados,
   getSimuladoById,
   createSimulado,
   updateSimulado,

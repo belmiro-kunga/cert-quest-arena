@@ -24,6 +24,18 @@ router.get('/', async (req, res) => {
 
 // GET /api/simulados/:id - Obter um simulado específico pelo ID
 router.get('/:id', async (req, res) => {
+  // Verificar se o ID é 'ativos' e redirecionar para a rota de simulados ativos
+  if (req.params.id === 'ativos') {
+    try {
+      const simuladosAtivos = await simuladoModel.getActiveSimulados();
+      return res.json(simuladosAtivos);
+    } catch (error) {
+      console.error('Erro ao buscar simulados ativos:', error);
+      return res.status(500).json({ error: 'Erro ao buscar simulados ativos', details: error.message });
+    }
+  }
+  
+  // Continuar com a busca normal por ID
   try {
     const id = req.params.id;
     const simulado = await simuladoModel.getSimuladoById(id);

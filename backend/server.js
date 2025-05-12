@@ -5,6 +5,7 @@ const db = require('./db'); // Import the db configuration
 
 // Importar rotas
 const simuladoRoutes = require('./routes/simuladoRoutes');
+const questaoRoutes = require('./routes/questaoRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -61,6 +62,10 @@ console.log('Registrando rotas de simulados...');
 app.use('/api/simulados', simuladoRoutes);
 console.log('Rotas de simulados registradas!');
 
+console.log('Registrando rotas de questões...');
+app.use('/api/questoes', questaoRoutes);
+console.log('Rotas de questões registradas!');
+
 
 // Start the server
 app.listen(PORT, () => {
@@ -68,4 +73,5 @@ app.listen(PORT, () => {
   console.log(`API disponível em http://localhost:${PORT}/api`);
   console.log(`Teste a conexão com o banco em http://localhost:${PORT}/api/test-db`);
   console.log(`Gerenciamento de simulados em http://localhost:${PORT}/api/simulados`);
+  console.log(`Gerenciamento de questões em http://localhost:${PORT}/api/questoes`);
 });

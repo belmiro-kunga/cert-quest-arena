@@ -26,6 +26,10 @@ import CheckoutPage from '@/pages/CheckoutPage';
 import CartPage from '@/pages/CartPage';
 import { PaymentPage } from './pages/Payment';
 import { PaymentResultPage } from './pages/PaymentResult';
+import SimuladosPage from './pages/SimuladosPage';
+import SimuladoDetailPage from './pages/SimuladoDetailPage';
+import SimuladoRunningPage from './pages/SimuladoRunningPage';
+import SimuladoResultPage from './pages/SimuladoResultPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -54,6 +58,10 @@ const App = () => {
                       <Route path="/signup" element={<SignUpPage />} />
                       <Route path="/certifications" element={<CertificationsPage />} />
                       <Route path="/cart" element={<CartPage />} />
+                      <Route path="/simulados" element={<SimuladosPage />} />
+                      <Route path="/simulados/:id" element={<SimuladoDetailPage />} />
+                      <Route path="/simulados/:id/start" element={<SimuladoRunningPage />} />
+                      <Route path="/simulados/:id/resultado" element={<SimuladoResultPage />} />
 
                       {/* Protected User Routes */}
                       <Route 

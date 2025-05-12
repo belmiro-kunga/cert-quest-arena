@@ -44,7 +44,7 @@ const Header = () => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={user.photo} alt={user.name || 'User'} />
+                <AvatarImage src={user.photoURL || ''} alt={user.name || 'User'} />
                 <AvatarFallback className="bg-blue-600 text-white">
                   {user.name?.charAt(0)?.toUpperCase() || 'U'}
                 </AvatarFallback>
@@ -113,6 +113,9 @@ const Header = () => {
             <Link to="/certifications" className="text-gray-600 hover:text-gray-900 transition-colors">
               Exams
             </Link>
+            <Link to="/simulados" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Simulados
+            </Link>
 
             <div className="flex items-center gap-2">
 
@@ -177,6 +180,13 @@ const Header = () => {
               >
                 Exams
               </Link>
+              <Link 
+                to="/simulados" 
+                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Simulados
+              </Link>
 
               <div className="flex items-center gap-2 px-2">
 
@@ -190,7 +200,7 @@ const Header = () => {
                 <>
                   <div className="flex items-center space-x-2 px-2 py-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.photo} alt={user.name || 'User'} />
+                      <AvatarImage src={user.photoURL || ''} alt={user.name || 'User'} />
                       <AvatarFallback className="bg-blue-600 text-white">
                         {user.name?.charAt(0)?.toUpperCase() || 'U'}
                       </AvatarFallback>
@@ -208,9 +218,6 @@ const Header = () => {
                     <User className="mr-2 h-4 w-4" />
                     <span>Perfil</span>
                   </Button>
-                    }}
-                  >
-
 
                   <Button
                     variant="ghost"

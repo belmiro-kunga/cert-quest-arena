@@ -20,5 +20,9 @@ pool.on('error', (err) => {
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
-  pool: pool // Export the pool itself if needed for transactions etc.
+  pool: pool, // Export the pool itself if needed for transactions etc.
+  getClient: async () => {
+    const client = await pool.connect();
+    return client;
+  }
 };

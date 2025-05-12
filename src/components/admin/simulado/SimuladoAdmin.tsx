@@ -16,7 +16,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import SimuladoList from './SimuladoList';
 import SimuladoForm from './SimuladoForm';
+import QuestaoList from './QuestaoList';
+import QuestionForm from './QuestionForm';
 import { Simulado, getSimulados, createSimulado, updateSimulado, deleteSimulado } from '@/services/simuladoService';
+import { BaseQuestion, createQuestion, updateQuestion } from '@/services/questaoService';
 
 const SimuladoAdmin: React.FC = () => {
   // Estado para armazenar a lista de simulados
@@ -37,6 +40,18 @@ const SimuladoAdmin: React.FC = () => {
   // Estado para controlar o diálogo de confirmação de exclusão
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [simuladoToDelete, setSimuladoToDelete] = useState<Simulado | null>(null);
+  
+  // Estado para controlar o simulado selecionado para gerenciar questões
+  const [selectedSimulado, setSelectedSimulado] = useState<Simulado | null>(null);
+  
+  // Estado para controlar a questão em edição
+  const [selectedQuestion, setSelectedQuestion] = useState<BaseQuestion | null>(null);
+  
+  // Estado para controlar a visibilidade do formulário de questão
+  const [questionFormOpen, setQuestionFormOpen] = useState(false);
+  
+  // Estado para controlar a aba ativa
+  const [activeTab, setActiveTab] = useState<string>("simulados");
   
   // Hook de toast para notificações
   const { toast } = useToast();
@@ -108,10 +123,17 @@ const SimuladoAdmin: React.FC = () => {
     setShowForm(false);
   };
 
-  // Função para iniciar a edição de um simulado
+  // Função para lidar com a edição de um simulado
   const handleEditSimulado = (simulado: Simulado) => {
     setEditingSimulado(simulado);
     setShowForm(true);
+    setActiveTab("simulados");
+  };
+  
+  // Função para selecionar um simulado para gerenciar questões
+  const handleSelectSimulado = (simulado: Simulado) => {
+    setSelectedSimulado(simulado);
+    setActiveTab("questoes");
   };
 
   // Função para iniciar o processo de exclusão de um simulado
@@ -146,11 +168,47 @@ const SimuladoAdmin: React.FC = () => {
     }
   };
 
+  // Função para lidar com o envio do formulário de questão
+  const handleQuestionSubmit = async (question: BaseQuestion) => {
+    try {
+      setIsSubmitting(true);
+      
+      if (selectedQuestion) {
+        // Atualizar questão existente
+        await updateQuestion(selectedQuestion.id, question);
+        toast({
+          title: "Sucesso",
+          description: "Questão atualizada com sucesso!",
+        });
+      } else {
+        // Criar nova questão
+        await createQuestion(question);
+        toast({
+          title: "Sucesso",
+          description: "Questão criada com sucesso!",
+        });
+      }
+      
+      setQuestionFormOpen(false);
+      setSelectedQuestion(null);
+      
+    } catch (error) {
+      console.error('Erro ao salvar questão:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar questão.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold tracking-tight">Gerenciamento de Simulados</h2>
-        {!showForm && (
+        {!showForm && activeTab === "simulados" && (
           <Button onClick={() => setShowForm(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Simulado
@@ -158,59 +216,104 @@ const SimuladoAdmin: React.FC = () => {
         )}
       </div>
 
-      <Tabs defaultValue={showForm ? "form" : "list"} value={showForm ? "form" : "list"}>
-        <TabsList className="hidden">
-          <TabsTrigger value="list">Lista</TabsTrigger>
-          <TabsTrigger value="form">Formulário</TabsTrigger>
+      <Tabs defaultValue="simulados" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="simulados">Simulados</TabsTrigger>
+          <TabsTrigger value="questoes">Questões</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="list" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Simulados</CardTitle>
-              <CardDescription>
-                Gerencie os simulados disponíveis para os estudantes.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <SimuladoList
-                  simulados={simulados}
-                  onEdit={handleEditSimulado}
-                  onDelete={handleDeleteClick}
+        <TabsContent value="simulados" className="space-y-4">
+          {showForm ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {editingSimulado ? 'Editar Simulado' : 'Novo Simulado'}
+                </CardTitle>
+                <CardDescription>
+                  {editingSimulado
+                    ? 'Atualize as informações do simulado existente.'
+                    : 'Preencha as informações para criar um novo simulado.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SimuladoForm
+                  simulado={editingSimulado || undefined}
+                  onSubmit={handleFormSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancelForm}
                 />
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Simulados</CardTitle>
+                <CardDescription>
+                  Gerencie os simulados disponíveis para os estudantes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <SimuladoList
+                    simulados={simulados}
+                    onEdit={handleEditSimulado}
+                    onDelete={handleDeleteClick}
+                    onManageQuestions={handleSelectSimulado}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
-        <TabsContent value="form">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {editingSimulado ? 'Editar Simulado' : 'Novo Simulado'}
-              </CardTitle>
-              <CardDescription>
-                {editingSimulado
-                  ? 'Atualize as informações do simulado existente.'
-                  : 'Preencha as informações para criar um novo simulado.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SimuladoForm
-                simulado={editingSimulado || undefined}
-                onSubmit={handleFormSubmit}
-                isSubmitting={isSubmitting}
-                onCancel={handleCancelForm}
+        <TabsContent value="questoes">
+          {selectedSimulado ? (
+            <div className="space-y-4">
+              <Card className="mb-4">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl">Simulado: {selectedSimulado.titulo}</CardTitle>
+                  <CardDescription>{selectedSimulado.descricao}</CardDescription>
+                </CardHeader>
+              </Card>
+              
+              <QuestaoList
+                simuladoId={selectedSimulado.id ? String(selectedSimulado.id) : ''}
+                onAddQuestion={() => {
+                  setSelectedQuestion(null);
+                  setQuestionFormOpen(true);
+                }}
+                onEditQuestion={(question) => {
+                  setSelectedQuestion(question);
+                  setQuestionFormOpen(true);
+                }}
               />
-            </CardContent>
-          </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-10 text-center">
+                <p className="text-muted-foreground">
+                  Selecione um simulado para gerenciar suas questões.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
+      
+      {/* Formulário de questão */}
+      {questionFormOpen && (
+        <QuestionForm
+          open={questionFormOpen}
+          onClose={() => setQuestionFormOpen(false)}
+          onSubmit={handleQuestionSubmit}
+          question={selectedQuestion}
+          examId={selectedSimulado?.id ? String(selectedSimulado.id) : ''}
+        />
+      )}
 
       {/* Diálogo de confirmação de exclusão */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

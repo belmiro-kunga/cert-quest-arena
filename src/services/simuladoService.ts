@@ -45,22 +45,34 @@ export interface Exam {
 
 // Função para converter Simulado (backend) para Exam (frontend)
 export const simuladoToExam = (simulado: Simulado): Exam => {
-  return {
-    id: String(simulado.id),
-    title: simulado.titulo,
+  // Log para depuração
+  console.log('Convertendo simulado:', simulado);
+  
+  // Garantir que todos os campos obrigatórios tenham valores padrão
+  const exam = {
+    id: String(simulado.id || 0),
+    title: simulado.titulo || 'Sem título',
     description: simulado.descricao || '',
-    isFree: simulado.is_gratis,
-    price: simulado.preco || 0,
-    discountPrice: simulado.preco_desconto,
+    isFree: simulado.is_gratis || false,
+    price: typeof simulado.preco === 'number' ? simulado.preco : (simulado.preco ? parseFloat(simulado.preco) : 0),
+    discountPrice: simulado.preco_desconto ? parseFloat(String(simulado.preco_desconto)) : null,
     discountPercentage: simulado.porcentagem_desconto,
     discountExpiresAt: simulado.desconto_expira_em,
-    questionsCount: simulado.quantidade_questoes || 0,
-    duration: simulado.duracao_minutos,
+    // Garantir que quantidade_questoes seja tratado como número, mesmo que venha como string
+    questionsCount: typeof simulado.quantidade_questoes === 'number' 
+      ? simulado.quantidade_questoes 
+      : (simulado.quantidade_questoes ? parseInt(String(simulado.quantidade_questoes), 10) : 0),
+    duration: simulado.duracao_minutos || 60,
     difficulty: simulado.nivel_dificuldade || 'Médio',
     passingScore: simulado.nota_minima || 70,
     createdAt: simulado.data_criacao,
-    active: simulado.ativo
+    active: simulado.ativo === true
   };
+  
+  // Log para depuração
+  console.log('Exam convertido:', exam);
+  
+  return exam;
 };
 
 // Função para converter Exam (frontend) para Simulado (backend)
@@ -122,12 +134,19 @@ export const getExamById = async (id: string): Promise<Exam> => {
 };
 
 /**
- * Busca um simulado pelo ID no formato original
+ * Busca um simulado pelo ID e converte para o formato Exam
  */
-export const getSimuladoById = async (id: number): Promise<Simulado> => {
+export const getSimuladoById = async (id: number): Promise<Exam> => {
   try {
+    console.log(`Buscando simulado com ID ${id}...`);
     const response = await axios.get(`${API_URL}/simulados/${id}`);
-    return response.data;
+    console.log('Resposta da API:', response.data);
+    
+    if (!response.data) {
+      throw new Error(`Simulado com ID ${id} não encontrado`);
+    }
+    
+    return simuladoToExam(response.data);
   } catch (error) {
     console.error(`Erro ao buscar simulado com ID ${id}:`, error);
     throw error;
@@ -247,7 +266,34 @@ export const deleteSimulado = async (id: number): Promise<void> => {
   try {
     await axios.delete(`${API_URL}/simulados/${id}`);
   } catch (error) {
-    console.error(`Erro ao deletar simulado com ID ${id}:`, error);
+    console.error(`Erro ao excluir simulado ${id}:`, error);
     throw error;
   }
 };
+
+// Busca todos os simulados ativos para os alunos
+export const getActiveExams = async (): Promise<Exam[]> => {
+  try {
+    console.log('Chamando API para buscar simulados ativos:', `${API_URL}/simulados/ativos`);
+    const response = await axios.get(`${API_URL}/simulados/ativos`);
+    console.log('Resposta da API de simulados ativos:', response.data);
+    
+    if (!response.data || !Array.isArray(response.data)) {
+      console.error('Resposta da API não é um array:', response.data);
+      return [];
+    }
+    
+    const exams = response.data.map(simulado => {
+      console.log('Convertendo simulado para exam:', simulado);
+      return simuladoToExam(simulado);
+    });
+    
+    console.log('Exams convertidos:', exams);
+    return exams;
+  } catch (error) {
+    console.error('Erro ao buscar simulados ativos:', error);
+    throw error;
+  }
+};
+
+
