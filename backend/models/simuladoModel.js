@@ -173,6 +173,10 @@ const createSimulado = async (simuladoData) => {
     ativo 
   } = simuladoData;
   
+  if (!niveisValidos.includes(nivel_dificuldade)) {
+    throw new Error('Nível de dificuldade inválido');
+  }
+  
   try {
     const result = await db.query(
       `INSERT INTO simulados 
@@ -191,7 +195,7 @@ const createSimulado = async (simuladoData) => {
         desconto_expira_em, 
         quantidade_questoes ?? 0, 
         duracao_minutos, 
-        nivel_dificuldade ?? 'Médio', 
+        nivel_dificuldade, 
         nota_minima ?? 70, 
         ativo ?? true
       ]

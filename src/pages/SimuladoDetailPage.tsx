@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getActiveExams } from '@/services/simuladoService';
 import { getSimuladoById, Exam } from '@/services/simuladoService';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -16,6 +17,7 @@ const SimuladoDetailPage: React.FC = () => {
   const [simulado, setSimulado] = useState<Exam | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState<string>("");
+const [availableLevels, setAvailableLevels] = useState<string[]>([]);
 
   useEffect(() => {
     const loadSimulado = async () => {
@@ -38,6 +40,13 @@ const SimuladoDetailPage: React.FC = () => {
         }
         
         setSimulado(data);
+        // Descobrir níveis disponíveis para este título
+        if (data && data.title) {
+          // Buscar todos os simulados ativos e filtrar por título
+          const allExams = await getActiveExams();
+          const levels = allExams.filter((s) => s.title === data.title).map((s) => s.difficulty);
+          setAvailableLevels(Array.from(new Set(levels)));
+        }
       } catch (error) {
         console.error(`Erro ao carregar simulado ${id}:`, error);
         toast({
@@ -85,6 +94,15 @@ const SimuladoDetailPage: React.FC = () => {
       toast({
         title: 'Selecione o nível',
         description: 'Escolha o nível de dificuldade antes de iniciar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    // Verificar se o nível está disponível para este simulado
+    if (!availableLevels.includes(selectedLevel)) {
+      toast({
+        title: 'Nível indisponível',
+        description: `Não existe o nível ${selectedLevel} para este simulado.`,
         variant: 'destructive',
       });
       return;
@@ -205,18 +223,19 @@ const SimuladoDetailPage: React.FC = () => {
                   <div className="space-y-2">
                     <label className="block font-medium mb-1">Escolha o nível de dificuldade:</label>
                     <div className="flex gap-2 flex-wrap">
-                      {['Fácil', 'Médio', 'Difícil', 'Avançado'].map((nivel) => (
-                        <Button
-                          key={nivel}
-                          type="button"
-                          variant={selectedLevel === nivel ? 'default' : 'outline'}
-                          className={selectedLevel === nivel ? 'bg-cert-blue text-white' : ''}
-                          onClick={() => setSelectedLevel(nivel)}
-                        >
-                          {nivel}
-                        </Button>
-                      ))}
-                    </div>
+                    {['Fácil', 'Médio', 'Difícil', 'Avançado'].map((nivel) => (
+                      <Button
+                        key={nivel}
+                        type="button"
+                        variant={selectedLevel === nivel ? 'default' : 'outline'}
+                        className={selectedLevel === nivel ? 'bg-cert-blue text-white' : ''}
+                        onClick={() => setSelectedLevel(nivel)}
+                        disabled={availableLevels.length > 0 && !availableLevels.includes(nivel)}
+                      >
+                        {nivel}
+                      </Button>
+                    ))}
+                  </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">

@@ -151,7 +151,7 @@ export const getQuestoesBySimuladoId = async (simuladoId: number): Promise<Quest
         simulado_id: questao.simulado_id,
         enunciado: questao.texto,
         alternativas: questao.opcoes ? questao.opcoes.map((opcao: any) => ({
-          id: String(opcao.id || Math.random().toString(36).substr(2, 9)),
+          id: String(opcao.id),
           texto: opcao.texto,
           correta: opcao.correta || false
         })) : [],

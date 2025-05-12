@@ -75,7 +75,7 @@ const baseQuestionSchema = z.object({
   text: z.string().min(1, 'O enunciado é obrigatório'),
   explanation: z.string().min(1, 'A explicação é obrigatória'),
   category: z.string().min(1, 'A categoria é obrigatória'),
-  difficulty: z.enum(['Fácil', 'Médio', 'Difícil']),
+  difficulty: z.enum(['Fácil', 'Médio', 'Difícil', 'Avançado']),
   tags: z.array(z.string()),
   points: z.number().min(1, 'A pontuação deve ser maior que 0'),
   url_referencia: z.string().optional(),
@@ -312,6 +312,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                     <SelectItem value="Fácil">Fácil</SelectItem>
                                     <SelectItem value="Médio">Médio</SelectItem>
                                     <SelectItem value="Difícil">Difícil</SelectItem>
+                                    <SelectItem value="Avançado">Avançado</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
