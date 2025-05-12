@@ -294,11 +294,24 @@ const SimuladoResultPage: React.FC = () => {
                             <AlertCircle className="w-5 h-5 text-blue-500 hover:text-blue-700" />
                           </a>
                         ) : (
-                          <AlertCircle className="w-5 h-5 text-gray-500" />
+                          <button
+                            className="inline-flex items-center hover:text-gray-700 transition-colors"
+                            title="Explicação da questão"
+                            onClick={() => {
+                              // You can add any action here, like showing a tooltip or modal
+                              // For now, we'll just scroll to the explanation
+                              const explanationElement = document.getElementById(`explanation-${questao.id}`);
+                              if (explanationElement) {
+                                explanationElement.scrollIntoView({ behavior: 'smooth' });
+                              }
+                            }}
+                          >
+                            <AlertCircle className="w-5 h-5 text-gray-500" />
+                          </button>
                         )}
                         <h4 className="font-medium">Explicação:</h4>
                       </div>
-                      <p className="text-gray-700">
+                      <p id={`explanation-${questao.id}`} className="text-gray-700">
                         {questao.explicacao || "Nenhuma explicação disponível para esta questão."}
                       </p>
                       {questao.url_referencia && (
