@@ -99,6 +99,16 @@ const createTableIfNotExists = async () => {
       await db.query(`ALTER TABLE simulados ADD COLUMN nota_minima INTEGER DEFAULT 70`);
     }
     
+    // Verificar coluna topicos (array de texto)
+    const checkTopicos = await db.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'simulados' AND column_name = 'topicos'
+    `);
+    if (checkTopicos.rows.length === 0) {
+      console.log('Adicionando coluna topicos à tabela simulados');
+      await db.query(`ALTER TABLE simulados ADD COLUMN topicos TEXT[]`);
+    }
+    
     console.log('Tabela de simulados verificada/criada com sucesso');
     return true;
   } catch (error) {
@@ -108,10 +118,27 @@ const createTableIfNotExists = async () => {
 };
 
 // Obter todos os simulados
+const mapSimuladoToExam = (simulado) => ({
+  id: String(simulado.id),
+  title: simulado.titulo || '',
+  description: simulado.descricao || '',
+  price: Number(simulado.preco) || 0,
+  preco_usd: simulado.preco_usd !== undefined ? Number(simulado.preco_usd) : undefined,
+  discountPrice: simulado.preco_desconto ? Number(simulado.preco_desconto) : undefined,
+  language: simulado.language || 'pt',
+  difficulty: simulado.nivel_dificuldade || 'Médio',
+  duration: simulado.duracao_minutos || 60,
+  questions_count: simulado.quantidade_questoes || 0,
+  category: simulado.categoria || '',
+  image_url: simulado.image_url || '',
+  created_at: simulado.data_criacao || '',
+  updated_at: simulado.data_atualizacao || '',
+});
+
 const getAllSimulados = async () => {
   try {
     const result = await db.query('SELECT * FROM simulados ORDER BY id');
-    return result.rows;
+    return result.rows.map(mapSimuladoToExam);
   } catch (error) {
     console.error('Erro ao buscar todos os simulados:', error);
     throw error;
@@ -122,7 +149,7 @@ const getAllSimulados = async () => {
 const getActiveSimulados = async () => {
   try {
     const result = await db.query('SELECT * FROM simulados WHERE ativo = TRUE ORDER BY id');
-    return result.rows;
+    return result.rows.map(mapSimuladoToExam);
   } catch (error) {
     console.error('Erro ao buscar simulados ativos:', error);
     throw error;
@@ -149,7 +176,7 @@ const getSimuladoById = async (id) => {
     
     console.log(`Simulado ID ${id} tem ${quantidadeQuestoes} questões`);
     
-    return simulado;
+    return mapSimuladoToExam(simulado);
   } catch (error) {
     console.error(`Erro ao buscar simulado com ID ${id}:`, error);
     throw error;
@@ -158,11 +185,19 @@ const getSimuladoById = async (id) => {
 
 // Criar um novo simulado
 const createSimulado = async (simuladoData) => {
+  // Log de auditoria
+  console.log(`[AUDIT][${new Date().toISOString()}] Criando simulado:`, {
+    titulo: simuladoData.titulo,
+    language: simuladoData.language,
+    usuario: simuladoData.usuario || 'N/A',
+    dados: simuladoData
+  });
   const { 
     titulo, 
     descricao, 
     is_gratis, 
     preco, 
+    preco_usd, 
     preco_desconto, 
     porcentagem_desconto, 
     desconto_expira_em, 
@@ -170,26 +205,35 @@ const createSimulado = async (simuladoData) => {
     duracao_minutos, 
     nivel_dificuldade, 
     nota_minima, 
-    ativo 
+    ativo, 
+    language // novo campo
   } = simuladoData;
-  
-  if (!niveisValidos.includes(nivel_dificuldade)) {
+
+  // Validação explícita de idioma
+  const idiomasValidos = ['pt', 'en', 'fr', 'es'];
+  if (language && !idiomasValidos.includes(language)) {
+    throw new Error(`Idioma inválido: ${language}. Os valores aceitos são: ${idiomasValidos.join(', ')}`);
+  }
+  // Corrigir: definir niveisValidos
+  const niveisValidos = ['Fácil', 'Médio', 'Difícil', 'Avançado'];
+  if (nivel_dificuldade && !niveisValidos.includes(nivel_dificuldade)) {
     throw new Error('Nível de dificuldade inválido');
   }
   
   try {
     const result = await db.query(
       `INSERT INTO simulados 
-       (titulo, descricao, is_gratis, preco, preco_desconto, porcentagem_desconto, 
+       (titulo, descricao, is_gratis, preco, preco_usd, preco_desconto, porcentagem_desconto, 
         desconto_expira_em, quantidade_questoes, duracao_minutos, nivel_dificuldade, 
-        nota_minima, ativo) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+        nota_minima, ativo, language) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
        RETURNING *`,
       [
         titulo, 
         descricao, 
         is_gratis ?? false, 
         preco ?? 0, 
+        preco_usd, 
         preco_desconto, 
         porcentagem_desconto, 
         desconto_expira_em, 
@@ -197,7 +241,8 @@ const createSimulado = async (simuladoData) => {
         duracao_minutos, 
         nivel_dificuldade, 
         nota_minima ?? 70, 
-        ativo ?? true
+        ativo ?? true,
+        language || 'pt'
       ]
     );
     return result.rows[0];
@@ -209,11 +254,23 @@ const createSimulado = async (simuladoData) => {
 
 // Atualizar um simulado existente
 const updateSimulado = async (id, simuladoData) => {
+  // Log de auditoria antes da alteração
+  try {
+    const simuladoAntes = await getSimuladoById(id);
+    console.log(`[AUDIT][${new Date().toISOString()}] Atualizando simulado ID ${id}:`, {
+      usuario: simuladoData.usuario || 'N/A',
+      antes: simuladoAntes,
+      depois: simuladoData
+    });
+  } catch (err) {
+    console.warn(`[AUDIT] Não foi possível obter simulado antes da atualização:`, err);
+  }
   const { 
     titulo, 
     descricao, 
     is_gratis, 
     preco, 
+    preco_usd, 
     preco_desconto, 
     porcentagem_desconto, 
     desconto_expira_em, 
@@ -221,8 +278,15 @@ const updateSimulado = async (id, simuladoData) => {
     duracao_minutos, 
     nivel_dificuldade, 
     nota_minima, 
-    ativo 
+    ativo, 
+    language // novo campo
   } = simuladoData;
+
+  // Validação explícita de idioma
+  const idiomasValidos = ['pt', 'en', 'fr', 'es'];
+  if (language && !idiomasValidos.includes(language)) {
+    throw new Error(`Idioma inválido: ${language}. Os valores aceitos são: ${idiomasValidos.join(', ')}`);
+  }
   
   try {
     const result = await db.query(
@@ -231,21 +295,24 @@ const updateSimulado = async (id, simuladoData) => {
            descricao = $2, 
            is_gratis = $3, 
            preco = $4, 
-           preco_desconto = $5, 
-           porcentagem_desconto = $6, 
-           desconto_expira_em = $7, 
-           quantidade_questoes = $8, 
-           duracao_minutos = $9, 
-           nivel_dificuldade = $10, 
-           nota_minima = $11, 
-           ativo = $12
-       WHERE id = $13 
+           preco_usd = $5, 
+           preco_desconto = $6, 
+           porcentagem_desconto = $7, 
+           desconto_expira_em = $8, 
+           quantidade_questoes = $9, 
+           duracao_minutos = $10, 
+           nivel_dificuldade = $11, 
+           nota_minima = $12, 
+           ativo = $13, 
+           language = $14
+       WHERE id = $15 
        RETURNING *`,
       [
         titulo, 
         descricao, 
         is_gratis, 
         preco, 
+        preco_usd, 
         preco_desconto, 
         porcentagem_desconto, 
         desconto_expira_em, 
@@ -254,6 +321,7 @@ const updateSimulado = async (id, simuladoData) => {
         nivel_dificuldade, 
         nota_minima, 
         ativo, 
+        language || 'pt',
         id
       ]
     );
@@ -266,6 +334,16 @@ const updateSimulado = async (id, simuladoData) => {
 
 // Deletar um simulado
 const deleteSimulado = async (id) => {
+  // Log de auditoria antes da deleção
+  try {
+    const simuladoAntes = await getSimuladoById(id);
+    console.log(`[AUDIT][${new Date().toISOString()}] Deletando simulado ID ${id}:`, {
+      usuario: 'N/A',
+      dados: simuladoAntes
+    });
+  } catch (err) {
+    console.warn(`[AUDIT] Não foi possível obter simulado antes da deleção:`, err);
+  }
   try {
     const result = await db.query('DELETE FROM simulados WHERE id = $1 RETURNING *', [id]);
     return result.rows[0];

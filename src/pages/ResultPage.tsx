@@ -5,8 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { ExamResult, Question } from '@/types/exam';
-import { awsCloudPractitionerQuestions } from '@/data/examData';
+// Tipos temporários locais para ExamResult e Question
+type ExamResult = {
+  totalQuestions: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  score: number;
+  timeTaken: number;
+  answers: any[];
+};
+type Question = {
+  id: number;
+  text: string; // Corrigido para corresponder ao uso
+  explanation?: string; // Corrigido para corresponder ao uso
+  options: { id: string; text: string }[];
+  correctOptionId: string;
+};
+// Mock local vazio para awsCloudPractitionerQuestions
+const awsCloudPractitionerQuestions: Question[] = [];
+
 
 const ResultPage = () => {
   const { certificationId } = useParams();

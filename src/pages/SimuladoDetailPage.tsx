@@ -158,6 +158,16 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
+                    {Array.isArray(simulado.topicos) && simulado.topicos.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Tópicos Abordados</h3>
+                        <ul className="list-disc list-inside space-y-1 text-gray-600">
+                          {simulado.topicos.map((topic, idx) => (
+                            <li key={idx}>{topic}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="flex items-center">
                         <Clock className="mr-2 h-5 w-5 text-muted-foreground" />

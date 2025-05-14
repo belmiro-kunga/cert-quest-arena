@@ -3,7 +3,15 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Question } from '@/types/exam';
+// import { Question } from '@/types/exam'; // Arquivo removido
+// Definição local temporária do tipo Question
+type Question = {
+  id: number;
+  text: string;
+  explanation?: string;
+  options: { id: string; text: string }[];
+  correctOptionId: string;
+};
 
 interface QuestionCardProps {
   question: Question;

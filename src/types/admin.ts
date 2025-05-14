@@ -25,6 +25,8 @@ export interface Achievement {
   unlocked?: boolean;
 }
 
+export type ExamLanguage = 'pt' | 'en' | 'fr' | 'es';
+
 export interface Exam {
   id: string;
   title: string;
@@ -37,6 +39,7 @@ export interface Exam {
   updated_at: string;
   category: string;
   image_url: string;
+  language: ExamLanguage; // Novo campo para idioma
 }
 
 export type QuestionType = 

@@ -1,4 +1,5 @@
-import { supabase } from './supabaseClient';
+// import { supabase } from './supabaseClient'; // Arquivo removido, ajuste necessário
+// TODO: Substituir por integração real ou mock
 import { Achievement, AchievementType } from '@/types/admin';
 import { AchievementFormData } from '@/components/admin/AchievementForm'; // Assuming this path is correct
 

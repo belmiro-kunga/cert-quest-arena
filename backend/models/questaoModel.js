@@ -55,6 +55,11 @@ const initialize = async () => {
 
 // Criar uma nova questão
 const createQuestao = async (questao) => {
+  // Validação de idioma
+  const idiomasValidos = ['pt', 'en', 'fr', 'es'];
+  if (questao.language && !idiomasValidos.includes(questao.language)) {
+    throw new Error(`Idioma inválido: ${questao.language}. Os valores aceitos são: ${idiomasValidos.join(', ')}`);
+  }
   const client = await db.getClient();
   
   try {
@@ -63,8 +68,8 @@ const createQuestao = async (questao) => {
     // Inserir a questão principal
     const questaoResult = await client.query(
       `INSERT INTO questoes 
-        (simulado_id, texto, tipo, explicacao, categoria, dificuldade, pontos, tags, url_referencia, referencia_ativa) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+        (simulado_id, texto, tipo, explicacao, categoria, dificuldade, pontos, tags, url_referencia, referencia_ativa, language) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
        RETURNING *`,
       [
         questao.simulado_id,
@@ -76,7 +81,8 @@ const createQuestao = async (questao) => {
         questao.pontos || 1,
         questao.tags || [],
         questao.url_referencia || '',
-        typeof questao.referencia_ativa === 'boolean' ? questao.referencia_ativa : true
+        typeof questao.referencia_ativa === 'boolean' ? questao.referencia_ativa : true,
+        questao.language || 'pt'
       ]
     );
     
@@ -107,12 +113,13 @@ const createQuestao = async (questao) => {
 };
 
 // Obter todas as questões de um simulado
-const getQuestoesBySimuladoId = async (simuladoId) => {
+// Agora aceita parâmetro opcional de idioma
+const getQuestoesBySimuladoId = async (simuladoId, language = 'pt') => {
   try {
     // Buscar todas as questões do simulado
     const questoesResult = await db.query(
-      `SELECT * FROM questoes WHERE simulado_id = $1 ORDER BY id`,
-      [simuladoId]
+      `SELECT * FROM questoes WHERE simulado_id = $1 AND language = $2 ORDER BY id`,
+      [simuladoId, language]
     );
     
     const questoes = questoesResult.rows;

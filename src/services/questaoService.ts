@@ -115,24 +115,8 @@ export const getQuestionsByExamId = async (examId: string): Promise<BaseQuestion
   }
 };
 
-// Interface para alternativa de questão (formato para o simulado em andamento)
-export interface Alternativa {
-  id: string;
-  texto: string;
-  correta?: boolean;
-}
-
-// Interface para questão (formato para o simulado em andamento)
-export interface Questao {
-  id: number;
-  simulado_id: number;
-  enunciado: string;
-  alternativas: Alternativa[];
-  resposta_correta?: string;
-  explicacao?: string;
-  url_referencia?: string; // URL externa para documentação ou material de referência
-  referencia_ativa?: boolean; // indica se o botão de referência deve aparecer
-}
+// Tipos centralizados para o simulado
+import type { Alternativa, Questao } from '@/types/simulado';
 
 // Buscar todas as questões de um simulado para o simulado em andamento
 export const getQuestoesBySimuladoId = async (simuladoId: number): Promise<Questao[]> => {

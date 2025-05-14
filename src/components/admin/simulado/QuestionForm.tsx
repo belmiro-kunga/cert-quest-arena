@@ -28,9 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BaseQuestion, QuestionType } from '@/types/admin';
+import type { Questao, Alternativa } from '@/types/simulado';
 
-const questionTypes: { value: QuestionType; label: string; description: string }[] = [
+const questionTypes: { value: Questao['tipo']; label: string; description: string }[] = [
   {
     value: 'multiple_choice',
     label: 'Múltipla Escolha',

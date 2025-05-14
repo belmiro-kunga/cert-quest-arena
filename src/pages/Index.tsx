@@ -11,24 +11,121 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart } from 'lucide-react';
 import TestimonialsSection from '@/components/TestimonialsSection';
-import { mockExams } from '@/mocks/examsMock';
-import { Exam } from '@/types/admin';
+// import { Exam } from '@/types/admin'; // Substituído por definição local temporária
+// TODO: Substitua por fetch real dos exames ou dados mockados válidos
+// Definição temporária de Exam com discountPrice
+export type ExamLanguage = 'pt' | 'en' | 'fr' | 'es';
+export type Exam = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  discountPrice?: number;
+  preco_usd?: number;
+  preco_eur?: number;
+  language: string; // Corrigido para aceitar string
+  difficulty: string;
+  duration: number;
+  questions_count: number;
+  category: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+};
+const mockExams: Exam[] = [
+  {
+    id: '1',
+    title: 'Simulado AWS (Português)',
+    description: 'Simulado completo em português.',
+    price: 49.9,
+    discountPrice: 29.9,
+    language: 'pt',
+    difficulty: 'easy',
+    duration: 60,
+    questions_count: 60,
+    category: 'Cloud',
+    image_url: '',
+    created_at: '',
+    updated_at: ''
+  },
+  {
+    id: '2',
+    title: 'AWS Practice Exam (English)',
+    description: 'Full practice exam in English.',
+    price: 49.9,
+    discountPrice: 39.9,
+    language: 'en',
+    difficulty: 'intermediate',
+    duration: 60,
+    questions_count: 60,
+    category: 'Cloud',
+    image_url: '',
+    created_at: '',
+    updated_at: ''
+  },
+  {
+    id: '3',
+    title: 'Examen AWS (Español)',
+    description: 'Simulador completo en español.',
+    price: 49.9,
+    discountPrice: 34.9,
+    language: 'es',
+    difficulty: 'easy',
+    duration: 60,
+    questions_count: 60,
+    category: 'Cloud',
+    image_url: '',
+    created_at: '',
+    updated_at: ''
+  },
+  {
+    id: '4',
+    title: 'Examen AWS (Français)',
+    description: 'Examen complet en français.',
+    price: 49.9,
+    discountPrice: 37.9,
+    language: 'fr',
+    difficulty: 'advanced',
+    duration: 60,
+    questions_count: 60,
+    category: 'Cloud',
+    image_url: '',
+    created_at: '',
+    updated_at: ''
+  }
+];
 import { useCurrency } from '@/contexts/CurrencyContext';
 
+
 const Index = () => {
+  // Filtros de busca
+  const [filterName, setFilterName] = useState('');
+  const [filterDifficulty, setFilterDifficulty] = useState('');
+  const [filterLanguage, setFilterLanguage] = useState('');
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  console.log("Index component rendering started");
+
   
   // Buscar simulados do servidor
   useEffect(() => {
-    // Usando os mocks ao invés do Supabase
-    setExams(mockExams);
-    setIsLoading(false);
+    // Carrega os simulados ativos do backend
+    const fetchExams = async () => {
+      setIsLoading(true);
+      try {
+        const activeExams = await import('@/services/simuladoService').then(mod => mod.getActiveExams());
+        setExams(activeExams);
+      } catch (error) {
+        console.error('Erro ao buscar simulados do banco de dados:', error);
+        setExams([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchExams();
   }, []);
 
   // Removing the redirect to dashboard, as this might be causing the blank page
@@ -78,9 +175,6 @@ const Index = () => {
     return topics.length > 1 ? topics : ['Cloud', 'DevOps', 'Security', 'Networking'];
   };
 
-  // Exames a serem exibidos (do servidor ou fallback)
-  const examToDisplay = exams.length > 0 ? exams : availableExams;
-  
   console.log("Index component ready to render UI");
   
   return (
@@ -112,14 +206,57 @@ const Index = () => {
         </div>
         <Features />
         <Certifications />
-        
+
         {/* Seção de Exames Disponíveis */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto max-w-6xl px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Simulados Disponíveis</h2>
-              <p className="text-xl text-gray-600">Escolha entre nossos simulados para certificações</p>
-            </div>
+              <p className="text-xl text-gray-600 mb-6">Escolha entre nossos simulados para certificações</p>
+              {/* Filtros de busca */}
+              <div className="flex flex-col md:flex-row gap-3 md:gap-6 items-stretch md:items-end justify-center mb-6">
+                <div className="flex flex-col items-start w-full md:w-1/3">
+                  <label htmlFor="filter-name" className="text-sm font-medium mb-1">Nome do Simulado</label>
+                  <input
+                    id="filter-name"
+                    type="text"
+                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    placeholder="Buscar por nome..."
+                    value={filterName}
+                    onChange={e => setFilterName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col items-start w-full md:w-1/4">
+                  <label htmlFor="filter-difficulty" className="text-sm font-medium mb-1">Nível de Dificuldade</label>
+                  <select
+                    id="filter-difficulty"
+                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    value={filterDifficulty}
+                    onChange={e => setFilterDifficulty(e.target.value)}
+                  >
+                    <option value="">Todos</option>
+                    <option value="easy">Fácil</option>
+                    <option value="intermediate">Médio</option>
+                    <option value="advanced">Avançado</option>
+                  </select>
+                </div>
+                <div className="flex flex-col items-start w-full md:w-1/4">
+                  <label htmlFor="filter-language" className="text-sm font-medium mb-1">Idioma</label>
+                  <select
+                    id="filter-language"
+                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    value={filterLanguage}
+                    onChange={e => setFilterLanguage(e.target.value)}
+                  >
+                    <option value="">Todos</option>
+                    <option value="pt">Português</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="es">Español</option>
+                  </select>
+                </div>
+              </div>
+            </div> 
 
             {isLoading ? (
               <div className="flex justify-center items-center py-10">
@@ -127,68 +264,74 @@ const Index = () => {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {examToDisplay.map((exam) => {
+                {exams
+                  // Exibe todos os simulados retornados pelo backend, sem filtro obrigatório de idioma
+                  .filter(exam =>
+                    (filterName === '' || exam.title.toLowerCase().includes(filterName.toLowerCase())) &&
+                    (filterDifficulty === '' || exam.difficulty === filterDifficulty) &&
+                    (filterLanguage === '' || exam.language === filterLanguage || filterLanguage === '')
+                  )
+                  .map((exam) => {
                   // Para exames do servidor
-                  const isServerExam = 'questionsCount' in exam;
-                  const topics = isServerExam 
-                    ? extractTopics(exam.description)
-                    : (exam as any).topics || ['Cloud', 'DevOps', 'Security'];
+                  // Priorizar exam.topicos do backend, senão fallback
+                   const topics = Array.isArray((exam as any).topicos) && (exam as any).topicos.length > 0
+                     ? (exam as any).topicos
+                     : [];
                   
                   return (
                     <Card key={exam.id} className="flex flex-col">
+  {/* Badge de idioma */}
+  <div className="flex justify-end mb-1">
+    <span className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-semibold shadow-sm border border-indigo-200 select-none">
+      {exam.language === 'pt' && 'Português'}
+      {exam.language === 'en' && 'English'}
+      {exam.language === 'fr' && 'Français'}
+      {exam.language === 'es' && 'Español'}
+    </span>
+  </div>
                       <CardHeader>
                         <CardTitle>{exam.title}</CardTitle>
                         <CardDescription>{exam.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="flex-grow">
-                        <div className="space-y-4">
-                          <div>
-                            {exam.discountPrice ? (
-                              <div className="space-y-1">
-                                <div className="text-3xl font-bold text-cert-blue">
-                                  R${exam.discountPrice.toFixed(2).replace('.', ',')}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-lg text-gray-500 line-through">
-                                    R${exam.price.toFixed(2).replace('.', ',')}
-                                  </span>
-                                  <span className="text-sm text-green-600">
-                                    Economize R${(exam.price - (exam.discountPrice || 0)).toFixed(2).replace('.', ',')}
-                                  </span>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-3xl font-bold text-cert-blue">
-                                {formatPrice(exam.price)}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-600 mb-2">Tópicos Abordados:</h3>
-                            <ul className="text-sm text-gray-600 space-y-1">
-                              {topics.map((topic, index) => (
-                                <li key={index} className="flex items-center gap-2">
-                                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                                  {topic}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          {isServerExam && (
-                            <div className="pt-2">
-                              <div className="flex justify-between text-sm">
-                                <span>Questões: {exam.questions_count}</span>
-                                <span>Duração: {exam.duration} min</span>
-                              </div>
-                              <div className="mt-1">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${exam.difficulty === 'easy' ? 'bg-green-100 text-green-700' : exam.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                                  {exam.difficulty === 'easy' ? 'Fácil' : exam.difficulty === 'intermediate' ? 'Médio' : 'Avançado'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
+  <div className="space-y-4">
+    <div className="flex flex-col gap-1 mt-2">
+      {((typeof exam.price === 'number' && exam.price > 0) || (typeof exam.discountPrice === 'number' && exam.discountPrice > 0) || (typeof exam.preco_usd === 'number' && exam.preco_usd > 0) || (typeof exam.preco_eur === 'number' && exam.preco_eur > 0)) ? (
+        <>
+          {typeof exam.price === 'number' && exam.price > 0 && (
+            <span className="font-semibold text-cert-blue">Preço BRL: R$ {exam.price.toFixed(2).replace('.', ',')}</span>
+          )}
+          {typeof exam.discountPrice === 'number' && exam.discountPrice > 0 && (
+            <span className="font-semibold text-green-700">Preço Promocional: R$ {exam.discountPrice.toFixed(2).replace('.', ',')}</span>
+          )}
+          {typeof exam.preco_usd === 'number' && exam.preco_usd > 0 && (
+            <span className="font-semibold text-blue-600">Preço USD: $ {exam.preco_usd.toFixed(2)}</span>
+          )}
+          {typeof exam.preco_eur === 'number' && exam.preco_eur > 0 && (
+            <span className="font-semibold text-green-700">Preço EUR: € {exam.preco_eur.toFixed(2)}</span>
+          )}
+        </>
+      ) : (
+        <span className="text-gray-400">Preço não informado</span>
+      )}
+    </div>
+    <div>
+      <h3 className="text-sm font-medium text-gray-600 mb-2">Tópicos Abordados:</h3>
+      {topics.length > 0 ? (
+        <ul className="text-sm text-gray-600 space-y-1">
+          {topics.map((topic, index) => (
+            <li key={index} className="flex items-center gap-2">
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              {topic}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <span className="text-gray-400">Nenhum tópico informado</span>
+      )}
+    </div>
+  </div>
+</CardContent>
                       <CardFooter className="border-t pt-6">
                         <div className="flex flex-col sm:flex-row gap-3 w-full">
                           <Button
@@ -214,7 +357,6 @@ const Index = () => {
             )}
           </div>
         </section>
-
         <PricingSection />
         <TestimonialsSection />
       </main>

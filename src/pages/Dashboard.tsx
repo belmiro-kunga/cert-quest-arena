@@ -22,9 +22,24 @@ import {
   Radar,
 } from 'recharts';
 
+const idiomasDisponiveis = [
+  { code: 'pt', label: 'Português' },
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+];
+
 const Dashboard = () => {
   const navigate = useNavigate();
   
+  // Idioma preferido do usuário
+  const [preferredLanguage, setPreferredLanguage] = React.useState(() => localStorage.getItem('preferredLanguage') || 'pt');
+
+  // Atualiza localStorage ao mudar idioma
+  React.useEffect(() => {
+    localStorage.setItem('preferredLanguage', preferredLanguage);
+  }, [preferredLanguage]);
+
   // Simulando dados do usuário
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Usuário", "email": "user@example.com"}');
   
@@ -118,21 +133,24 @@ const Dashboard = () => {
       name: 'AWS Cloud Practitioner', 
       progress: 70,
       date: '10/05/2025',
-      readiness: 85
+      readiness: 85,
+      language: 'en'
     },
     { 
       id: 'azure-fundamentals', 
       name: 'Microsoft Azure Fundamentals', 
       progress: 45,
       date: '15/05/2025',
-      readiness: 72
+      readiness: 72,
+      language: 'en'
     },
     { 
       id: 'comptia-a-plus', 
       name: 'CompTIA A+', 
       progress: 65,
       date: '20/05/2025',
-      readiness: 68
+      readiness: 68,
+      language: 'pt'
     }
   ];
 
@@ -143,6 +161,20 @@ const Dashboard = () => {
         <div className="container mx-auto">
           {/* Cabeçalho do Perfil */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            {/* Seletor de Idioma */}
+            <div className="mb-4 md:mb-0 md:mr-8 flex items-center gap-2">
+              <label htmlFor="language-select" className="font-medium">Idioma preferido:</label>
+              <select
+                id="language-select"
+                value={preferredLanguage}
+                onChange={e => setPreferredLanguage(e.target.value)}
+                className="border rounded px-2 py-1"
+              >
+                {idiomasDisponiveis.map(lang => (
+                  <option key={lang.code} value={lang.code}>{lang.label}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-bold">
                 {user.name.charAt(0)}
@@ -294,7 +326,9 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recommendations.map((cert) => (
+                  {recommendations
+                    .filter(cert => cert.language === preferredLanguage)
+                    .map((cert) => (
                     <div
                       key={cert.id}
                       className="flex items-center p-4 border rounded-lg"

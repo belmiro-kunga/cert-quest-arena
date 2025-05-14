@@ -1,4 +1,5 @@
-import { supabase } from './supabaseClient';
+// import { supabase } from './supabaseClient'; // Arquivo removido, ajuste necessário
+// TODO: Substituir por integração real ou mock
 import { PaymentDetails } from '@/components/notifications/PaymentNotification';
 
 export interface PaymentGateway {
@@ -33,10 +34,9 @@ export interface PaymentGatewayConfig {
 
 // Buscar configurações dos gateways
 export const getPaymentGateways = async (): Promise<PaymentGateway[]> => {
-  const { data, error } = await supabase
-    .from('payment_gateways')
-    .select('*')
-    .order('created_at', { ascending: false });
+  // TODO: Substituir por integração real com o backend
+  const data = [];
+  const error = null;
 
   if (error) {
     console.error('Error fetching payment gateways:', error);
@@ -51,15 +51,9 @@ export const updatePaymentGateway = async (
   id: string,
   config: Partial<PaymentGatewayConfig>
 ): Promise<PaymentGateway> => {
-  const { data, error } = await supabase
-    .from('payment_gateways')
-    .update({
-      ...config,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-    .select()
-    .single();
+  // TODO: Substituir por integração real com o backend
+  const data = { id, ...config, updatedAt: new Date().toISOString() };
+  const error = null;
 
   if (error) {
     console.error('Error updating payment gateway:', error);
@@ -73,15 +67,9 @@ export const updatePaymentGateway = async (
 export const createPaymentGateway = async (
   config: Omit<PaymentGatewayConfig, 'id'>
 ): Promise<PaymentGateway> => {
-  const { data, error } = await supabase
-    .from('payment_gateways')
-    .insert([{
-      ...config,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }])
-    .select()
-    .single();
+  // TODO: Substituir por integração real com o backend
+  const data = { id: 'mock', ...config, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  const error = null;
 
   if (error) {
     console.error('Error creating payment gateway:', error);
@@ -93,10 +81,8 @@ export const createPaymentGateway = async (
 
 // Excluir configuração do gateway
 export const deletePaymentGateway = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('payment_gateways')
-    .delete()
-    .eq('id', id);
+  // TODO: Substituir por integração real com o backend
+  const error = null;
 
   if (error) {
     console.error('Error deleting payment gateway:', error);

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSimuladoById, Exam } from '@/services/simuladoService';
-import { getQuestoesBySimuladoId, Questao } from '@/services/questaoService';
+import { getQuestoesBySimuladoId } from '@/services/questaoService';
+import type { Questao, SimuladoResult } from '@/types/simulado';
 import { useToast } from '@/components/ui/use-toast';
 
 export interface SimuladoResult {

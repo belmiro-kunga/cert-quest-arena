@@ -7,6 +7,7 @@ import { Edit, Plus, Trash } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { BaseQuestion } from '@/types/admin';
+import type { Questao, Alternativa } from '@/types/simulado';
 import { getQuestionsByExamId, deleteQuestion } from '@/services/questaoService';
 import {
   AlertDialog,

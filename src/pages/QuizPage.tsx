@@ -10,8 +10,20 @@ import Footer from '@/components/Footer';
 import QuestionCard from '@/components/QuestionCard';
 import Timer from '@/components/Timer';
 import AttemptCounter from '@/components/AttemptCounter';
-import { awsCloudPractitionerQuestions } from '@/data/examData';
-import { ExamResult } from '@/types/exam';
+// TODO: Defina awsCloudPractitionerQuestions e ExamResult localmente ou use dados reais
+
+type ExamResult = {
+  totalQuestions: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  score: number;
+  timeTaken: number;
+  answers: Array<{
+    questionId: number;
+    selectedOptionId: string;
+    isCorrect: boolean;
+  }>;
+};
 
 const QuizPage = () => {
   const { certificationId } = useParams();
@@ -25,14 +37,33 @@ const QuizPage = () => {
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
   const [examStartTime] = useState(Date.now());
 
-  // Pegar as questões da certificação escolhida (limitado a 10 para o modo freemium)
-  const questions = awsCloudPractitionerQuestions.slice(0, 10);
+  // TODO: Carregue as questões reais do backend ou forneça mocks válidos
+  // Exemplo de mock temporário:
+  const awsCloudPractitionerQuestions: any[] = [
+    {
+      id: 1,
+      text: 'Qual é o principal serviço de computação em nuvem da AWS?',
+      options: [
+        { id: 'a', text: 'Amazon EC2' },
+        { id: 'b', text: 'Amazon S3' },
+        { id: 'c', text: 'Amazon RDS' },
+        { id: 'd', text: 'Amazon VPC' }
+      ],
+      correctOptionId: 'a',
+      explanation: 'O Amazon EC2 é o principal serviço de computação em nuvem da AWS.'
+    }
+  ];
+  const questions = awsCloudPractitionerQuestions;
+
+  useEffect(() => {
+    // Carregue as questões reais do backend ou forneça mocks válidos
+  }, []);
 
   // Manipuladores de eventos
   const handleOptionSelect = (optionId: string) => {
     setSelectedOptions(prev => ({
       ...prev,
-      [questions[currentQuestionIndex].id]: optionId
+      [questions[currentQuestionIndex]?.id]: optionId
     }));
   };
 

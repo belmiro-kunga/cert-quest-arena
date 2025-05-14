@@ -23,6 +23,10 @@ export interface Simulado {
   nota_minima?: number;
   data_criacao?: string;
   ativo?: boolean;
+  language?: string; // Novo campo para idioma
+  preco_brl?: number; // Preço em reais
+  preco_usd?: number; // Preço em dólar
+  topicos?: string[]; // Tópicos abordados
 }
 
 // Interface para mapear entre o tipo Exam do frontend e o tipo Simulado do backend
@@ -30,17 +34,18 @@ export interface Exam {
   id: string;
   title: string;
   description: string;
-  isFree?: boolean;
   price: number;
-  discountPrice?: number | null;
-  discountPercentage?: number | null;
-  discountExpiresAt?: string | null;
-  questionsCount: number;
-  duration: number;
+  discountPrice?: number;
+  preco_usd?: number;
+  language: string;
   difficulty: string;
-  passingScore: number;
-  createdAt?: string;
-  active?: boolean;
+  duration: number;
+  questions_count: number;
+  category: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+  topicos?: string[]; // Tópicos abordados
 }
 
 // Função para converter Simulado (backend) para Exam (frontend)
@@ -53,20 +58,19 @@ export const simuladoToExam = (simulado: Simulado): Exam => {
     id: String(simulado.id || 0),
     title: simulado.titulo || 'Sem título',
     description: simulado.descricao || '',
-    isFree: simulado.is_gratis || false,
     price: typeof simulado.preco === 'number' ? simulado.preco : (simulado.preco ? parseFloat(simulado.preco) : 0),
-    discountPrice: simulado.preco_desconto ? parseFloat(String(simulado.preco_desconto)) : null,
-    discountPercentage: simulado.porcentagem_desconto,
-    discountExpiresAt: simulado.desconto_expira_em,
-    // Garantir que quantidade_questoes seja tratado como número, mesmo que venha como string
-    questionsCount: typeof simulado.quantidade_questoes === 'number' 
+    discountPrice: simulado.preco_desconto ? parseFloat(String(simulado.preco_desconto)) : undefined,
+    language: simulado.language || 'pt',
+    difficulty: simulado.nivel_dificuldade || 'Médio',
+    duration: simulado.duracao_minutos || 60,
+    questions_count: typeof simulado.quantidade_questoes === 'number' 
       ? simulado.quantidade_questoes 
       : (simulado.quantidade_questoes ? parseInt(String(simulado.quantidade_questoes), 10) : 0),
-    duration: simulado.duracao_minutos || 60,
-    difficulty: simulado.nivel_dificuldade || 'Médio',
-    passingScore: simulado.nota_minima || 70,
-    createdAt: simulado.data_criacao,
-    active: simulado.ativo === true
+    category: (simulado as any).category || '',
+    image_url: (simulado as any).image_url || '',
+    created_at: simulado.data_criacao || '',
+    updated_at: (simulado as any).updated_at || '',
+    topicos: simulado.topicos || [],
   };
   
   // Log para depuração
@@ -81,16 +85,16 @@ export const examToSimulado = (exam: Exam): Simulado => {
     id: exam.id ? Number(exam.id) : undefined,
     titulo: exam.title,
     descricao: exam.description,
-    is_gratis: exam.isFree,
-    preco: exam.price,
+    preco: exam.preco_usd ?? exam.price,
+    preco_usd: exam.preco_usd, // permitido pela interface Simulado
     preco_desconto: exam.discountPrice,
-    porcentagem_desconto: exam.discountPercentage,
-    desconto_expira_em: exam.discountExpiresAt,
-    quantidade_questoes: exam.questionsCount,
-    duracao_minutos: exam.duration,
+    language: exam.language || 'pt',
     nivel_dificuldade: exam.difficulty,
-    nota_minima: exam.passingScore,
-    ativo: exam.active
+    duracao_minutos: exam.duration,
+    quantidade_questoes: exam.questions_count,
+    data_criacao: exam.created_at,
+    ativo: true,
+    topicos: exam.topicos || [],
   };
 };
 
@@ -113,7 +117,24 @@ export const getExams = async (): Promise<Exam[]> => {
 export const getSimulados = async (): Promise<Simulado[]> => {
   try {
     const response = await axios.get(`${API_URL}/simulados`);
-    return response.data;
+    // Garante que todos os campos relevantes estão presentes
+    return response.data.map((simulado: any) => ({
+      id: simulado.id,
+      titulo: simulado.titulo || simulado.title || '',
+      descricao: simulado.descricao || simulado.description || '',
+      is_gratis: simulado.is_gratis,
+      preco: simulado.preco || simulado.price,
+      preco_desconto: simulado.preco_desconto || simulado.discountPrice,
+      porcentagem_desconto: simulado.porcentagem_desconto,
+      desconto_expira_em: simulado.desconto_expira_em,
+      quantidade_questoes: simulado.quantidade_questoes || simulado.questions_count,
+      duracao_minutos: simulado.duracao_minutos || simulado.duration,
+      nivel_dificuldade: simulado.nivel_dificuldade || simulado.difficulty || '',
+      nota_minima: simulado.nota_minima,
+      data_criacao: simulado.data_criacao || simulado.created_at || '',
+      ativo: simulado.ativo !== undefined ? simulado.ativo : (simulado.status !== undefined ? simulado.status : true),
+      language: simulado.language
+    }));
   } catch (error) {
     console.error('Erro ao buscar simulados:', error);
     throw error;
@@ -277,17 +298,30 @@ export const getActiveExams = async (): Promise<Exam[]> => {
     console.log('Chamando API para buscar simulados ativos:', `${API_URL}/simulados/ativos`);
     const response = await axios.get(`${API_URL}/simulados/ativos`);
     console.log('Resposta da API de simulados ativos:', response.data);
-    
+
     if (!response.data || !Array.isArray(response.data)) {
       console.error('Resposta da API não é um array:', response.data);
       return [];
     }
-    
-    const exams = response.data.map(simulado => {
-      console.log('Convertendo simulado para exam:', simulado);
-      return simuladoToExam(simulado);
-    });
-    
+
+    const exams = response.data.map((simulado: any) => ({
+      id: String(simulado.id || ''),
+      title: simulado.titulo || simulado.title || '',
+      description: simulado.descricao || simulado.description || '',
+      price: typeof simulado.preco === 'number' ? simulado.preco : (simulado.preco ? parseFloat(simulado.preco) : 0),
+      discountPrice: simulado.preco_desconto || simulado.discountPrice,
+      preco_usd: typeof simulado.preco_usd === 'number' ? simulado.preco_usd : (simulado.preco_usd ? parseFloat(simulado.preco_usd) : 0),
+      language: simulado.language || 'pt',
+      difficulty: simulado.nivel_dificuldade || simulado.difficulty || '',
+      duration: simulado.duracao_minutos || simulado.duration || 60,
+      questions_count: simulado.quantidade_questoes || simulado.questions_count || 0,
+      category: simulado.category || '',
+      image_url: simulado.image_url || '',
+      created_at: simulado.data_criacao || simulado.created_at || '',
+      updated_at: simulado.data_atualizacao || simulado.updated_at || '',
+      topicos: simulado.topicos || [],
+    }));
+
     console.log('Exams convertidos:', exams);
     return exams;
   } catch (error) {

@@ -3,7 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Payment } from '@/types/payment';
+// import { Payment } from '@/types/payment'; // Arquivo removido
+// Definição local temporária do tipo Payment
+type Payment = {
+  id: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  // ...outros campos necessários
+};
 import { fetchPayments } from '@/services/adminService';
 import { formatCurrency } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
