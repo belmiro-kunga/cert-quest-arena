@@ -23,10 +23,31 @@ const createTableIfNotExists = async () => {
         subscription_duration INTEGER DEFAULT 365,
         subscription_price DECIMAL(10,2),
         subscription_currency VARCHAR(3) DEFAULT 'BRL',
+        porcentagem_desconto INTEGER DEFAULT 25,
+        categoria VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Verificar se a coluna preco existe, se não, adicioná-la
+    try {
+      await db.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'pacotes' AND column_name = 'preco'
+          ) THEN
+            ALTER TABLE pacotes ADD COLUMN preco DECIMAL(10,2) DEFAULT 0;
+          END IF;
+        END $$;
+      `);
+      console.log('Verificação da coluna preco concluída');
+    } catch (columnError) {
+      console.error('Erro ao verificar/adicionar coluna preco:', columnError);
+    }
 
     // Criar tabela de relacionamento entre pacotes e simulados
     await db.query(`
@@ -110,7 +131,6 @@ const createPacote = async (pacoteData) => {
     const {
       titulo,
       descricao,
-      preco,
       preco_usd,
       is_gratis,
       duracao_dias = 365, // Duração padrão de 1 ano
@@ -122,12 +142,90 @@ const createPacote = async (pacoteData) => {
       subscription_currency = 'BRL'
     } = pacoteData;
     
-    // Inserir o pacote
-    const pacoteResult = await client.query(`
-      INSERT INTO pacotes (titulo, descricao, preco, preco_usd, is_gratis, duracao_dias, is_subscription, subscription_duration, subscription_price, subscription_currency)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    // Usar preco_usd como valor para preco também
+    const preco = preco_usd;
+    
+    // Verificar quais colunas existem na tabela
+    const tableInfo = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'pacotes'
+    `);
+    
+    const columns = tableInfo.rows.map(row => row.column_name);
+    console.log('Colunas disponíveis:', columns);
+    
+    // Construir a query dinamicamente com base nas colunas existentes
+    let insertColumns = ['titulo', 'descricao'];
+    let insertValues = [titulo, descricao];
+    let placeholders = ['$1', '$2'];
+    let paramIndex = 3;
+    
+    if (columns.includes('preco')) {
+      insertColumns.push('preco');
+      insertValues.push(preco);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('preco_usd')) {
+      insertColumns.push('preco_usd');
+      insertValues.push(preco_usd);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('is_gratis')) {
+      insertColumns.push('is_gratis');
+      insertValues.push(is_gratis);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('duracao_dias')) {
+      insertColumns.push('duracao_dias');
+      insertValues.push(duracao_dias);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('ativo')) {
+      insertColumns.push('ativo');
+      insertValues.push(ativo);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('is_subscription')) {
+      insertColumns.push('is_subscription');
+      insertValues.push(is_subscription);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('subscription_duration')) {
+      insertColumns.push('subscription_duration');
+      insertValues.push(subscription_duration);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('subscription_price') && subscription_price) {
+      insertColumns.push('subscription_price');
+      insertValues.push(subscription_price);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    if (columns.includes('subscription_currency')) {
+      insertColumns.push('subscription_currency');
+      insertValues.push(subscription_currency);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
+    // Construir e executar a query
+    const insertQuery = `
+      INSERT INTO pacotes (${insertColumns.join(', ')})
+      VALUES (${placeholders.join(', ')})
       RETURNING *
-    `, [titulo, descricao, preco, preco_usd, is_gratis, duracao_dias, is_subscription, subscription_duration, subscription_price, subscription_currency]);
+    `;
+    
+    console.log('Query de inserção:', insertQuery);
+    console.log('Valores:', insertValues);
+    
+    const pacoteResult = await client.query(insertQuery, insertValues);
     
     const pacoteId = pacoteResult.rows[0].id;
     
@@ -165,7 +263,6 @@ const updatePacote = async (id, pacoteData) => {
     const {
       titulo,
       descricao,
-      preco,
       preco_usd,
       is_gratis,
       duracao_dias,
@@ -177,24 +274,98 @@ const updatePacote = async (id, pacoteData) => {
       subscription_currency
     } = pacoteData;
     
-    // Atualizar o pacote
-    const pacoteResult = await client.query(`
+    // Usar preco_usd como valor para preco também
+    const preco = preco_usd;
+    
+    // Verificar quais colunas existem na tabela
+    const tableInfo = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'pacotes'
+    `);
+    
+    const columns = tableInfo.rows.map(row => row.column_name);
+    console.log('Colunas disponíveis para atualização:', columns);
+    
+    // Construir a query dinamicamente com base nas colunas existentes
+    let updateParts = [];
+    let updateValues = [];
+    let paramIndex = 1;
+    
+    if (titulo !== undefined && columns.includes('titulo')) {
+      updateParts.push(`titulo = $${paramIndex++}`);
+      updateValues.push(titulo);
+    }
+    
+    if (descricao !== undefined && columns.includes('descricao')) {
+      updateParts.push(`descricao = $${paramIndex++}`);
+      updateValues.push(descricao);
+    }
+    
+    if (preco !== undefined && columns.includes('preco')) {
+      updateParts.push(`preco = $${paramIndex++}`);
+      updateValues.push(preco);
+    }
+    
+    if (preco_usd !== undefined && columns.includes('preco_usd')) {
+      updateParts.push(`preco_usd = $${paramIndex++}`);
+      updateValues.push(preco_usd);
+    }
+    
+    if (is_gratis !== undefined && columns.includes('is_gratis')) {
+      updateParts.push(`is_gratis = $${paramIndex++}`);
+      updateValues.push(is_gratis);
+    }
+    
+    if (duracao_dias !== undefined && columns.includes('duracao_dias')) {
+      updateParts.push(`duracao_dias = $${paramIndex++}`);
+      updateValues.push(duracao_dias);
+    }
+    
+    if (ativo !== undefined && columns.includes('ativo')) {
+      updateParts.push(`ativo = $${paramIndex++}`);
+      updateValues.push(ativo);
+    }
+    
+    if (is_subscription !== undefined && columns.includes('is_subscription')) {
+      updateParts.push(`is_subscription = $${paramIndex++}`);
+      updateValues.push(is_subscription);
+    }
+    
+    if (subscription_duration !== undefined && columns.includes('subscription_duration')) {
+      updateParts.push(`subscription_duration = $${paramIndex++}`);
+      updateValues.push(subscription_duration);
+    }
+    
+    if (subscription_price !== undefined && columns.includes('subscription_price')) {
+      updateParts.push(`subscription_price = $${paramIndex++}`);
+      updateValues.push(subscription_price);
+    }
+    
+    if (subscription_currency !== undefined && columns.includes('subscription_currency')) {
+      updateParts.push(`subscription_currency = $${paramIndex++}`);
+      updateValues.push(subscription_currency);
+    }
+    
+    if (columns.includes('updated_at')) {
+      updateParts.push(`updated_at = CURRENT_TIMESTAMP`);
+    }
+    
+    // Adicionar o ID como último parâmetro
+    updateValues.push(id);
+    
+    // Construir e executar a query de atualização
+    const updateQuery = `
       UPDATE pacotes
-      SET titulo = COALESCE($1, titulo),
-          descricao = COALESCE($2, descricao),
-          preco = COALESCE($3, preco),
-          preco_usd = COALESCE($4, preco_usd),
-          is_gratis = COALESCE($5, is_gratis),
-          duracao_dias = COALESCE($6, duracao_dias),
-          ativo = COALESCE($7, ativo),
-          is_subscription = COALESCE($8, is_subscription),
-          subscription_duration = COALESCE($9, subscription_duration),
-          subscription_price = COALESCE($10, subscription_price),
-          subscription_currency = COALESCE($11, subscription_currency),
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $12
+      SET ${updateParts.join(', ')}
+      WHERE id = $${paramIndex}
       RETURNING *
-    `, [titulo, descricao, preco, preco_usd, is_gratis, duracao_dias, ativo, is_subscription, subscription_duration, subscription_price, subscription_currency, id]);
+    `;
+    
+    console.log('Query de atualização:', updateQuery);
+    console.log('Valores de atualização:', updateValues);
+    
+    const pacoteResult = await client.query(updateQuery, updateValues);
     
     if (pacoteResult.rows.length === 0) {
       throw new Error(`Pacote com ID ${id} não encontrado`);

@@ -26,8 +26,8 @@ export interface Pacote {
 export interface PacoteInput {
   titulo: string;
   descricao: string;
-  preco: number;
   preco_usd: number;
+  preco?: number; // Mantido para compatibilidade com backend
   is_gratis: boolean;
   duracao_dias?: number;
   ativo?: boolean;
@@ -79,6 +79,8 @@ export const createPacote = async (pacoteData: PacoteInput): Promise<Pacote> => 
     // Garantir que os IDs dos simulados sejam números
     const formattedData = {
       ...pacoteData,
+      // Usar preco_usd como valor padrão para preco também para manter compatibilidade
+      preco: pacoteData.preco_usd,
       simulado_ids: pacoteData.simulado_ids?.map(id => parseInt(id, 10))
     };
     
@@ -96,6 +98,8 @@ export const updatePacote = async (id: string, pacoteData: PacoteInput): Promise
     // Garantir que os IDs dos simulados sejam números
     const formattedData = {
       ...pacoteData,
+      // Usar preco_usd como valor padrão para preco também para manter compatibilidade
+      preco: pacoteData.preco_usd,
       simulado_ids: pacoteData.simulado_ids?.map(id => parseInt(id, 10))
     };
     

@@ -43,7 +43,7 @@ export const getFlashcards = async (): Promise<Flashcard[]> => {
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error('Erro ao buscar flashcards:', error.response?.data);
-    } else {
+  } else {
       console.error('Erro ao buscar flashcards:', error);
     }
     return [];

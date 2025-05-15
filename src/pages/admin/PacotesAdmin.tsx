@@ -355,18 +355,7 @@ const PacotesAdmin: React.FC = () => {
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="preco" className="text-sm font-medium">Preço (BRL)</label>
-                    <Input
-                      id="preco"
-                      type="number"
-                      min={0}
-                      value={formData.preco || ''}
-                      onChange={(e) => setFormData({ ...formData, preco: parseFloat(e.target.value) || 0 })}
-                      placeholder="Preço do pacote em BRL"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="preco_usd" className="text-sm font-medium">Preço (USD)</label>
                     <Input
@@ -374,7 +363,11 @@ const PacotesAdmin: React.FC = () => {
                       type="number"
                       min={0}
                       value={formData.preco_usd || ''}
-                      onChange={(e) => setFormData({ ...formData, preco_usd: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        preco_usd: parseFloat(e.target.value) || 0,
+                        preco: parseFloat(e.target.value) || 0 // Keep preco field in sync for backward compatibility
+                      })}
                       placeholder="Preço do pacote em USD"
                     />
                   </div>
@@ -647,18 +640,7 @@ const PacotesAdmin: React.FC = () => {
                                   rows={3}
                                 />
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <label htmlFor="edit-preco" className="text-sm font-medium">Preço (BRL)</label>
-                                  <Input
-                                    id="edit-preco"
-                                    type="number"
-                                    min={0}
-                                    value={formData.preco || ''}
-                                    onChange={(e) => setFormData({ ...formData, preco: parseFloat(e.target.value) || 0 })}
-                                    placeholder="Preço do pacote em BRL"
-                                  />
-                                </div>
+                              <div className="grid grid-cols-1 gap-4">
                                 <div className="space-y-2">
                                   <label htmlFor="edit-preco_usd" className="text-sm font-medium">Preço (USD)</label>
                                   <Input
@@ -666,7 +648,11 @@ const PacotesAdmin: React.FC = () => {
                                     type="number"
                                     min={0}
                                     value={formData.preco_usd || ''}
-                                    onChange={(e) => setFormData({ ...formData, preco_usd: parseFloat(e.target.value) || 0 })}
+                                    onChange={(e) => setFormData({ 
+                                      ...formData, 
+                                      preco_usd: parseFloat(e.target.value) || 0,
+                                      preco: parseFloat(e.target.value) || 0 // Keep preco field in sync for backward compatibility
+                                    })}
                                     placeholder="Preço do pacote em USD"
                                   />
                                 </div>
