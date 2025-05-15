@@ -337,7 +337,7 @@ const Index = () => {
                           <Button
                             variant="outline"
                             className="flex-1"
-                            onClick={() => navigate(`/exams/${exam.id}`)}
+                            onClick={() => navigate(`/simulados/${exam.id}`)}
                           >
                             Ver Detalhes
                           </Button>

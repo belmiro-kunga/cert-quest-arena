@@ -17,9 +17,9 @@ import { useCart } from '@/contexts/CartContext';
 import { ShoppingCart, Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
-import { LanguageSelector } from './LanguageSelector';
+
 import { useTranslation } from 'react-i18next';
-import { CurrencySelect } from './CurrencySelect';
+
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -121,8 +121,8 @@ const Header = () => {
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <LanguageSelector />
-                  <CurrencySelect />
+                  
+
                 </div>
                 {renderAuthButton()}
               </div>
@@ -191,7 +191,7 @@ const Header = () => {
               <div className="flex items-center gap-2 px-2">
 
                 <div className="bg-white shadow rounded-md">
-                  <LanguageSelector />
+                  
                 </div>
               </div>
             </nav>
