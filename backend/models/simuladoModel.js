@@ -133,6 +133,7 @@ const mapSimuladoToExam = (simulado) => ({
   image_url: simulado.image_url || '',
   created_at: simulado.data_criacao || '',
   updated_at: simulado.data_atualizacao || '',
+  topicos: simulado.topicos || [],
 });
 
 const getAllSimulados = async () => {
@@ -206,7 +207,8 @@ const createSimulado = async (simuladoData) => {
     nivel_dificuldade, 
     nota_minima, 
     ativo, 
-    language // novo campo
+    language, // novo campo
+    topicos
   } = simuladoData;
 
   // Validação explícita de idioma
@@ -225,8 +227,8 @@ const createSimulado = async (simuladoData) => {
       `INSERT INTO simulados 
        (titulo, descricao, is_gratis, preco, preco_usd, preco_desconto, porcentagem_desconto, 
         desconto_expira_em, quantidade_questoes, duracao_minutos, nivel_dificuldade, 
-        nota_minima, ativo, language) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+        nota_minima, ativo, language, topicos) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
        RETURNING *`,
       [
         titulo, 
@@ -242,7 +244,8 @@ const createSimulado = async (simuladoData) => {
         nivel_dificuldade, 
         nota_minima ?? 70, 
         ativo ?? true,
-        language || 'pt'
+        language || 'pt',
+        topicos || []
       ]
     );
     return result.rows[0];
@@ -279,7 +282,8 @@ const updateSimulado = async (id, simuladoData) => {
     nivel_dificuldade, 
     nota_minima, 
     ativo, 
-    language // novo campo
+    language, // novo campo
+    topicos
   } = simuladoData;
 
   // Validação explícita de idioma
@@ -304,8 +308,9 @@ const updateSimulado = async (id, simuladoData) => {
            nivel_dificuldade = $11, 
            nota_minima = $12, 
            ativo = $13, 
-           language = $14
-       WHERE id = $15 
+           language = $14, 
+           topicos = $15
+       WHERE id = $16 
        RETURNING *`,
       [
         titulo, 
@@ -322,6 +327,7 @@ const updateSimulado = async (id, simuladoData) => {
         nota_minima, 
         ativo, 
         language || 'pt',
+        topicos || [],
         id
       ]
     );
