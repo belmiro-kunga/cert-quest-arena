@@ -134,6 +134,7 @@ const mapSimuladoToExam = (simulado) => ({
   created_at: simulado.data_criacao || '',
   updated_at: simulado.data_atualizacao || '',
   topicos: simulado.topicos || [],
+  is_gratis: simulado.is_gratis === true, // Garantir que is_gratis seja sempre booleano
 });
 
 const getAllSimulados = async () => {
@@ -233,7 +234,7 @@ const createSimulado = async (simuladoData) => {
       [
         titulo, 
         descricao, 
-        is_gratis ?? false, 
+        is_gratis === true, // Garantir que is_gratis seja sempre booleano
         preco ?? 0, 
         preco_usd, 
         preco_desconto, 
@@ -315,7 +316,7 @@ const updateSimulado = async (id, simuladoData) => {
       [
         titulo, 
         descricao, 
-        is_gratis, 
+        is_gratis === true, // Garantir que is_gratis seja sempre booleano
         preco, 
         preco_usd, 
         preco_desconto, 

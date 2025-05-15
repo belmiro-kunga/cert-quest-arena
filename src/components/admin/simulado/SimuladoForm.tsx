@@ -73,10 +73,12 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
           ...data,
           preco: precoFinal, // Define o campo principal de preço para o backend
           preco_usd: precoFinal,
+          is_gratis: !!data.is_gratis, // Garante que is_gratis seja booleano
           language: allowedLanguages.includes(normalizedLang as any)
             ? (normalizedLang as typeof allowedLanguages[number])
             : 'pt',
         };
+        console.log('Dados normalizados para envio:', normalized);
         onSubmit(normalized);
       })}>
         <div className="space-y-6">

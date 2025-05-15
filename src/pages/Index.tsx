@@ -136,8 +136,8 @@ const Index = () => {
       id: exam.id,
       title: exam.title,
       description: exam.description,
-      price: exam.price,
-      discountPrice: exam.discountPrice || undefined
+      price: exam.preco_usd || 0,
+      discountPrice: undefined // Se houver desconto em dólar, ajuste aqui
     });
   };
 
@@ -205,14 +205,143 @@ const Index = () => {
           </Button>
         </div>
         <Features />
-        <Certifications />
+        {/* Seção de Simulados Gratuitos */}
+        <section className="py-16 bg-green-50">
+          <div className="container mx-auto max-w-6xl px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4 text-green-700">Simulados Gratuitos</h2>
+              <p className="text-xl text-gray-600 mb-6">Acesse nossos simulados gratuitos para testar seus conhecimentos</p>
+              
+              {/* Menu de Categorias para Simulados Gratuitos */}
+              <div className="flex flex-wrap justify-center gap-3 mb-6">
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-green-500 hover:bg-green-100 text-green-700 font-medium`}
+                  onClick={() => navigate('/simulados?free=true')}
+                >
+                  Todos Gratuitos
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-green-500 hover:bg-green-100 text-green-700 font-medium`}
+                  onClick={() => navigate('/simulados?free=true&category=aws')}
+                >
+                  AWS
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-green-500 hover:bg-green-100 text-green-700 font-medium`}
+                  onClick={() => navigate('/simulados?free=true&category=azure')}
+                >
+                  Microsoft Azure
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-green-500 hover:bg-green-100 text-green-700 font-medium`}
+                  onClick={() => navigate('/simulados?free=true&category=gcp')}
+                >
+                  Google Cloud
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-green-500 hover:bg-green-100 text-green-700 font-medium`}
+                  onClick={() => navigate('/simulados?free=true&category=comptia')}
+                >
+                  CompTIA
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-green-500 hover:bg-green-100 text-green-700 font-medium`}
+                  onClick={() => navigate('/simulados?free=true&category=cisco')}
+                >
+                  Cisco
+                </Button>
+              </div>
+            </div>
 
-        {/* Seção de Exames Disponíveis */}
+            {isLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <p>Carregando simulados gratuitos...</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {exams
+                  .filter(exam => exam.is_gratis === true)
+                  .map((exam) => {
+                    const topics = Array.isArray((exam as any).topicos) && (exam as any).topicos.length > 0
+                      ? (exam as any).topicos
+                      : [];
+                    
+                    return (
+                      <Card key={exam.id} className="flex flex-col border-green-200 shadow-md hover:shadow-lg transition-shadow">
+                        <div className="flex justify-between mb-1">
+                          <span className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-semibold shadow-sm border border-indigo-200 select-none">
+                            {exam.language === 'pt' && 'Português'}
+                            {exam.language === 'en' && 'English'}
+                            {exam.language === 'fr' && 'Français'}
+                            {exam.language === 'es' && 'Español'}
+                          </span>
+                          <span className="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs font-bold shadow-sm border border-green-200 ml-2 select-none">
+                            Grátis
+                          </span>
+                        </div>
+                        <CardHeader>
+                          <CardTitle>{exam.title}</CardTitle>
+                          <CardDescription>{exam.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                          <div className="space-y-4">
+                            <div className="flex flex-col gap-1 mt-2">
+                              <span className="font-bold text-green-700">Acesso Gratuito</span>
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-medium text-gray-600 mb-2">Tópicos Abordados:</h3>
+                              {topics.length > 0 ? (
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                  {topics.map((topic, index) => (
+                                    <li key={index} className="flex items-center gap-2">
+                                      <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                                      {topic}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <span className="text-gray-400">Nenhum tópico informado</span>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="border-t pt-6">
+                          <div className="flex flex-col sm:flex-row gap-3 w-full">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => navigate(`/simulados/${exam.id}`)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                            <Button
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => navigate(`/simulados/${exam.id}`)}
+                            >
+                              <span className="font-bold">Acessar Grátis</span>
+                            </Button>
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Seção de Simulados Pagos */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto max-w-6xl px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Simulados Disponíveis</h2>
-              <p className="text-xl text-gray-600 mb-6">Escolha entre nossos simulados para certificações</p>
+              <h2 className="text-3xl font-bold mb-4">Simulados Premium</h2>
+              <p className="text-xl text-gray-600 mb-6">Escolha entre nossos simulados premium para certificações</p>
               {/* Filtros de busca */}
               <div className="flex flex-col md:flex-row gap-3 md:gap-6 items-stretch md:items-end justify-center mb-6">
                 <div className="flex flex-col items-start w-full md:w-1/3">
@@ -260,13 +389,14 @@ const Index = () => {
 
             {isLoading ? (
               <div className="flex justify-center items-center py-10">
-                <p>Carregando simulados...</p>
+                <p>Carregando simulados premium...</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {exams
-                  // Exibe todos os simulados retornados pelo backend, sem filtro obrigatório de idioma
+                  // Exibe apenas simulados pagos (não gratuitos)
                   .filter(exam =>
+                    exam.is_gratis !== true &&
                     (filterName === '' || exam.title.toLowerCase().includes(filterName.toLowerCase())) &&
                     (filterDifficulty === '' || exam.difficulty === filterDifficulty) &&
                     (filterLanguage === '' || exam.language === filterLanguage || filterLanguage === '')
@@ -280,14 +410,19 @@ const Index = () => {
                   
                   return (
                     <Card key={exam.id} className="flex flex-col">
-  {/* Badge de idioma */}
-  <div className="flex justify-end mb-1">
+  {/* Badge de idioma e badge grátis */}
+  <div className="flex justify-between mb-1">
     <span className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-semibold shadow-sm border border-indigo-200 select-none">
       {exam.language === 'pt' && 'Português'}
       {exam.language === 'en' && 'English'}
       {exam.language === 'fr' && 'Français'}
       {exam.language === 'es' && 'Español'}
     </span>
+    {exam.is_gratis && (
+      <span className="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs font-bold shadow-sm border border-green-200 ml-2 select-none">
+        Grátis
+      </span>
+    )}
   </div>
                       <CardHeader>
                         <CardTitle>{exam.title}</CardTitle>
@@ -296,23 +431,27 @@ const Index = () => {
                       <CardContent className="flex-grow">
   <div className="space-y-4">
     <div className="flex flex-col gap-1 mt-2">
-      {((typeof exam.price === 'number' && exam.price > 0) || (typeof exam.discountPrice === 'number' && exam.discountPrice > 0) || (typeof exam.preco_usd === 'number' && exam.preco_usd > 0) || (typeof exam.preco_eur === 'number' && exam.preco_eur > 0)) ? (
-        <>
-          {typeof exam.price === 'number' && exam.price > 0 && (
-            <span className="font-semibold text-cert-blue">Preço BRL: R$ {exam.price.toFixed(2).replace('.', ',')}</span>
-          )}
-          {typeof exam.discountPrice === 'number' && exam.discountPrice > 0 && (
-            <span className="font-semibold text-green-700">Preço Promocional: R$ {exam.discountPrice.toFixed(2).replace('.', ',')}</span>
-          )}
-          {typeof exam.preco_usd === 'number' && exam.preco_usd > 0 && (
-            <span className="font-semibold text-blue-600">Preço USD: $ {exam.preco_usd.toFixed(2)}</span>
-          )}
-          {typeof exam.preco_eur === 'number' && exam.preco_eur > 0 && (
-            <span className="font-semibold text-green-700">Preço EUR: € {exam.preco_eur.toFixed(2)}</span>
-          )}
-        </>
+      {exam.is_gratis ? (
+        <span className="font-bold text-green-700">Acesso Gratuito</span>
       ) : (
-        <span className="text-gray-400">Preço não informado</span>
+        ((typeof exam.price === 'number' && exam.price > 0) || (typeof exam.discountPrice === 'number' && exam.discountPrice > 0) || (typeof exam.preco_usd === 'number' && exam.preco_usd > 0) || (typeof exam.preco_eur === 'number' && exam.preco_eur > 0)) ? (
+          <>
+            {typeof exam.price === 'number' && exam.price > 0 && (
+              <span className="font-semibold text-cert-blue">Preço BRL: R$ {exam.price.toFixed(2).replace('.', ',')}</span>
+            )}
+            {typeof exam.discountPrice === 'number' && exam.discountPrice > 0 && (
+              <span className="font-semibold text-green-700">Preço Promocional: R$ {exam.discountPrice.toFixed(2).replace('.', ',')}</span>
+            )}
+            {typeof exam.preco_usd === 'number' && exam.preco_usd > 0 && (
+              <span className="font-semibold text-blue-600">Preço USD: $ {exam.preco_usd.toFixed(2)}</span>
+            )}
+            {typeof exam.preco_eur === 'number' && exam.preco_eur > 0 && (
+              <span className="font-semibold text-green-700">Preço EUR: € {exam.preco_eur.toFixed(2)}</span>
+            )}
+          </>
+        ) : (
+          <span className="text-gray-400">Preço não informado</span>
+        )
       )}
     </div>
     <div>
@@ -341,13 +480,22 @@ const Index = () => {
                           >
                             Ver Detalhes
                           </Button>
-                          <Button
-                            className="flex-1 bg-cert-blue hover:bg-cert-blue/90"
-                            onClick={() => handleAddToCart(exam as Exam)}
-                          >
-                            <ShoppingCart className="h-4 w-4 mr-2" />
-                            Adicionar ao Carrinho
-                          </Button>
+                          {exam.is_gratis ? (
+                            <Button
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => navigate(`/simulados/${exam.id}`)}
+                            >
+                              <span className="font-bold">Acessar Grátis</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              className="flex-1 bg-cert-blue hover:bg-cert-blue/90"
+                              onClick={() => handleAddToCart(exam as Exam)}
+                            >
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              Adicionar ao Carrinho
+                            </Button>
+                          )}
                         </div>
                       </CardFooter>
                     </Card>

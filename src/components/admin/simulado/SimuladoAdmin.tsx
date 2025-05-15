@@ -84,19 +84,27 @@ const SimuladoAdmin: React.FC = () => {
     try {
       setIsSubmitting(true);
       
+      // Garantir que is_gratis seja um booleano
+      const dadosAjustados = {
+        ...data,
+        is_gratis: !!data.is_gratis
+      };
+      
+      console.log('Dados para salvar simulado:', dadosAjustados);
+      
       if (editingSimulado && editingSimulado.id) {
         // Atualizar simulado existente
-        await updateSimulado(editingSimulado.id, data);
+        await updateSimulado(editingSimulado.id, dadosAjustados);
         toast({
           title: 'Simulado atualizado',
-          description: 'O simulado foi atualizado com sucesso.',
+          description: `O simulado foi atualizado com sucesso. Tipo: ${dadosAjustados.is_gratis ? 'Grátis' : 'Pago'}`,
         });
       } else {
         // Criar novo simulado
-        await createSimulado(data);
+        await createSimulado(dadosAjustados);
         toast({
           title: 'Simulado criado',
-          description: 'O novo simulado foi criado com sucesso.',
+          description: `O novo simulado foi criado com sucesso. Tipo: ${dadosAjustados.is_gratis ? 'Grátis' : 'Pago'}`,
         });
       }
       

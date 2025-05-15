@@ -14,7 +14,7 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart, Menu, X, User, Settings, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Settings, LogOut, Gift, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -110,12 +110,41 @@ const Header = () => {
             <Link to="/" className="text-gray-600 hover:text-gray-900 transition-colors">
               Home
             </Link>
-            <Link to="/certifications" className="text-gray-600 hover:text-gray-900 transition-colors">
-              Exams
-            </Link>
             <Link to="/simulados" className="text-gray-600 hover:text-gray-900 transition-colors">
               Simulados
             </Link>
+            
+            {/* Menu Dropdown de Simulados Gratuitos */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors p-2">
+                  <Gift className="h-4 w-4 text-green-600" />
+                  <span>Simulados Gratuitos</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuItem onClick={() => navigate('/simulados?free=true')}>
+                  <span className="text-green-600 font-medium">Todos Gratuitos</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/simulados?free=true&category=aws')}>
+                  AWS
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/simulados?free=true&category=azure')}>
+                  Microsoft Azure
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/simulados?free=true&category=gcp')}>
+                  Google Cloud
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/simulados?free=true&category=comptia')}>
+                  CompTIA
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/simulados?free=true&category=cisco')}>
+                  Cisco
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="flex items-center gap-2">
 
@@ -174,19 +203,64 @@ const Header = () => {
                 Home
               </Link>
               <Link 
-                to="/certifications" 
-                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Exams
-              </Link>
-              <Link 
                 to="/simulados" 
                 className="text-gray-600 hover:text-gray-900 transition-colors px-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Simulados
               </Link>
+              
+              {/* Menu de Simulados Gratuitos para Mobile */}
+              <div className="flex flex-col space-y-1 mt-2 mb-2 px-2">
+                <div className="flex items-center gap-1 text-green-600 font-medium">
+                  <Gift className="h-4 w-4" />
+                  <span>Simulados Gratuitos:</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pl-6 mt-1">
+                  <Link 
+                    to="/simulados?free=true" 
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Todos Gratuitos
+                  </Link>
+                  <Link 
+                    to="/simulados?free=true&category=aws" 
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    AWS
+                  </Link>
+                  <Link 
+                    to="/simulados?free=true&category=azure" 
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Microsoft Azure
+                  </Link>
+                  <Link 
+                    to="/simulados?free=true&category=gcp" 
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Google Cloud
+                  </Link>
+                  <Link 
+                    to="/simulados?free=true&category=comptia" 
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    CompTIA
+                  </Link>
+                  <Link 
+                    to="/simulados?free=true&category=cisco" 
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Cisco
+                  </Link>
+                </div>
+              </div>
 
               <div className="flex items-center gap-2 px-2">
 

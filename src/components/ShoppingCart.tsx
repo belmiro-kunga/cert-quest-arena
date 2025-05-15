@@ -10,6 +10,8 @@ export interface CartItem {
   description: string;
   price: number;
   discountPrice?: number | null;
+  preco_usd?: number;
+  preco_eur?: number;
 }
 
 interface ShoppingCartProps {

@@ -85,6 +85,7 @@ const SimuladoList: React.FC<SimuladoListProps> = ({
             <TableHead>Título</TableHead>
             <TableHead>Duração</TableHead>
             <TableHead>Dificuldade</TableHead>
+            <TableHead>Tipo</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Criado</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -103,6 +104,11 @@ const SimuladoList: React.FC<SimuladoListProps> = ({
                 <TableCell className="font-medium">{simulado.titulo}</TableCell>
                 <TableCell>{simulado.duracao_minutos} minutos</TableCell>
                 <TableCell>{renderDifficultyBadge(simulado.nivel_dificuldade)}</TableCell>
+                <TableCell>
+                  <Badge variant={simulado.is_gratis ? "default" : "secondary"} className={simulado.is_gratis ? "bg-green-600" : "bg-blue-600"}>
+                    {simulado.is_gratis ? "Grátis" : "Pago"}
+                  </Badge>
+                </TableCell>
                 <TableCell>{renderStatusBadge(simulado.ativo)}</TableCell>
                 <TableCell>{formatDate(simulado.data_criacao)}</TableCell>
                 <TableCell className="text-right">

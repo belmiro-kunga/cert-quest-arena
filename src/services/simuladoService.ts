@@ -46,6 +46,7 @@ export interface Exam {
   created_at: string;
   updated_at: string;
   topicos?: string[]; // Tópicos abordados
+  is_gratis?: boolean; // Novo campo para identificar simulados gratuitos
 }
 
 // Função para converter Simulado (backend) para Exam (frontend)
@@ -122,7 +123,7 @@ export const getSimulados = async (): Promise<Simulado[]> => {
       id: simulado.id,
       titulo: simulado.titulo || simulado.title || '',
       descricao: simulado.descricao || simulado.description || '',
-      is_gratis: simulado.is_gratis,
+      is_gratis: simulado.is_gratis === true, // sempre booleano
       preco: simulado.preco || simulado.price,
       preco_desconto: simulado.preco_desconto || simulado.discountPrice,
       porcentagem_desconto: simulado.porcentagem_desconto,
@@ -213,7 +214,8 @@ export const createSimulado = async (simulado: Simulado): Promise<Simulado> => {
     // Garantir que duracao_minutos seja um número
     const dadosParaEnviar = {
       ...simulado,
-      duracao_minutos: Number(simulado.duracao_minutos)
+      duracao_minutos: Number(simulado.duracao_minutos),
+      is_gratis: !!simulado.is_gratis // força booleano
     };
     
     console.log('Dados formatados para envio:', dadosParaEnviar);
@@ -260,7 +262,11 @@ export const updateExam = async (id: string, exam: Exam): Promise<Exam> => {
  */
 export const updateSimulado = async (id: number, simulado: Simulado): Promise<Simulado> => {
   try {
-    const response = await axios.put(`${API_URL}/simulados/${id}`, simulado);
+    const dadosParaEnviar = {
+      ...simulado,
+      is_gratis: !!simulado.is_gratis // força booleano
+    };
+    const response = await axios.put(`${API_URL}/simulados/${id}`, dadosParaEnviar);
     return response.data;
   } catch (error) {
     console.error(`Erro ao atualizar simulado com ID ${id}:`, error);
@@ -320,6 +326,7 @@ export const getActiveExams = async (): Promise<Exam[]> => {
       created_at: simulado.data_criacao || simulado.created_at || '',
       updated_at: simulado.data_atualizacao || simulado.updated_at || '',
       topicos: simulado.topicos || [],
+      is_gratis: simulado.is_gratis === true, // Garante o campo para o frontend
     }));
 
     console.log('Exams convertidos:', exams);
