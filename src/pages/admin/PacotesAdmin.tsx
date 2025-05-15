@@ -373,6 +373,21 @@ const PacotesAdmin: React.FC = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="porcentagem_desconto" className="text-sm font-medium">Porcentagem de Desconto (%)</label>
+                    <Input
+                      id="porcentagem_desconto"
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={formData.porcentagem_desconto || 25}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        porcentagem_desconto: parseInt(e.target.value) || 0 
+                      })}
+                      placeholder="Porcentagem de desconto"
+                    />
+                  </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="is_gratis"
@@ -381,17 +396,17 @@ const PacotesAdmin: React.FC = () => {
                     />
                     <label htmlFor="is_gratis" className="text-sm font-medium">Pacote Gratuito</label>
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="duracao_dias" className="text-sm font-medium">Duração (dias)</label>
-                    <Input
-                      id="duracao_dias"
-                      type="number"
-                      min={1}
-                      value={formData.duracao_dias || ''}
-                      onChange={(e) => setFormData({ ...formData, duracao_dias: parseInt(e.target.value) || 365 })}
-                      placeholder="Duração do pacote em dias"
-                    />
-                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="duracao_dias" className="text-sm font-medium">Duração (dias)</label>
+                  <Input
+                    id="duracao_dias"
+                    type="number"
+                    min={1}
+                    value={formData.duracao_dias || ''}
+                    onChange={(e) => setFormData({ ...formData, duracao_dias: parseInt(e.target.value) || 365 })}
+                    placeholder="Duração do pacote em dias"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
@@ -658,6 +673,21 @@ const PacotesAdmin: React.FC = () => {
                                 </div>
                               </div>
                               <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label htmlFor="edit-porcentagem_desconto" className="text-sm font-medium">Porcentagem de Desconto (%)</label>
+                                  <Input
+                                    id="edit-porcentagem_desconto"
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={formData.porcentagem_desconto || 25}
+                                    onChange={(e) => setFormData({ 
+                                      ...formData, 
+                                      porcentagem_desconto: parseInt(e.target.value) || 0 
+                                    })}
+                                    placeholder="Porcentagem de desconto"
+                                  />
+                                </div>
                                 <div className="flex items-center space-x-2">
                                   <Checkbox
                                     id="edit-is_gratis"
@@ -666,17 +696,17 @@ const PacotesAdmin: React.FC = () => {
                                   />
                                   <label htmlFor="edit-is_gratis" className="text-sm font-medium">Pacote Gratuito</label>
                                 </div>
-                                <div className="space-y-2">
-                                  <label htmlFor="edit-duracao_dias" className="text-sm font-medium">Duração (dias)</label>
-                                  <Input
-                                    id="edit-duracao_dias"
-                                    type="number"
-                                    min={1}
-                                    value={formData.duracao_dias || ''}
-                                    onChange={(e) => setFormData({ ...formData, duracao_dias: parseInt(e.target.value) || 365 })}
-                                    placeholder="Duração do pacote em dias"
-                                  />
-                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <label htmlFor="edit-duracao_dias" className="text-sm font-medium">Duração (dias)</label>
+                                <Input
+                                  id="edit-duracao_dias"
+                                  type="number"
+                                  min={1}
+                                  value={formData.duracao_dias || ''}
+                                  onChange={(e) => setFormData({ ...formData, duracao_dias: parseInt(e.target.value) || 365 })}
+                                  placeholder="Duração do pacote em dias"
+                                />
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center space-x-2">

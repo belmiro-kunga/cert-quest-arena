@@ -360,21 +360,43 @@ const PacoteDetalhes: React.FC = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">Preço original:</span>
                           <span className="text-sm line-through text-muted-foreground">
-                            {formatPrice(calcularPrecoTotalSemDesconto(pacote))}
+                            {(() => {
+                              const precoOriginal = calcularPrecoTotalSemDesconto(pacote);
+                              console.log('Detalhes - Preço original:', precoOriginal);
+                              return formatPrice(precoOriginal);
+                            })()}
                           </span>
                         </div>
                         
                         <div className="flex justify-between items-center">
                           <span className="text-base font-medium">Preço com desconto:</span>
                           <span className="text-2xl font-bold text-green-600">
-                            {formatPrice(calcularPrecoTotalComDesconto(pacote))}
+                            {(() => {
+                              const porcentagemDesconto = typeof pacote.porcentagem_desconto === 'number' && !isNaN(pacote.porcentagem_desconto) 
+                                ? pacote.porcentagem_desconto 
+                                : 25;
+                              
+                              const precoOriginal = calcularPrecoTotalSemDesconto(pacote);
+                              const precoComDesconto = precoOriginal * (1 - porcentagemDesconto / 100);
+                              console.log('Detalhes - Preço com desconto:', precoComDesconto, 'Desconto:', porcentagemDesconto);
+                              return formatPrice(precoComDesconto);
+                            })()}
                           </span>
                         </div>
                         
                         <div className="flex justify-between items-center pt-2 border-t border-dashed border-gray-200">
                           <span className="text-sm font-medium">Economia:</span>
                           <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-md font-bold">
-                            {formatPrice(calcularEconomia(pacote))}
+                            {(() => {
+                              const precoOriginal = calcularPrecoTotalSemDesconto(pacote);
+                              const porcentagemDesconto = typeof pacote.porcentagem_desconto === 'number' && !isNaN(pacote.porcentagem_desconto) 
+                                ? pacote.porcentagem_desconto 
+                                : 25;
+                              const precoComDesconto = precoOriginal * (1 - porcentagemDesconto / 100);
+                              const economia = precoOriginal - precoComDesconto;
+                              console.log('Detalhes - Economia:', economia);
+                              return formatPrice(economia);
+                            })()}
                           </span>
                         </div>
                       </div>

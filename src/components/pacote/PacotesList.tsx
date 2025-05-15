@@ -174,9 +174,18 @@ const PacotesList: React.FC<PacotesListProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {pacotes.map((pacote) => {
                 const categoryGradient = getCategoryGradient(pacote.categoria);
-                const economiaValor = calcularEconomia(pacote);
+                
+                // Garantir que porcentagem_desconto tenha um valor válido
+                const porcentagemDesconto = typeof pacote.porcentagem_desconto === 'number' && !isNaN(pacote.porcentagem_desconto) 
+                  ? pacote.porcentagem_desconto 
+                  : 25;
+                
+                // Calcular preços
                 const precoOriginal = calcularPrecoTotalSemDesconto(pacote);
-                const precoComDesconto = calcularPrecoTotalComDesconto(pacote);
+                const precoComDesconto = precoOriginal * (1 - porcentagemDesconto / 100);
+                const economiaValor = precoOriginal - precoComDesconto;
+                
+                console.log('Pacote:', pacote.titulo, 'Preço original:', precoOriginal, 'Desconto:', porcentagemDesconto, 'Preço com desconto:', precoComDesconto);
                 
                 return (
                   <Card key={pacote.id} className="flex flex-col h-full overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -194,7 +203,7 @@ const PacotesList: React.FC<PacotesListProps> = ({
                           </div>
                         </div>
                         <div className="absolute -right-8 -top-8 bg-gradient-to-br from-green-500 to-green-600 text-white transform rotate-45 shadow-lg px-10 py-1">
-                          <span className="text-xs font-extrabold">{pacote.porcentagem_desconto}% OFF</span>
+                          <span className="text-xs font-extrabold">{porcentagemDesconto}% OFF</span>
                         </div>
                       </div>
                     </CardHeader>

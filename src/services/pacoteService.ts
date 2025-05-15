@@ -36,7 +36,7 @@ export interface PacoteInput {
   subscription_price?: number;
   subscription_currency?: string;
   categoria?: string;
-  porcentagem_desconto?: number;
+  porcentagem_desconto: number; // Campo obrigatório para o desconto
   simulado_ids?: string[];
 }
 
@@ -134,21 +134,58 @@ export const criarPacotesAutomaticos = async (): Promise<{ message: string; paco
 
 // Calcular o preço total de um pacote sem desconto
 export const calcularPrecoTotalSemDesconto = (pacote: Pacote): number => {
-  return pacote.simulados.reduce((total, simulado) => total + (simulado.price || 0), 0);
+  // Se o pacote tem um preço em USD definido, usá-lo diretamente
+  if (typeof pacote.preco_usd === 'number' && !isNaN(pacote.preco_usd) && pacote.preco_usd > 0) {
+    return pacote.preco_usd;
+  }
+  
+  // Se o pacote tem um preço em BRL definido, usá-lo como fallback
+  if (typeof pacote.preco === 'number' && !isNaN(pacote.preco) && pacote.preco > 0) {
+    return pacote.preco;
+  }
+  
+  // Se não tem preço definido, calcular baseado nos simulados
+  if (Array.isArray(pacote.simulados) && pacote.simulados.length > 0) {
+    return pacote.simulados.reduce((total, simulado) => {
+      const price = typeof simulado.price === 'number' ? simulado.price : 0;
+      return total + price;
+    }, 0);
+  }
+  
+  // Se não tem simulados ou preço, retornar 0
+  return 0;
 };
 
 // Calcular o preço total de um pacote com desconto
 export const calcularPrecoTotalComDesconto = (pacote: Pacote): number => {
+  // Se o pacote é gratuito, retornar 0
+  if (pacote.is_gratis) {
+    return 0;
+  }
+  
   const precoTotal = calcularPrecoTotalSemDesconto(pacote);
-  const desconto = (precoTotal * pacote.porcentagem_desconto) / 100;
+  
+  // Se não tem porcentagem de desconto definida ou é inválida, usar 0%
+  const porcentagemDesconto = typeof pacote.porcentagem_desconto === 'number' && !isNaN(pacote.porcentagem_desconto) 
+    ? pacote.porcentagem_desconto 
+    : 0;
+  
+  const desconto = (precoTotal * porcentagemDesconto) / 100;
   return precoTotal - desconto;
 };
 
 // Calcular a economia em valor ao comprar o pacote
 export const calcularEconomia = (pacote: Pacote): number => {
+  // Se o pacote é gratuito, não há economia
+  if (pacote.is_gratis) {
+    return 0;
+  }
+  
   const precoTotalSemDesconto = calcularPrecoTotalSemDesconto(pacote);
   const precoTotalComDesconto = calcularPrecoTotalComDesconto(pacote);
-  return precoTotalSemDesconto - precoTotalComDesconto;
+  
+  // Garantir que a economia não seja negativa
+  return Math.max(0, precoTotalSemDesconto - precoTotalComDesconto);
 };
 
 export function calcularPrecoSubscricao(pacote: Pacote): number {

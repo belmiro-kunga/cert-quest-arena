@@ -81,6 +81,8 @@ const mapPacoteToAPI = (pacote, simulados = []) => ({
   subscription_price: pacote.subscription_price ? parseFloat(pacote.subscription_price) : null,
   subscription_currency: pacote.subscription_currency || 'BRL',
   simulados: simulados,
+  porcentagem_desconto: typeof pacote.porcentagem_desconto === 'number' ? pacote.porcentagem_desconto : 25,
+  categoria: pacote.categoria || '',
   created_at: pacote.created_at || '',
   updated_at: pacote.updated_at || ''
 });
@@ -139,7 +141,8 @@ const createPacote = async (pacoteData) => {
       is_subscription = false,
       subscription_duration = 365, // Duração padrão da subscrição
       subscription_price,
-      subscription_currency = 'BRL'
+      subscription_currency = 'BRL',
+      porcentagem_desconto
     } = pacoteData;
     
     // Usar preco_usd como valor para preco também
@@ -215,6 +218,12 @@ const createPacote = async (pacoteData) => {
       placeholders.push(`$${paramIndex++}`);
     }
     
+    if (columns.includes('porcentagem_desconto')) {
+      insertColumns.push('porcentagem_desconto');
+      insertValues.push(porcentagem_desconto || 25);
+      placeholders.push(`$${paramIndex++}`);
+    }
+    
     // Construir e executar a query
     const insertQuery = `
       INSERT INTO pacotes (${insertColumns.join(', ')})
@@ -271,7 +280,8 @@ const updatePacote = async (id, pacoteData) => {
       is_subscription,
       subscription_duration,
       subscription_price,
-      subscription_currency
+      subscription_currency,
+      porcentagem_desconto
     } = pacoteData;
     
     // Usar preco_usd como valor para preco também
@@ -345,6 +355,11 @@ const updatePacote = async (id, pacoteData) => {
     if (subscription_currency !== undefined && columns.includes('subscription_currency')) {
       updateParts.push(`subscription_currency = $${paramIndex++}`);
       updateValues.push(subscription_currency);
+    }
+    
+    if (porcentagem_desconto !== undefined && columns.includes('porcentagem_desconto')) {
+      updateParts.push(`porcentagem_desconto = $${paramIndex++}`);
+      updateValues.push(porcentagem_desconto);
     }
     
     if (columns.includes('updated_at')) {
