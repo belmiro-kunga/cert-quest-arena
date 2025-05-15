@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
 import Certifications from '@/components/Certifications';
-import PricingSection from '@/components/PricingSection';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,8 @@ import TestimonialsSection from '@/components/TestimonialsSection';
 // TODO: Substitua por fetch real dos exames ou dados mockados válidos
 // Definição temporária de Exam com discountPrice
 export type ExamLanguage = 'pt' | 'en' | 'fr' | 'es';
-export type Exam = {
+// Interface para os exames
+export interface Exam {
   id: string;
   title: string;
   description: string;
@@ -23,15 +23,17 @@ export type Exam = {
   discountPrice?: number;
   preco_usd?: number;
   preco_eur?: number;
-  language: string; // Corrigido para aceitar string
+  language: string;
   difficulty: string;
   duration: number;
   questions_count: number;
   category: string;
+  categoria?: string; // Campo adicional para compatibilidade com o backend
   image_url: string;
+  is_gratis?: boolean;
   created_at: string;
   updated_at: string;
-};
+}
 const mockExams: Exam[] = [
   {
     id: '1',
@@ -98,15 +100,75 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 
 
 const Index = () => {
-  // Filtros de busca
+  // Estados para os filtros
   const [filterName, setFilterName] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [filterLanguage, setFilterLanguage] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCart();
   const { formatPrice } = useCurrency();
   const [exams, setExams] = useState<Exam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Estado para controlar se estamos filtrando apenas simulados grátis
+  const [filterFreeOnly, setFilterFreeOnly] = useState(false);
+
+  // Processar parâmetros de URL para filtros
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const categoryParam = searchParams.get('category');
+    const freeParam = searchParams.get('free');
+    
+    console.log('Parâmetros de URL:', { category: categoryParam, free: freeParam });
+    
+    // Aplicar filtro de categoria da URL
+    if (categoryParam) {
+      setFilterCategory(categoryParam.toLowerCase());
+    } else {
+      // Limpar filtro de categoria se não estiver na URL
+      setFilterCategory('');
+    }
+    
+    // Aplicar filtro de simulados grátis
+    if (freeParam === 'true') {
+      console.log('Filtro de simulados grátis ativado via URL');
+      setFilterFreeOnly(true);
+    } else {
+      setFilterFreeOnly(false);
+    }
+  }, [location.search]);
+  
+  // Monitorar mudanças nos filtros e atualizar a URL
+  useEffect(() => {
+    console.log('Filtros alterados:', { categoria: filterCategory, apenasGratis: filterFreeOnly });
+    
+    // Atualizar URL quando os filtros mudarem
+    const searchParams = new URLSearchParams(location.search);
+    
+    // Atualizar parâmetro de categoria
+    if (filterCategory) {
+      searchParams.set('category', filterCategory);
+    } else {
+      searchParams.delete('category');
+    }
+    
+    // Atualizar parâmetro de simulados grátis
+    if (filterFreeOnly) {
+      searchParams.set('free', 'true');
+    } else {
+      searchParams.delete('free');
+    }
+    
+    // Navegar para a nova URL com os parâmetros atualizados
+    const newSearch = searchParams.toString();
+    const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+    
+    // Usar replace para não adicionar entradas no histórico
+    navigate(newPath, { replace: true });
+  }, [filterCategory, filterFreeOnly, location.pathname, location.search, navigate]);
   
 
   
@@ -117,7 +179,16 @@ const Index = () => {
       setIsLoading(true);
       try {
         const activeExams = await import('@/services/simuladoService').then(mod => mod.getActiveExams());
-        setExams(activeExams);
+        
+        // Garantir que todos os simulados tenham o campo categoria definido
+        const processedExams = activeExams.map(exam => ({
+          ...exam,
+          // Se categoria não estiver definida, usar category ou um valor padrão
+          categoria: exam.categoria || exam.category || 'geral'
+        }));
+        
+        console.log('Simulados carregados com categorias:', processedExams);
+        setExams(processedExams);
       } catch (error) {
         console.error('Erro ao buscar simulados do banco de dados:', error);
         setExams([]);
@@ -339,9 +410,10 @@ const Index = () => {
         {/* Seção de Simulados Pagos */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto max-w-6xl px-4">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-4">Simulados Premium</h2>
               <p className="text-xl text-gray-600 mb-6">Escolha entre nossos simulados premium para certificações</p>
+              
               {/* Filtros de busca */}
               <div className="flex flex-col md:flex-row gap-3 md:gap-6 items-stretch md:items-end justify-center mb-6">
                 <div className="flex flex-col items-start w-full md:w-1/3">
@@ -385,6 +457,96 @@ const Index = () => {
                   </select>
                 </div>
               </div>
+              
+              {/* Filtros de Categoria para Simulados Premium */}
+              <div className="flex flex-wrap justify-center gap-3 mb-6">
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 ${filterCategory === '' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-300 hover:bg-gray-100'} font-medium`}
+                  onClick={() => {
+                    console.log('Clicou em Todas Categorias');
+                    setFilterCategory('');
+                    // Forçar a atualização dos filtros
+                    const searchParams = new URLSearchParams(location.search);
+                    searchParams.delete('category');
+                    const newSearch = searchParams.toString();
+                    const newPath = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+                    navigate(newPath, { replace: true });
+                  }}
+                >
+                  Todas Categorias
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 ${filterCategory === 'aws' ? 'bg-orange-100 border-orange-500 text-orange-700' : 'border-gray-300 hover:bg-orange-50'} font-medium`}
+                  onClick={() => {
+                    console.log('Clicou em AWS');
+                    setFilterCategory('aws');
+                    // Forçar a atualização dos filtros
+                    const searchParams = new URLSearchParams(location.search);
+                    searchParams.set('category', 'aws');
+                    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+                  }}
+                >
+                  AWS
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 ${filterCategory === 'azure' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-300 hover:bg-blue-50'} font-medium`}
+                  onClick={() => {
+                    console.log('Clicou em Microsoft Azure');
+                    setFilterCategory('azure');
+                    // Forçar a atualização dos filtros
+                    const searchParams = new URLSearchParams(location.search);
+                    searchParams.set('category', 'azure');
+                    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+                  }}
+                >
+                  Microsoft Azure
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 ${filterCategory === 'gcp' ? 'bg-red-100 border-red-500 text-red-700' : 'border-gray-300 hover:bg-red-50'} font-medium`}
+                  onClick={() => {
+                    console.log('Clicou em Google Cloud');
+                    setFilterCategory('gcp');
+                    // Forçar a atualização dos filtros
+                    const searchParams = new URLSearchParams(location.search);
+                    searchParams.set('category', 'gcp');
+                    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+                  }}
+                >
+                  Google Cloud
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 ${filterCategory === 'comptia' ? 'bg-green-100 border-green-500 text-green-700' : 'border-gray-300 hover:bg-green-50'} font-medium`}
+                  onClick={() => {
+                    console.log('Clicou em CompTIA');
+                    setFilterCategory('comptia');
+                    // Forçar a atualização dos filtros
+                    const searchParams = new URLSearchParams(location.search);
+                    searchParams.set('category', 'comptia');
+                    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+                  }}
+                >
+                  CompTIA
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 ${filterCategory === 'cisco' ? 'bg-indigo-100 border-indigo-500 text-indigo-700' : 'border-gray-300 hover:bg-indigo-50'} font-medium`}
+                  onClick={() => {
+                    console.log('Clicou em Cisco');
+                    setFilterCategory('cisco');
+                    // Forçar a atualização dos filtros
+                    const searchParams = new URLSearchParams(location.search);
+                    searchParams.set('category', 'cisco');
+                    navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
+                  }}
+                >
+                  Cisco
+                </Button>
+              </div>
             </div> 
 
             {isLoading ? (
@@ -394,13 +556,57 @@ const Index = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {exams
-                  // Exibe apenas simulados pagos (não gratuitos)
-                  .filter(exam =>
-                    exam.is_gratis !== true &&
-                    (filterName === '' || exam.title.toLowerCase().includes(filterName.toLowerCase())) &&
-                    (filterDifficulty === '' || exam.difficulty === filterDifficulty) &&
-                    (filterLanguage === '' || exam.language === filterLanguage || filterLanguage === '')
-                  )
+                  // Filtra os simulados com base nos filtros aplicados
+                  .filter(exam => {
+                    // Verificar se deve mostrar apenas simulados grátis ou apenas pagos
+                    if (filterFreeOnly && exam.is_gratis !== true) return false;
+                    if (!filterFreeOnly && exam.is_gratis === true) return false; // Mostra apenas pagos quando não está filtrando por grátis
+                    
+                    // Filtro por nome
+                    if (filterName !== '' && !exam.title.toLowerCase().includes(filterName.toLowerCase())) return false;
+                    
+                    // Filtro por dificuldade
+                    if (filterDifficulty !== '' && exam.difficulty !== filterDifficulty) return false;
+                    
+                    // Filtro por idioma
+                    if (filterLanguage !== '' && exam.language !== filterLanguage) return false;
+                    
+                    // Filtro por categoria
+                    if (filterCategory !== '') {
+                      const examCategory = (exam.category || '').toLowerCase();
+                      const examCategoria = (exam.categoria || '').toLowerCase();
+                      const examTitle = exam.title.toLowerCase();
+                      
+                      console.log(`Verificando categoria para ${exam.title}: category=${examCategory}, categoria=${examCategoria}, filtro=${filterCategory}`);
+                      
+                      // Mapeamento de termos relacionados para melhorar a correspondência
+                      const categoryMappings: Record<string, string[]> = {
+                        'aws': ['aws', 'amazon', 'amazon web services'],
+                        'azure': ['azure', 'microsoft azure', 'microsoft', 'az-'],
+                        'gcp': ['gcp', 'google cloud', 'google'],
+                        'comptia': ['comptia', 'comp tia', 'a+', 'network+', 'security+'],
+                        'cisco': ['cisco', 'ccna', 'ccnp']
+                      };
+                      
+                      // Verificar se o filtro tem mapeamentos especiais
+                      const filterTerms = categoryMappings[filterCategory] || [filterCategory];
+                      
+                      // Verificar se a categoria do simulado contém algum dos termos mapeados
+                      const categoryMatch = filterTerms.some(term => 
+                        examCategory.includes(term) || 
+                        examCategoria.includes(term) || 
+                        examTitle.includes(term)
+                      );
+                      
+                      console.log(`Resultado da verificação: ${categoryMatch}`);
+                      
+                      if (!categoryMatch) {
+                        return false;
+                      }
+                    }
+                    
+                    return true;
+                  })
                   .map((exam) => {
                   // Para exames do servidor
                   // Priorizar exam.topicos do backend, senão fallback
@@ -410,16 +616,45 @@ const Index = () => {
                   
                   return (
                     <Card key={exam.id} className="flex flex-col">
-  {/* Badge de idioma e badge grátis */}
-  <div className="flex justify-between mb-1">
-    <span className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-semibold shadow-sm border border-indigo-200 select-none">
-      {exam.language === 'pt' && 'Português'}
-      {exam.language === 'en' && 'English'}
-      {exam.language === 'fr' && 'Français'}
-      {exam.language === 'es' && 'Español'}
-    </span>
+  {/* Badges de idioma, categoria e grátis */}
+  <div className="flex flex-wrap justify-between mb-1">
+    <div className="flex flex-wrap gap-1">
+      <span className="bg-indigo-100 text-indigo-700 rounded-full px-3 py-1 text-xs font-semibold shadow-sm border border-indigo-200 select-none">
+        {exam.language === 'pt' && 'Português'}
+        {exam.language === 'en' && 'English'}
+        {exam.language === 'fr' && 'Français'}
+        {exam.language === 'es' && 'Español'}
+      </span>
+      
+      {/* Badge de categoria */}
+      {(exam.category || exam.categoria) && (
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold shadow-sm border select-none
+          ${exam.category?.toLowerCase() === 'aws' || exam.categoria?.toLowerCase() === 'aws' 
+            ? 'bg-orange-100 text-orange-700 border-orange-200' : ''}
+          ${exam.category?.toLowerCase() === 'azure' || exam.categoria?.toLowerCase() === 'azure' 
+            ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}
+          ${exam.category?.toLowerCase() === 'gcp' || exam.categoria?.toLowerCase() === 'gcp' 
+            ? 'bg-red-100 text-red-700 border-red-200' : ''}
+          ${exam.category?.toLowerCase() === 'comptia' || exam.categoria?.toLowerCase() === 'comptia' 
+            ? 'bg-green-100 text-green-700 border-green-200' : ''}
+          ${exam.category?.toLowerCase() === 'cisco' || exam.categoria?.toLowerCase() === 'cisco' 
+            ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : ''}
+          ${!['aws', 'azure', 'gcp', 'comptia', 'cisco'].includes(exam.category?.toLowerCase() || exam.categoria?.toLowerCase() || '') 
+            ? 'bg-gray-100 text-gray-700 border-gray-200' : ''}
+        `}>
+          {exam.category?.toLowerCase() === 'aws' || exam.categoria?.toLowerCase() === 'aws' ? 'AWS' : ''}
+          {exam.category?.toLowerCase() === 'azure' || exam.categoria?.toLowerCase() === 'azure' ? 'Microsoft Azure' : ''}
+          {exam.category?.toLowerCase() === 'gcp' || exam.categoria?.toLowerCase() === 'gcp' ? 'Google Cloud' : ''}
+          {exam.category?.toLowerCase() === 'comptia' || exam.categoria?.toLowerCase() === 'comptia' ? 'CompTIA' : ''}
+          {exam.category?.toLowerCase() === 'cisco' || exam.categoria?.toLowerCase() === 'cisco' ? 'Cisco' : ''}
+          {!['aws', 'azure', 'gcp', 'comptia', 'cisco'].includes(exam.category?.toLowerCase() || exam.categoria?.toLowerCase() || '') 
+            ? (exam.category || exam.categoria || 'Geral') : ''}
+        </span>
+      )}
+    </div>
+    
     {exam.is_gratis && (
-      <span className="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs font-bold shadow-sm border border-green-200 ml-2 select-none">
+      <span className="bg-green-100 text-green-700 rounded-full px-3 py-1 text-xs font-bold shadow-sm border border-green-200 select-none">
         Grátis
       </span>
     )}
@@ -505,7 +740,6 @@ const Index = () => {
             )}
           </div>
         </section>
-        <PricingSection />
         <TestimonialsSection />
       </main>
       <Footer />

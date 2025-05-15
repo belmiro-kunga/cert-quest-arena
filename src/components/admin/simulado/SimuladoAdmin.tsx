@@ -84,10 +84,11 @@ const SimuladoAdmin: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      // Garantir que is_gratis seja um booleano
+      // Garantir que is_gratis seja um booleano e que a categoria esteja definida
       const dadosAjustados = {
         ...data,
-        is_gratis: !!data.is_gratis
+        is_gratis: !!data.is_gratis,
+        categoria: data.categoria || 'aws' // Garantir que a categoria esteja definida
       };
       
       console.log('Dados para salvar simulado:', dadosAjustados);

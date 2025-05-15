@@ -109,6 +109,16 @@ const createTableIfNotExists = async () => {
       await db.query(`ALTER TABLE simulados ADD COLUMN topicos TEXT[]`);
     }
     
+    // Verificar coluna categoria para filtros (AWS, Azure, GCP, etc.)
+    const checkCategoria = await db.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'simulados' AND column_name = 'categoria'
+    `);
+    if (checkCategoria.rows.length === 0) {
+      console.log('Adicionando coluna categoria à tabela simulados');
+      await db.query(`ALTER TABLE simulados ADD COLUMN categoria VARCHAR(50)`);
+    }
+    
     console.log('Tabela de simulados verificada/criada com sucesso');
     return true;
   } catch (error) {

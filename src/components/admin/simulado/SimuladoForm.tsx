@@ -22,6 +22,7 @@ const simuladoSchema = z.object({
   duracao_minutos: z.coerce.number().min(1, { message: 'A duração deve ser pelo menos 1 minuto' }),
   nivel_dificuldade: z.string().optional(),
   language: z.enum(['pt', 'en', 'fr', 'es'], { required_error: 'Selecione o idioma do simulado' }),
+  categoria: z.enum(['aws', 'azure', 'gcp', 'comptia', 'cisco'], { required_error: 'Selecione a categoria do simulado' }),
   ativo: z.boolean().default(true),
   topicos: z.array(z.string().min(1, 'O tópico não pode ser vazio')).min(1, 'Adicione pelo menos um tópico'),
 });
@@ -56,6 +57,9 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
       language: (['pt', 'en', 'fr', 'es'] as const).includes(simulado?.language as any)
         ? (simulado?.language as 'pt' | 'en' | 'fr' | 'es')
         : 'pt',
+      categoria: (['aws', 'azure', 'gcp', 'comptia', 'cisco'] as const).includes(simulado?.categoria as any)
+        ? (simulado?.categoria as 'aws' | 'azure' | 'gcp' | 'comptia' | 'cisco')
+        : 'aws',
       ativo: simulado?.ativo !== undefined ? simulado.ativo : true,
       topicos: (simulado as any)?.topicos || [''],
     },
@@ -66,6 +70,7 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
       <form onSubmit={form.handleSubmit((data) => {
         // Normaliza o campo language para evitar erro no backend e garantir o tipo
         const allowedLanguages = ['pt', 'en', 'fr', 'es'] as const;
+        const allowedCategories = ['aws', 'azure', 'gcp', 'comptia', 'cisco'] as const;
         const normalizedLang = normalizeLanguage(data.language);
         let precoFinal = data.preco_usd;
         if (data.is_gratis) precoFinal = 0;
@@ -77,6 +82,9 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
           language: allowedLanguages.includes(normalizedLang as any)
             ? (normalizedLang as typeof allowedLanguages[number])
             : 'pt',
+          categoria: allowedCategories.includes(data.categoria as any)
+            ? data.categoria
+            : 'aws',
         };
         console.log('Dados normalizados para envio:', normalized);
         onSubmit(normalized);
@@ -130,18 +138,45 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o idioma do simulado" />
+                        <SelectValue placeholder="Selecione o idioma" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="pt">Português</SelectItem>
-                      <SelectItem value="en">Inglês</SelectItem>
-                      <SelectItem value="fr">Francês</SelectItem>
-                      <SelectItem value="es">Espanhol</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Escolha o idioma principal do simulado.
+                    Idioma em que o simulado será apresentado.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="categoria"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="aws">AWS</SelectItem>
+                      <SelectItem value="azure">Microsoft Azure</SelectItem>
+                      <SelectItem value="gcp">Google Cloud</SelectItem>
+                      <SelectItem value="comptia">CompTIA</SelectItem>
+                      <SelectItem value="cisco">Cisco</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Categoria do simulado para facilitar a filtragem no frontend.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

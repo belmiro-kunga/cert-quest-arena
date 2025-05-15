@@ -27,6 +27,7 @@ export interface Simulado {
   preco_brl?: number; // Preço em reais
   preco_usd?: number; // Preço em dólar
   topicos?: string[]; // Tópicos abordados
+  categoria?: string; // Categoria do simulado (AWS, Azure, GCP, etc.)
 }
 
 // Interface para mapear entre o tipo Exam do frontend e o tipo Simulado do backend
@@ -42,6 +43,7 @@ export interface Exam {
   duration: number;
   questions_count: number;
   category: string;
+  categoria?: string; // Campo categoria do backend (AWS, Azure, GCP, etc.)
   image_url: string;
   created_at: string;
   updated_at: string;
@@ -96,6 +98,8 @@ export const examToSimulado = (exam: Exam): Simulado => {
     data_criacao: exam.created_at,
     ativo: true,
     topicos: exam.topicos || [],
+    categoria: exam.categoria || exam.category || 'aws', // Incluir categoria
+    is_gratis: exam.is_gratis, // Garantir que is_gratis seja incluído
   };
 };
 
@@ -321,7 +325,8 @@ export const getActiveExams = async (): Promise<Exam[]> => {
       difficulty: simulado.nivel_dificuldade || simulado.difficulty || '',
       duration: simulado.duracao_minutos || simulado.duration || 60,
       questions_count: simulado.quantidade_questoes || simulado.questions_count || 0,
-      category: simulado.category || '',
+      category: simulado.categoria || '',
+      categoria: simulado.categoria || '', 
       image_url: simulado.image_url || '',
       created_at: simulado.data_criacao || simulado.created_at || '',
       updated_at: simulado.data_atualizacao || simulado.updated_at || '',
