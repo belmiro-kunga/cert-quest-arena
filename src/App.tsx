@@ -28,6 +28,8 @@ import { PaymentPage } from './pages/Payment';
 import { PaymentResultPage } from './pages/PaymentResult';
 import SimuladosPage from './pages/SimuladosPage';
 import SimuladoDetailPage from './pages/SimuladoDetailPage';
+import Pacotes from './pages/Pacotes';
+import PacoteDetalhes from './pages/PacoteDetalhes';
 import SimuladoRunningPage from './pages/SimuladoRunningPage';
 import SimuladoResultPage from './pages/SimuladoResultPage';
 
@@ -61,6 +63,10 @@ const App = () => {
                       <Route path="/simulados/:id" element={<SimuladoDetailPage />} />
                       <Route path="/simulados/:id/start" element={<SimuladoRunningPage />} />
                       <Route path="/simulados/:id/resultado" element={<SimuladoResultPage />} />
+                      
+                      {/* Rotas de Pacotes */}
+                      <Route path="/pacotes" element={<Pacotes />} />
+                      <Route path="/pacotes/:id" element={<PacoteDetalhes />} />
 
                       {/* Protected User Routes */}
                       <Route 

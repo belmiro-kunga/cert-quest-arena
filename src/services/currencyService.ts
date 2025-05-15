@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { api } from './api';
 
 export interface Currency {
   id: number;
@@ -25,90 +25,61 @@ export interface UpdateCurrencyData {
 
 export const currencyService = {
   async getCurrencies(): Promise<Currency[]> {
-    const { data, error } = await supabase
-      .from('currencies')
-      .select('*')
-      .order('code');
-
-    if (error) {
+    try {
+      const response = await api.get('/currencies');
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar moedas:', error);
-      throw error;
+      return [];
     }
-
-    return data;
   },
 
   async getCurrency(id: number): Promise<Currency> {
-    const { data, error } = await supabase
-      .from('currencies')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
+    try {
+      const response = await api.get(`/currencies/${id}`);
+      return response.data;
+    } catch (error) {
       console.error('Erro ao buscar moeda:', error);
       throw error;
     }
-
-    return data;
   },
 
   async createCurrency(currency: CreateCurrencyData): Promise<Currency> {
-    const { data, error } = await supabase
-      .from('currencies')
-      .insert(currency)
-      .select()
-      .single();
-
-    if (error) {
+    try {
+      const response = await api.post('/currencies', currency);
+      return response.data;
+    } catch (error) {
       console.error('Erro ao criar moeda:', error);
       throw error;
     }
-
-    return data;
   },
 
   async updateCurrency(id: number, currency: UpdateCurrencyData): Promise<Currency> {
-    const { data, error } = await supabase
-      .from('currencies')
-      .update(currency)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
+    try {
+      const response = await api.put(`/currencies/${id}`, currency);
+      return response.data;
+    } catch (error) {
       console.error('Erro ao atualizar moeda:', error);
       throw error;
     }
-
-    return data;
   },
 
   async deleteCurrency(id: number): Promise<void> {
-    const { error } = await supabase
-      .from('currencies')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
+    try {
+      await api.delete(`/currencies/${id}`);
+    } catch (error) {
       console.error('Erro ao deletar moeda:', error);
       throw error;
     }
   },
 
   async toggleCurrencyStatus(id: number, is_active: boolean): Promise<Currency> {
-    const { data, error } = await supabase
-      .from('currencies')
-      .update({ is_active })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
+    try {
+      const response = await api.put(`/currencies/${id}/toggle-status`, { is_active });
+      return response.data;
+    } catch (error) {
       console.error('Erro ao alterar status da moeda:', error);
       throw error;
     }
-
-    return data;
   },
 }; 

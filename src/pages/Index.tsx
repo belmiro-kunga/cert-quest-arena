@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import PacotesList from '@/components/pacote/PacotesList';
 import { useCart } from '@/contexts/CartContext';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -740,6 +741,77 @@ const Index = () => {
             )}
           </div>
         </section>
+
+        {/* Seção de Pacotes de Simulados */}
+        <section className="py-16 bg-purple-50">
+          <div className="container mx-auto max-w-6xl px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4 text-purple-700">Pacotes de Simulados</h2>
+              <p className="text-xl text-gray-600 mb-6">Economize 25% comprando simulados em pacotes</p>
+              
+              {/* Menu de Categorias para Pacotes */}
+              <div className="flex flex-wrap justify-center gap-3 mb-6">
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-purple-500 hover:bg-purple-100 text-purple-700 font-medium`}
+                  onClick={() => navigate('/pacotes')}
+                >
+                  Todos os Pacotes
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-purple-500 hover:bg-purple-100 text-purple-700 font-medium`}
+                  onClick={() => navigate('/pacotes?category=aws')}
+                >
+                  AWS
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-purple-500 hover:bg-purple-100 text-purple-700 font-medium`}
+                  onClick={() => navigate('/pacotes?category=azure')}
+                >
+                  Microsoft Azure
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-purple-500 hover:bg-purple-100 text-purple-700 font-medium`}
+                  onClick={() => navigate('/pacotes?category=gcp')}
+                >
+                  Google Cloud
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-purple-500 hover:bg-purple-100 text-purple-700 font-medium`}
+                  onClick={() => navigate('/pacotes?category=comptia')}
+                >
+                  CompTIA
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className={`rounded-full px-6 py-2 border-purple-500 hover:bg-purple-100 text-purple-700 font-medium`}
+                  onClick={() => navigate('/pacotes?category=cisco')}
+                >
+                  Cisco
+                </Button>
+              </div>
+            </div>
+            
+            {/* Exibir pacotes em destaque (limitado a 3) */}
+            <div className="mt-8">
+              <PacotesList maxItems={3} showTitle={false} />
+              
+              <div className="text-center mt-8">
+                <Button 
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-6 text-lg"
+                  onClick={() => navigate('/pacotes')}
+                >
+                  Ver Todos os Pacotes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+        
         <TestimonialsSection />
       </main>
       <Footer />

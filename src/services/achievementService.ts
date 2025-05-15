@@ -1,90 +1,96 @@
 // import { supabase } from './supabaseClient'; // Arquivo removido, ajuste necessário
 // TODO: Substituir por integração real ou mock
-import { Achievement, AchievementType } from '@/types/admin';
-import { AchievementFormData } from '@/components/admin/AchievementForm'; // Assuming this path is correct
+import { api } from './api';
 
-export interface DbAchievement {
-  id: string; // UUID from Supabase
-  title: string;
+export interface Achievement {
+  id: string;
+  name: string;
   description: string;
-  type: AchievementType;
-  xp: number;
   icon: string;
-  created_at: string;
-  updated_at: string;
+  points: number;
+  category: string;
+  requirements: {
+    type: string;
+    value: number;
+  };
+  isActive: boolean;
 }
 
-// Helper to convert DB representation to frontend type if needed (dates, etc.)
-// For now, they are quite similar, but this can be useful for date objects or other transformations.
-const fromDbAchievement = (dbAchievement: DbAchievement): Achievement => ({
-  ...dbAchievement,
-  // Ensure dates are Date objects if your Achievement type expects them
-  // createdAt: new Date(dbAchievement.created_at),
-  // updatedAt: new Date(dbAchievement.updated_at),
-});
+export interface UserAchievement {
+  id: string;
+  userId: string;
+  achievementId: string;
+  progress: number;
+  completed: boolean;
+  completedAt?: string;
+  achievement: Achievement;
+}
 
 export const getAchievements = async (): Promise<Achievement[]> => {
-  const { data, error } = await supabase
-    .from('achievements')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching achievements:', error);
-    throw error;
+  try {
+    const response = await api.get('/achievements');
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar conquistas:', error);
+    return [];
   }
-  // Assuming DbAchievement and Achievement are compatible for now, or use fromDbAchievement
-  return data as Achievement[]; 
 };
 
-export const createAchievement = async (achievementData: AchievementFormData): Promise<Achievement> => {
-  const { data, error } = await supabase
-    .from('achievements')
-    .insert([{
-      title: achievementData.title,
-      description: achievementData.description,
-      type: achievementData.type,
-      xp: achievementData.xp,
-      icon: achievementData.icon,
-      // created_at and updated_at will be set by Supabase defaults
-    }])
-    .select()
-    .single(); // .single() ensures we get the created object back
-
-  if (error) {
-    console.error('Error creating achievement:', error);
-    throw error;
+export const getUserAchievements = async (userId: string): Promise<UserAchievement[]> => {
+  try {
+    const response = await api.get(`/achievements/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar conquistas do usuário:', error);
+    return [];
   }
-  // Assuming DbAchievement and Achievement are compatible for now, or use fromDbAchievement
-  return data as Achievement;
 };
 
-export const updateAchievement = async (id: string, achievementData: Partial<AchievementFormData>): Promise<Achievement> => {
-  const { data, error } = await supabase
-    .from('achievements')
-    .update({
-      ...achievementData,
-      updated_at: new Date().toISOString(), // Manually set updated_at
-    })
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error updating achievement:', error);
+export const updateAchievementProgress = async (userId: string, achievementId: string, progress: number): Promise<UserAchievement> => {
+  try {
+    const response = await api.put(`/achievements/user/${userId}/${achievementId}`, { progress });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar progresso da conquista:', error);
     throw error;
   }
-  return data as Achievement;
+};
+
+export const completeAchievement = async (userId: string, achievementId: string): Promise<UserAchievement> => {
+  try {
+    const response = await api.post(`/achievements/user/${userId}/${achievementId}/complete`);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao completar conquista:', error);
+    throw error;
+  }
+};
+
+export const createAchievement = async (achievement: Omit<Achievement, 'id'>): Promise<Achievement> => {
+  try {
+    const response = await api.post('/achievements', achievement);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao criar conquista:', error);
+    throw error;
+  }
+};
+
+export const updateAchievement = async (id: string, achievement: Partial<Achievement>): Promise<Achievement> => {
+  try {
+    const response = await api.put(`/achievements/${id}`, achievement);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar conquista:', error);
+    throw error;
+  }
 };
 
 export const deleteAchievement = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('achievements')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting achievement:', error);
+  try {
+    await api.delete(`/achievements/${id}`);
+  } catch (error) {
+    console.error('Erro ao deletar conquista:', error);
     throw error;
   }
 };

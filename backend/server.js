@@ -3,10 +3,17 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./db'); // Import the db configuration
 
+// Importar modelos e rotas
+const simuladoModel = require('./models/simuladoModel');
+const pacoteModel = require('./models/pacoteModel');
+const systemSettingsModel = require('./models/systemSettingsModel');
+
 // Importar rotas
 const simuladoRoutes = require('./routes/simuladoRoutes');
 const questaoRoutes = require('./routes/questaoRoutes');
 const resultRoutes = require('./routes/resultRoutes');
+const pacoteRoutes = require('./routes/pacoteRoutes');
+const systemSettingsRoutes = require('./routes/systemSettings');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -71,11 +78,48 @@ console.log('Registrando rotas de resultados...');
 app.use('/api/resultados', resultRoutes);
 console.log('Rotas de resultados registradas!');
 
+console.log('Registrando rotas de pacotes...');
+app.use('/api/pacotes', pacoteRoutes);
+console.log('Rotas de pacotes registradas!');
+
+console.log('Registrando rotas de configurações do sistema...');
+app.use('/api/system-settings', systemSettingsRoutes);
+console.log('Rotas de configurações do sistema registradas!');
+
+// Inicializar tabelas e dados
+const initializeDatabase = async () => {
+  try {
+    console.log('Inicializando tabelas do banco de dados...');
+    
+    // Inicializar tabelas de simulados
+    await simuladoModel.initialize();
+    console.log('Tabelas de simulados inicializadas.');
+    
+    // Inicializar tabelas de pacotes
+    await pacoteModel.createTableIfNotExists();
+    console.log('Tabelas de pacotes inicializadas.');
+    
+    // Inicializar tabelas de configurações do sistema
+    await systemSettingsModel.createTableIfNotExists();
+    console.log('Tabelas de configurações do sistema inicializadas.');
+    
+    console.log('Inicialização do banco de dados concluída com sucesso!');
+  } catch (error) {
+    console.error('Erro ao inicializar o banco de dados:', error);
+  }
+};
+
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server listening on port ${PORT}`);
   console.log(`API disponível em http://localhost:${PORT}/api`);
+  
+  // Inicializar banco de dados
+  await initializeDatabase();
+  
   console.log(`Teste a conexão com o banco em http://localhost:${PORT}/api/test-db`);
   console.log(`Gerenciamento de simulados em http://localhost:${PORT}/api/simulados`);
   console.log(`Gerenciamento de questões em http://localhost:${PORT}/api/questoes`);
+  console.log(`Gerenciamento de pacotes em http://localhost:${PORT}/api/pacotes`);
+  console.log(`Gerenciamento de configurações do sistema em http://localhost:${PORT}/api/system-settings`);
 });

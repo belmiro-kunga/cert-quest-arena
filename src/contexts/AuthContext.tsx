@@ -16,12 +16,14 @@ interface User {
   name: string;
   role: 'user' | 'admin';
   affiliate: AffiliateInfo;
+  photoURL?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => void;
   isAdmin: () => boolean;
 }
@@ -32,6 +34,7 @@ const DEFAULT_USER: User = {
   email: 'user@certquest.com',
   name: 'Test User',
   role: 'user',
+  photoURL: '',
   affiliate: {
     status: 'approved',
     earnings: 0,
@@ -45,6 +48,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
   signIn: async () => {},
+  signUp: async () => {},
   signOut: () => {},
   isAdmin: () => false,
 });
@@ -81,6 +85,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUp = async (email: string, password: string, name: string) => {
+    setLoading(true);
+    try {
+      // Simular criação de usuário
+      const newUser: User = {
+        ...DEFAULT_USER,
+        id: Math.random().toString(),
+        email,
+        name,
+      };
+      
+      setUser(newUser);
+      toast({
+        title: "Conta criada com sucesso",
+        description: "Bem-vindo ao CertQuest Arena!",
+      });
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar conta",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = () => {
     setUser(null);
     toast({
@@ -98,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user, 
         loading,
         signIn,
+        signUp,
         signOut,
         isAdmin,
       }}

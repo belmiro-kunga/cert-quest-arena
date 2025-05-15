@@ -1,6 +1,7 @@
 // import { supabase } from './supabaseClient'; // Arquivo removido, ajuste necessário
 // TODO: Substituir por integração real ou mock
 import { PaymentDetails } from '@/components/notifications/PaymentNotification';
+import { api } from './api';
 
 export interface PaymentGateway {
   id: string;
@@ -30,6 +31,29 @@ export interface PaymentGatewayConfig {
     merchantId?: string;
     environment: 'sandbox' | 'production';
   };
+}
+
+export interface Payment {
+  id: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  method: string;
+  description: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  type: string;
+  last4?: string;
+  brand?: string;
+  expiryMonth?: number;
+  expiryYear?: number;
+  isDefault: boolean;
 }
 
 // Buscar configurações dos gateways
@@ -113,4 +137,85 @@ export const testGatewayConnection = async (
     console.error('Error testing gateway connection:', error);
     throw error;
   }
+};
+
+export const paymentService = {
+  async getPayments(): Promise<Payment[]> {
+    try {
+      const response = await api.get('/payments');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar pagamentos:', error);
+      return [];
+    }
+  },
+
+  async getPaymentById(id: string): Promise<Payment> {
+    try {
+      const response = await api.get(`/payments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar pagamento:', error);
+      throw error;
+    }
+  },
+
+  async createPayment(payment: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>): Promise<Payment> {
+    try {
+      const response = await api.post('/payments', payment);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar pagamento:', error);
+      throw error;
+    }
+  },
+
+  async updatePayment(id: string, payment: Partial<Payment>): Promise<Payment> {
+    try {
+      const response = await api.put(`/payments/${id}`, payment);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar pagamento:', error);
+      throw error;
+    }
+  },
+
+  async getPaymentMethods(): Promise<PaymentMethod[]> {
+    try {
+      const response = await api.get('/payment-methods');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar métodos de pagamento:', error);
+      return [];
+    }
+  },
+
+  async addPaymentMethod(method: Omit<PaymentMethod, 'id'>): Promise<PaymentMethod> {
+    try {
+      const response = await api.post('/payment-methods', method);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao adicionar método de pagamento:', error);
+      throw error;
+    }
+  },
+
+  async removePaymentMethod(id: string): Promise<void> {
+    try {
+      await api.delete(`/payment-methods/${id}`);
+    } catch (error) {
+      console.error('Erro ao remover método de pagamento:', error);
+      throw error;
+    }
+  },
+
+  async setDefaultPaymentMethod(id: string): Promise<PaymentMethod> {
+    try {
+      const response = await api.put(`/payment-methods/${id}/default`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao definir método de pagamento padrão:', error);
+      throw error;
+    }
+  },
 }; 

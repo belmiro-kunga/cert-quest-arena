@@ -10,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Globe, Clock, DollarSign, Palette, Image, Mail, Bell, Shield, CreditCard, MapPin, Receipt, XCircle, Users, UserCircle, FileText } from 'lucide-react';
-import { PaymentSettings } from '@/components/admin/settings/PaymentSettings';
+import PaymentSettings from '@/components/admin/settings/PaymentSettings';
 import { BillingSettings } from '@/components/admin/settings/BillingSettings';
 import { CancellationSettings } from '@/components/admin/settings/CancellationSettings';
 import { UserAccessSettings } from '@/components/admin/settings/UserAccessSettings';

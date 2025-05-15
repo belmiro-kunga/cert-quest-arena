@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { FlashcardForm } from './FlashcardForm';
 import { Flashcard } from '@/types/admin';
 import { Plus, Edit, Trash } from 'lucide-react';
-import { createFlashcard, updateFlashcard, deleteFlashcard, listFlashcards } from '@/lib/flashcards';
+import { createFlashcard, updateFlashcard, deleteFlashcard, getFlashcards } from '@/lib/flashcards';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +46,7 @@ export const Flashcards: React.FC = () => {
 
   const loadFlashcards = async () => {
     try {
-      const data = await listFlashcards();
+      const data = await getFlashcards();
       setFlashcards(data);
     } catch (error) {
       console.error('Error loading flashcards:', error);

@@ -18,6 +18,8 @@ import {
   ShoppingBag,
   FileText,
   ClipboardCheck,
+  Package,
+  Cog,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -35,6 +37,11 @@ const sidebarItems = [
     title: 'Simulados',
     href: '/admin/exams',
     icon: BookOpen,
+  },
+  {
+    title: 'Pacotes',
+    href: '/admin/pacotes',
+    icon: Package,
   },
   {
     title: 'Cupons',
@@ -82,6 +89,11 @@ const sidebarItems = [
         icon: Mail,
       },
     ],
+  },
+  {
+    title: 'Configurações do Sistema',
+    href: '/admin/system-settings',
+    icon: Cog,
   },
   {
     title: 'Marketplace',

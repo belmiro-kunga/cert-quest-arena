@@ -12,6 +12,8 @@ export interface CartItem {
   discountPrice?: number | null;
   preco_usd?: number;
   preco_eur?: number;
+  isPackage?: boolean;
+  packageItems?: string[];
 }
 
 interface ShoppingCartProps {
@@ -70,8 +72,20 @@ const ShoppingCart: React.FC<ShoppingCartProps> = ({
                   className="flex items-start justify-between space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex-grow">
-                    <h3 className="font-medium text-gray-900">{item.title}</h3>
+                    <h3 className="font-medium text-gray-900">
+                      {item.isPackage && (
+                        <span className="inline-flex items-center mr-2 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          Pacote
+                        </span>
+                      )}
+                      {item.title}
+                    </h3>
                     <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                    {item.isPackage && item.packageItems && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {item.packageItems.length} simulados incluídos
+                      </p>
+                    )}
                     <div className="mt-2">
                       {item.discountPrice ? (
                         <div className="flex items-center gap-2">

@@ -10,13 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
+import { LoginForm } from './LoginForm';
+import { RegisterForm } from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { ShoppingCart, Menu, X, User, Settings, LogOut, Gift, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import CurrencySelector from './CurrencySelector';
 
 import { useTranslation } from 'react-i18next';
 
@@ -159,6 +160,7 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-4">
+            <CurrencySelector />
             <Button
               variant="outline"
               size="icon"

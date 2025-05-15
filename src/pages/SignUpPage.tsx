@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import RegisterForm from '@/components/RegisterForm';
+import { RegisterForm } from '@/components/RegisterForm';
 import Footer from '@/components/Footer';
 
 const SignUpPage = () => {

@@ -19,6 +19,8 @@ import CurrenciesPage from "./admin/settings/CurrenciesPage";
 import MarketplaceAffiliateSettings from "./admin/MarketplaceAffiliateSettings";
 import MarketplaceSalesMetrics from "./admin/MarketplaceSalesMetrics";
 import MarketplaceSalesPolicies from "./admin/MarketplaceSalesPolicies";
+import PacotesAdmin from "./admin/PacotesAdmin";
+import SystemSettings from "./admin/SystemSettings";
 import { Routes, Route } from "react-router-dom";
 import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -82,6 +84,7 @@ const AdminPage = () => {
         <div className="flex-1 overflow-auto p-6">
           <Routes>
             <Route path="/" element={<Overview />} />
+            <Route path="/dashboard" element={<Overview />} />
             
             {/* Students Routes */}
             <Route 
@@ -121,6 +124,9 @@ const AdminPage = () => {
               element={<SimuladoAdmin />} 
             />
 
+            {/* Pacotes Routes */}
+            <Route path="/pacotes" element={<PacotesAdmin />} />
+
             {/* Coupons Routes */}
             <Route 
               path="/coupons" 
@@ -156,11 +162,13 @@ const AdminPage = () => {
             <Route path="/settings/languages" element={<LanguagesPage />} />
             <Route path="/settings/currencies" element={<CurrenciesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/system-settings" element={<SystemSettings />} />
             <Route path="/email-templates" element={<EmailTemplates />} />
             <Route path="/marketplace/sales-metrics" element={<MarketplaceSalesMetrics />} />
             <Route path="/marketplace/sales-policies" element={<MarketplaceSalesPolicies />} />
             <Route path="/marketplace/affiliate-settings" element={<MarketplaceAffiliateSettings />} />
             <Route path="/marketplace/affiliate-requests" element={<AffiliateRequests />} />
+            <Route path="/affiliate-requests" element={<AffiliateRequests />} />
           </Routes>
         </div>
       </div>

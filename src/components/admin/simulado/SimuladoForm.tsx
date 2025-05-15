@@ -12,19 +12,25 @@ import { Simulado } from '@/services/simuladoService';
 
 import { Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Esquema de validação usando Zod
 const simuladoSchema = z.object({
-  titulo: z.string().min(3, { message: 'O título deve ter pelo menos 3 caracteres' }).max(255),
-  descricao: z.string().optional(),
-  preco_usd: z.coerce.number().min(0, { message: 'Preço deve ser zero ou positivo' }),
+  titulo: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
+  descricao: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
+  preco_usd: z.number().min(0, 'Preço não pode ser negativo'),
   is_gratis: z.boolean().default(false),
-  duracao_minutos: z.coerce.number().min(1, { message: 'A duração deve ser pelo menos 1 minuto' }),
-  nivel_dificuldade: z.string().optional(),
-  language: z.enum(['pt', 'en', 'fr', 'es'], { required_error: 'Selecione o idioma do simulado' }),
-  categoria: z.enum(['aws', 'azure', 'gcp', 'comptia', 'cisco'], { required_error: 'Selecione a categoria do simulado' }),
+  duracao_minutos: z.number().min(1, 'Duração deve ser maior que 0'),
+  nivel_dificuldade: z.enum(['Fácil', 'Médio', 'Difícil']),
+  language: z.enum(['pt', 'en', 'fr', 'es']),
+  categoria: z.enum(['aws', 'azure', 'gcp', 'comptia', 'cisco']),
   ativo: z.boolean().default(true),
-  topicos: z.array(z.string().min(1, 'O tópico não pode ser vazio')).min(1, 'Adicione pelo menos um tópico'),
+  topicos: z.array(z.string()),
+  // Campos de subscrição
+  is_subscription: z.boolean().default(false),
+  subscription_duration: z.number().min(1).default(90),
+  subscription_price: z.number().min(0).optional(),
+  subscription_currency: z.string().default('BRL')
 });
 
 type SimuladoFormValues = z.infer<typeof simuladoSchema>;
@@ -53,7 +59,9 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
       preco_usd: simulado?.preco_usd ?? 0,
       is_gratis: simulado?.is_gratis ?? false,
       duracao_minutos: simulado?.duracao_minutos || 60,
-      nivel_dificuldade: simulado?.nivel_dificuldade || 'Médio',
+      nivel_dificuldade: (['Fácil', 'Médio', 'Difícil'] as const).includes(simulado?.nivel_dificuldade as any)
+        ? (simulado?.nivel_dificuldade as 'Fácil' | 'Médio' | 'Difícil')
+        : 'Médio',
       language: (['pt', 'en', 'fr', 'es'] as const).includes(simulado?.language as any)
         ? (simulado?.language as 'pt' | 'en' | 'fr' | 'es')
         : 'pt',
@@ -62,6 +70,11 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
         : 'aws',
       ativo: simulado?.ativo !== undefined ? simulado.ativo : true,
       topicos: (simulado as any)?.topicos || [''],
+      // Valores padrão para subscrição
+      is_subscription: simulado?.is_subscription ?? false,
+      subscription_duration: simulado?.subscription_duration ?? 90,
+      subscription_price: simulado?.subscription_price,
+      subscription_currency: simulado?.subscription_currency ?? 'BRL'
     },
   });
 
@@ -288,20 +301,107 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
             )}
           />
 
-          <div className="flex justify-end gap-2 mt-8">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...
-                </>
-              ) : (
-                "Salvar"
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="is_subscription"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Subscrição de 90 dias</FormLabel>
+                    <FormDescription>
+                      Marque esta opção para oferecer este simulado como uma subscrição de 90 dias.
+                    </FormDescription>
+                  </div>
+                </FormItem>
               )}
-            </Button>
+            />
+
+            {form.watch('is_subscription') && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="subscription_duration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Duração da Subscrição (dias)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          {...field}
+                          onChange={e => field.onChange(parseInt(e.target.value))}
+                          value={field.value || 90}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Número de dias que o usuário terá acesso ao simulado.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="subscription_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço da Subscrição</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          {...field}
+                          onChange={e => field.onChange(parseFloat(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Preço para acesso ao simulado durante o período da subscrição.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="subscription_currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Moeda</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a moeda" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="BRL">BRL (Real)</SelectItem>
+                          <SelectItem value="USD">USD (Dólar)</SelectItem>
+                          <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Moeda para o preço da subscrição.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
           </div>
+
           <FormField
             control={form.control}
             name="topicos"
@@ -346,6 +446,21 @@ const SimuladoForm: React.FC<SimuladoFormProps> = ({
               </FormItem>
             )}
           />
+
+          <div className="flex justify-end gap-2 mt-8">
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...
+                </>
+              ) : (
+                "Salvar"
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </FormProvider>

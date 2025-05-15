@@ -1,96 +1,125 @@
-import { supabase } from '@/integrations/supabase/client';
-import { Exam } from '@/types/admin';
+import { api } from './api';
 
-const convertDatesToStrings = (examData: any) => {
-  return {
-    ...examData,
-    discount_expires_at: examData.discount_expires_at instanceof Date 
-      ? examData.discount_expires_at.toISOString() 
-      : examData.discount_expires_at
-  };
-};
+export interface Exam {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  discountPrice?: number;
+  priceUSD: number;
+  language: string;
+  difficulty: string;
+  duration: number;
+  questionsCount: number;
+  category: string;
+  imageUrl?: string;
+  topics: string[];
+  isFree: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
-// Transform database exam to match Exam type
-const transformExamData = (exam: any): Exam => {
-  return {
-    id: exam.id,
-    title: exam.title,
-    description: exam.description || '',
-    questions: [], // Default empty array since questions are loaded separately
-    duration: exam.duration,
-    passingScore: exam.passing_score,
-    price: exam.price,
-    discountPrice: exam.discount_price,
-    discountPercentage: exam.discount_percentage,
-    discountExpiresAt: exam.discount_expires_at || null,
-    questionsCount: exam.questions_count,
-    difficulty: exam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
-    purchases: exam.purchases,
-    rating: exam.rating,
-    createdAt: exam.created_at || new Date().toISOString(),
-    updatedAt: exam.updated_at || new Date().toISOString()
-  };
-};
+export interface ExamAttempt {
+  id: string;
+  userId: string;
+  examId: string;
+  startTime: string;
+  endTime?: string;
+  score?: number;
+  answers: Record<string, string>;
+  status: 'in_progress' | 'completed' | 'abandoned';
+}
 
-export const fetchExams = async (): Promise<Exam[]> => {
-  const { data, error } = await supabase
-    .from('exams')
-    .select('*')
-    .order('created_at', { ascending: false });
+export const examService = {
+  async getAllExams(): Promise<Exam[]> {
+    try {
+      const response = await api.get('/exams');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar exames:', error);
+      return [];
+    }
+  },
 
-  if (error) {
-    console.error('Error fetching exams:', error);
-    throw error;
-  }
+  async getExamById(id: string): Promise<Exam> {
+    try {
+      const response = await api.get(`/exams/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar exame:', error);
+      throw error;
+    }
+  },
 
-  return (data || []).map(transformExamData);
-};
+  async createExam(exam: Omit<Exam, 'id' | 'createdAt' | 'updatedAt'>): Promise<Exam> {
+    try {
+      const response = await api.post('/exams', exam);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao criar exame:', error);
+      throw error;
+    }
+  },
 
-export const createExam = async (examData: any): Promise<Exam> => {
-  const formattedData = convertDatesToStrings(examData);
-  
-  const { data, error } = await supabase
-    .from('exams')
-    .insert(formattedData)
-    .select()
-    .single();
+  async updateExam(id: string, exam: Partial<Exam>): Promise<Exam> {
+    try {
+      const response = await api.put(`/exams/${id}`, exam);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar exame:', error);
+      throw error;
+    }
+  },
 
-  if (error) {
-    console.error('Error creating exam:', error);
-    throw error;
-  }
+  async deleteExam(id: string): Promise<void> {
+    try {
+      await api.delete(`/exams/${id}`);
+    } catch (error) {
+      console.error('Erro ao deletar exame:', error);
+      throw error;
+    }
+  },
 
-  return transformExamData(data);
-};
+  async startExam(userId: string, examId: string): Promise<ExamAttempt> {
+    try {
+      const response = await api.post('/exam-attempts', { userId, examId });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao iniciar exame:', error);
+      throw error;
+    }
+  },
 
-export const updateExam = async (id: string, examData: any): Promise<Exam> => {
-  const formattedData = convertDatesToStrings(examData);
-  
-  const { data, error } = await supabase
-    .from('exams')
-    .update(formattedData)
-    .eq('id', id)
-    .select()
-    .single();
+  async submitAnswer(attemptId: string, questionId: string, answer: string): Promise<ExamAttempt> {
+    try {
+      const response = await api.put(`/exam-attempts/${attemptId}/answers`, {
+        questionId,
+        answer
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao enviar resposta:', error);
+      throw error;
+    }
+  },
 
-  if (error) {
-    console.error('Error updating exam:', error);
-    throw error;
-  }
+  async completeExam(attemptId: string): Promise<ExamAttempt> {
+    try {
+      const response = await api.post(`/exam-attempts/${attemptId}/complete`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao completar exame:', error);
+      throw error;
+    }
+  },
 
-  return transformExamData(data);
-};
-
-export const deleteExam = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('exams')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting exam:', error);
-    throw error;
-  }
-
-  return true;
+  async getUserAttempts(userId: string): Promise<ExamAttempt[]> {
+    try {
+      const response = await api.get(`/exam-attempts/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar tentativas do usuário:', error);
+      return [];
+    }
+  },
 };

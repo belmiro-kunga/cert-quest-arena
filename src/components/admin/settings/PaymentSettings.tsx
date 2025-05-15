@@ -84,13 +84,9 @@ const paymentSettingsSchema = z.object({
   generalConfig: generalConfigSchema
 });
 
-
-
-
-
 type FormValues = z.infer<typeof paymentSettingsSchema>;
 
-export function PaymentSettings() {
+const PaymentSettings: React.FC = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(paymentSettingsSchema),
     defaultValues: {
@@ -167,209 +163,47 @@ export function PaymentSettings() {
                 <CardDescription>Configure as políticas de reembolso e processamento</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="refundPolicy.refundPeriod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Período de Reembolso (dias)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                  </FormControl>
-                  <FormDescription>
-                    Período em dias durante o qual os clientes podem solicitar reembolso
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="refundPolicy.refundPolicy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Política de Reembolso</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Descreva sua política de reembolso detalhadamente
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="refundPolicy.automaticRefunds"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Reembolsos Automáticos</FormLabel>
-                    <FormDescription>
-                      Aprovar automaticamente reembolsos dentro do período permitido
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="refundPolicy.refundNotifications"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Notificações de Reembolso</FormLabel>
-                    <FormDescription>
-                      Enviar notificações sobre status do reembolso
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="refundPolicy.partialRefunds"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel>Reembolsos Parciais</FormLabel>
-                    <FormDescription>
-                      Permitir reembolsos parciais do valor da compra
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="refundPolicy.refundMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Método de Reembolso</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o método de reembolso" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="original">Método Original de Pagamento</SelectItem>
-                      <SelectItem value="credit">Crédito na Plataforma</SelectItem>
-                      <SelectItem value="transfer">Transferência Bancária</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Como os reembolsos serão processados
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="refundPolicy.processingTime"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tempo de Processamento (dias úteis)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
-                  </FormControl>
-                  <FormDescription>
-                    Tempo estimado para processar os reembolsos
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="refundPolicy.minAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Mínimo</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        value={typeof field.value === 'number' ? field.value : ''}
-                        onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Valor mínimo para reembolso
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="refundPolicy.maxAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Máximo</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        value={typeof field.value === 'number' ? field.value : ''}
-                        onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Valor máximo para reembolso
-                    </FormDescription>
-                  </FormItem>
-                )}
-              />
-            </div>
-              </CardContent>
-            </Card>
-
-            <Button type="submit" className="w-full">Salvar Configurações</Button>
-          </form>
-        </Form>
-      </TabsContent>
-
-      <TabsContent value="payment" className="mt-4">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Métodos de Pagamento</CardTitle>
-                <CardDescription>Configure os métodos de pagamento aceitos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="paymentMethods.enabled"
+                  name="refundPolicy.refundPeriod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Período de Reembolso (dias)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      </FormControl>
+                      <FormDescription>
+                        Período em dias durante o qual os clientes podem solicitar reembolso
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.refundPolicy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Política de Reembolso</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Descreva sua política de reembolso detalhadamente
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.automaticRefunds"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel>Ativar Pagamentos</FormLabel>
+                        <FormLabel className="text-base">Reembolsos Automáticos</FormLabel>
                         <FormDescription>
-                          Habilitar processamento de pagamentos
+                          Processar reembolsos automaticamente quando aprovados
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -382,57 +216,234 @@ export function PaymentSettings() {
                   )}
                 />
 
-                {form.watch('paymentMethods.enabled') && (
-                  <div className="space-y-4">
-                    {form.watch('paymentMethods.methods')?.map((method: PaymentMethod, index: number) => (
-                      <Card key={method.id}>
-                        <CardContent className="pt-6">
-                          <div className="grid gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`paymentMethods.methods.${index}.enabled` as const}
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-center justify-between">
-                                  <div className="space-y-0.5">
-                                    <FormLabel>{method.name}</FormLabel>
-                                  </div>
-                                  <FormControl>
-                                    <Switch
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name={`paymentMethods.methods.${index}.processingFee` as const}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Taxa de Processamento (%)</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={field.value}
-                                      onChange={e => field.onChange(Number(e.target.value))}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.refundNotifications"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Notificações de Reembolso</FormLabel>
+                        <FormDescription>
+                          Enviar notificações por email sobre o status do reembolso
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.partialRefunds"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Reembolsos Parciais</FormLabel>
+                        <FormDescription>
+                          Permitir reembolsos parciais de pedidos
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.processingTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tempo de Processamento (dias)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      </FormControl>
+                      <FormDescription>
+                        Tempo médio para processar um reembolso
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.refundMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Método de Reembolso</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o método de reembolso" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="original">Método Original de Pagamento</SelectItem>
+                          <SelectItem value="credit">Crédito na Plataforma</SelectItem>
+                          <SelectItem value="transfer">Transferência Bancária</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Método padrão para processar reembolsos
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.minAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor Mínimo de Reembolso</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      </FormControl>
+                      <FormDescription>
+                        Valor mínimo para processar um reembolso
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.maxAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor Máximo de Reembolso</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      </FormControl>
+                      <FormDescription>
+                        Valor máximo para processar um reembolso
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.refundFees"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Taxas de Reembolso</FormLabel>
+                        <FormDescription>
+                          Aplicar taxas de processamento em reembolsos
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refundPolicy.additionalNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notas Adicionais</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Informações adicionais sobre a política de reembolso
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
+          </form>
+        </Form>
+      </TabsContent>
 
-            <Button type="submit" className="w-full">Salvar Configurações</Button>
+      <TabsContent value="payment" className="mt-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Métodos de Pagamento</CardTitle>
+                <CardDescription>Configure os métodos de pagamento disponíveis</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="paymentMethods.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Habilitar Pagamentos</FormLabel>
+                        <FormDescription>
+                          Ativar ou desativar o processamento de pagamentos
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('paymentMethods.methods').map((method, index) => (
+                  <Card key={method.id} className="p-4">
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name={`paymentMethods.methods.${index}.enabled`}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">{method.name}</FormLabel>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`paymentMethods.methods.${index}.processingFee`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Taxa de Processamento (%)</FormLabel>
+                            <FormControl>
+                              <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                            </FormControl>
+                            <FormDescription>
+                              Taxa de processamento para este método de pagamento
+                            </FormDescription>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
           </form>
         </Form>
       </TabsContent>
@@ -459,12 +470,12 @@ export function PaymentSettings() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="USD">Dólar Americano (USD)</SelectItem>
-                          <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                          <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                          <SelectItem value="EUR">EUR - Euro</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Moeda principal para pagamentos
+                        Moeda padrão para transações
                       </FormDescription>
                     </FormItem>
                   )}
@@ -477,15 +488,10 @@ export function PaymentSettings() {
                     <FormItem>
                       <FormLabel>Taxa de Imposto (%)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          {...field}
-                          onChange={e => field.onChange(Number(e.target.value))}
-                        />
+                        <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
                       </FormControl>
                       <FormDescription>
-                        Taxa de imposto padrão aplicada aos pagamentos
+                        Taxa de imposto aplicada às transações
                       </FormDescription>
                     </FormItem>
                   )}
@@ -498,13 +504,10 @@ export function PaymentSettings() {
                     <FormItem>
                       <FormLabel>Prefixo da Fatura</FormLabel>
                       <FormControl>
-                        <Input 
-                          value={typeof field.value === 'string' ? field.value : ''} 
-                          onChange={field.onChange} 
-                        />
+                        <Input {...field} />
                       </FormControl>
                       <FormDescription>
-                        Prefixo usado na numeração das faturas
+                        Prefixo usado para identificar faturas
                       </FormDescription>
                     </FormItem>
                   )}
@@ -517,15 +520,10 @@ export function PaymentSettings() {
                     <FormItem>
                       <FormLabel>Número Inicial da Fatura</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={typeof field.value === 'number' ? field.value : ''}
-                          onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                        />
+                        <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
                       </FormControl>
                       <FormDescription>
-                        Número inicial para a sequência de faturas
+                        Número inicial para sequência de faturas
                       </FormDescription>
                     </FormItem>
                   )}
@@ -537,9 +535,9 @@ export function PaymentSettings() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel>Geração Automática de Faturas</FormLabel>
+                        <FormLabel className="text-base">Gerar Faturas Automaticamente</FormLabel>
                         <FormDescription>
-                          Gerar faturas automaticamente após o pagamento
+                          Gerar faturas automaticamente após pagamentos
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -551,17 +549,14 @@ export function PaymentSettings() {
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent>
+
                 <FormField
                   control={form.control}
                   name="generalConfig.sendInvoicesByEmail"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel>Envio Automático de Faturas</FormLabel>
+                        <FormLabel className="text-base">Enviar Faturas por Email</FormLabel>
                         <FormDescription>
                           Enviar faturas automaticamente por email
                         </FormDescription>
@@ -577,11 +572,11 @@ export function PaymentSettings() {
                 />
               </CardContent>
             </Card>
-
-            <Button type="submit" className="w-full">Salvar Configurações</Button>
           </form>
         </Form>
       </TabsContent>
     </Tabs>
   );
-}
+};
+
+export default PaymentSettings;

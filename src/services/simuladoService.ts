@@ -28,6 +28,10 @@ export interface Simulado {
   preco_usd?: number; // Preço em dólar
   topicos?: string[]; // Tópicos abordados
   categoria?: string; // Categoria do simulado (AWS, Azure, GCP, etc.)
+  is_subscription?: boolean;
+  subscription_duration?: number;
+  subscription_price?: number;
+  subscription_currency?: string;
 }
 
 // Interface para mapear entre o tipo Exam do frontend e o tipo Simulado do backend
@@ -43,12 +47,16 @@ export interface Exam {
   duration: number;
   questions_count: number;
   category: string;
-  categoria?: string; // Campo categoria do backend (AWS, Azure, GCP, etc.)
+  categoria?: string;
   image_url: string;
   created_at: string;
   updated_at: string;
-  topicos?: string[]; // Tópicos abordados
-  is_gratis?: boolean; // Novo campo para identificar simulados gratuitos
+  topicos?: string[];
+  is_gratis?: boolean;
+  is_subscription?: boolean;
+  subscription_duration?: number;
+  subscription_price?: number;
+  subscription_currency?: string;
 }
 
 // Função para converter Simulado (backend) para Exam (frontend)
@@ -74,6 +82,10 @@ export const simuladoToExam = (simulado: Simulado): Exam => {
     created_at: simulado.data_criacao || '',
     updated_at: (simulado as any).updated_at || '',
     topicos: simulado.topicos || [],
+    is_subscription: simulado.is_subscription || false,
+    subscription_duration: simulado.subscription_duration || 90,
+    subscription_price: simulado.subscription_price,
+    subscription_currency: simulado.subscription_currency || 'BRL'
   };
   
   // Log para depuração
@@ -89,7 +101,7 @@ export const examToSimulado = (exam: Exam): Simulado => {
     titulo: exam.title,
     descricao: exam.description,
     preco: exam.preco_usd ?? exam.price,
-    preco_usd: exam.preco_usd, // permitido pela interface Simulado
+    preco_usd: exam.preco_usd,
     preco_desconto: exam.discountPrice,
     language: exam.language || 'pt',
     nivel_dificuldade: exam.difficulty,
@@ -98,8 +110,12 @@ export const examToSimulado = (exam: Exam): Simulado => {
     data_criacao: exam.created_at,
     ativo: true,
     topicos: exam.topicos || [],
-    categoria: exam.categoria || exam.category || 'aws', // Incluir categoria
-    is_gratis: exam.is_gratis, // Garantir que is_gratis seja incluído
+    categoria: exam.categoria || exam.category || 'aws',
+    is_gratis: exam.is_gratis,
+    is_subscription: exam.is_subscription,
+    subscription_duration: exam.subscription_duration,
+    subscription_price: exam.subscription_price,
+    subscription_currency: exam.subscription_currency
   };
 };
 
@@ -138,7 +154,11 @@ export const getSimulados = async (): Promise<Simulado[]> => {
       nota_minima: simulado.nota_minima,
       data_criacao: simulado.data_criacao || simulado.created_at || '',
       ativo: simulado.ativo !== undefined ? simulado.ativo : (simulado.status !== undefined ? simulado.status : true),
-      language: simulado.language
+      language: simulado.language,
+      is_subscription: simulado.is_subscription,
+      subscription_duration: simulado.subscription_duration,
+      subscription_price: simulado.subscription_price,
+      subscription_currency: simulado.subscription_currency
     }));
   } catch (error) {
     console.error('Erro ao buscar simulados:', error);
@@ -332,6 +352,10 @@ export const getActiveExams = async (): Promise<Exam[]> => {
       updated_at: simulado.data_atualizacao || simulado.updated_at || '',
       topicos: simulado.topicos || [],
       is_gratis: simulado.is_gratis === true, // Garante o campo para o frontend
+      is_subscription: simulado.is_subscription,
+      subscription_duration: simulado.subscription_duration,
+      subscription_price: simulado.subscription_price,
+      subscription_currency: simulado.subscription_currency
     }));
 
     console.log('Exams convertidos:', exams);

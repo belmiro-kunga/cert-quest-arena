@@ -1,171 +1,108 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
-import { AuthError } from '@supabase/supabase-js';
+import { useTranslation } from 'react-i18next';
+import { api } from '@/services/api';
 
 interface LoginFormProps {
   onSuccess?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { signIn } = useAuth();
+const loginSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { t } = useTranslation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      setError('Por favor, preencha todos os campos.');
-      return;
-    }
-    
-    setLoading(true);
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      console.log("Logging in user:", email);
-      await signIn(email, password);
-      
-      console.log("Login successful, redirecting...");
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      const error = err as AuthError;
-      console.error("Login error:", error);
-      setError(error.message);
-      
-      // Mensagens de erro mais amigáveis
-      if (error.message.includes('Invalid login credentials')) {
-        setError('Email ou senha incorretos.');
-      } else if (error.message.includes('Email not confirmed')) {
-        setError('Por favor, confirme seu email antes de fazer login.');
-      }
+      setIsLoading(true);
+      setError(null);
+
+      const response = await api.post('/auth/login', data);
+      const { token, user } = response.data;
+
+      // Salva o token no localStorage
+      localStorage.setItem('token', token);
+
+      // Chama o callback onSuccess se existir
+      onSuccess?.();
+
+      // Redireciona para a página inicial
+      navigate('/');
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Erro ao fazer login');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
-  
-  // Admin and test user login shortcuts
-  const loginAsAdmin = () => {
-    setEmail('admin@certquest.com');
-    setPassword('admin123');
-  };
-  
-  const loginAsUser = () => {
-    setEmail('user@certquest.com');
-    setPassword('user123');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input 
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          {t('Email')}
+        </label>
+        <input
+          type="email"
           id="email"
-          type="email" 
-          placeholder="seu@email.com" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full"
+          {...register('email')}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
         />
+        {errors.email && (
+          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+        )}
       </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Senha</Label>
-          <Button 
-            variant="link" 
-            className="px-0 font-normal text-sm text-cert-blue"
-            onClick={() => navigate('/reset-password')}
-            type="button"
-          >
-            Esqueceu a senha?
-          </Button>
-        </div>
-        <Input 
+
+      <div>
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          {t('Senha')}
+        </label>
+        <input
+          type="password"
           id="password"
-          type="password" 
-          placeholder="********" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full"
+          {...register('password')}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
         />
+        {errors.password && (
+          <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+        )}
       </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox id="remember" />
-        <Label htmlFor="remember" className="text-sm font-normal">
-          Lembrar de mim
-        </Label>
-      </div>
-
-      <Button 
-        type="submit" 
-        className="w-full" 
-        disabled={loading}
-      >
-        {loading ? 'Entrando...' : 'Entrar'}
-      </Button>
 
       {error && (
-        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md text-center">
-          {error}
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">{error}</h3>
+            </div>
+          </div>
         </div>
       )}
-      
-      <div className="border-t border-gray-200 pt-4 mt-4">
-        <p className="text-sm text-gray-600 mb-2 text-center">Usuários de demonstração:</p>
-        <div className="grid grid-cols-2 gap-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm"
-            onClick={loginAsAdmin}
-            className="text-xs"
-          >
-            Admin: admin@certquest.com
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm"
-            onClick={loginAsUser}
-            className="text-xs"
-          >
-            Usuário: user@certquest.com
-          </Button>
-        </div>
-      </div>
 
-      <div className="mt-4 text-center text-sm text-gray-500">
-        <span>Não tem uma conta? </span>
-        <Button 
-          variant="link" 
-          className="px-0 font-medium text-cert-blue"
-          onClick={() => navigate('/signup')}
-          type="button"
-        >
-          Cadastre-se
-        </Button>
-      </div>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
+        {isLoading ? t('Entrando...') : t('Entrar')}
+      </button>
     </form>
   );
 };
-
-export default LoginForm;

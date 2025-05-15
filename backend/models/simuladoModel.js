@@ -384,5 +384,6 @@ module.exports = {
   getSimuladoById,
   createSimulado,
   updateSimulado,
-  deleteSimulado
+  deleteSimulado,
+  mapSimuladoToExam
 };

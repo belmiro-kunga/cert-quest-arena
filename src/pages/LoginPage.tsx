@@ -1,8 +1,7 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import LoginForm from '@/components/LoginForm';
+import { LoginForm } from '@/components/LoginForm';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 
