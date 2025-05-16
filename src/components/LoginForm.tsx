@@ -12,9 +12,10 @@ import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { FcGoogle } from 'react-icons/fc';
-import { Github } from 'lucide-react';
+import { Github, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import ReCAPTCHA from 'react-google-recaptcha';
+import TwoFactorVerificationForm from './auth/TwoFactorVerificationForm';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -49,6 +50,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [captchaValue, setCaptchaValue] = useState<string | null>(null);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [showTwoFactorForm, setShowTwoFactorForm] = useState(false);
   
   // Estado para armazenar as configurações do reCAPTCHA
   const [recaptchaConfig, setRecaptchaConfig] = useState<ReCaptchaConfig>({
@@ -97,7 +99,14 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
     try {
       // Usar o contexto de autenticação com a opção rememberMe
-      await signIn(data.email, data.password, rememberMe);
+      const result = await signIn(data.email, data.password, rememberMe);
+      
+      // Verificar se precisa de autenticação de dois fatores
+      if (result && result.requiresTwoFactor) {
+        setShowTwoFactorForm(true);
+        setIsLoading(false);
+        return;
+      }
       
       // Reset login attempts on successful login
       setLoginAttempts(0);
@@ -140,6 +149,16 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const handleGithubLogin = () => {
     window.location.href = `${api.defaults.baseURL}/auth/github`;
   };
+
+  // Função para cancelar a verificação de dois fatores
+  const handleCancelTwoFactor = () => {
+    setShowTwoFactorForm(false);
+  };
+
+  // Renderizar o formulário de verificação de dois fatores se necessário
+  if (showTwoFactorForm) {
+    return <TwoFactorVerificationForm onCancel={handleCancelTwoFactor} />;
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,10 +7,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/components/ui/use-toast';
-
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import TwoFactorSetup from '@/components/auth/TwoFactorSetup';
 const SecurityTab: React.FC = () => {
   const { toast } = useToast();
   
+  // Esquema de validação para o formulário de senha
   const passwordFormSchema = z.object({
     currentPassword: z.string().min(6, {
       message: "Current password must have at least 6 characters.",
@@ -28,6 +28,7 @@ const SecurityTab: React.FC = () => {
     path: ["confirmPassword"],
   });
   
+  // Formulário para alteração de senha
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
     resolver: zodResolver(passwordFormSchema),
     defaultValues: {
@@ -37,10 +38,9 @@ const SecurityTab: React.FC = () => {
     },
   });
   
+  // Função para atualizar a senha
   const onPasswordSubmit = (values: z.infer<typeof passwordFormSchema>) => {
-    // Simula atualização de senha
     passwordForm.reset();
-    
     toast({
       title: "Password updated",
       description: "Your password has been changed successfully.",
@@ -56,6 +56,7 @@ const SecurityTab: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Seção de alteração de senha */}
         <div>
           <h3 className="text-lg font-medium mb-2">Change Password</h3>
           <Form {...passwordForm}>
@@ -107,6 +108,19 @@ const SecurityTab: React.FC = () => {
           </Form>
         </div>
         
+        {/* Seção de 2FA */}
+        <div className="pt-4 border-t">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium">Two-Factor Authentication (2FA)</h3>
+            <p className="text-sm text-gray-500">
+              Add an extra layer of security to your account by requiring a verification code.
+            </p>
+          </div>
+          
+          <TwoFactorSetup />
+        </div>
+        
+        {/* Seção de preferências de notificação */}
         <div className="pt-4 border-t">
           <h3 className="text-lg font-medium mb-2">Notification Preferences</h3>
           <div className="space-y-3">
@@ -116,7 +130,7 @@ const SecurityTab: React.FC = () => {
                 id="email-updates"
                 type="checkbox"
                 defaultChecked={true}
-                className="h-4 w-4 text-cert-blue focus:ring-cert-blue border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
             </div>
             
@@ -126,7 +140,7 @@ const SecurityTab: React.FC = () => {
                 id="marketing"
                 type="checkbox"
                 defaultChecked={false}
-                className="h-4 w-4 text-cert-blue focus:ring-cert-blue border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
             </div>
             
@@ -136,12 +150,13 @@ const SecurityTab: React.FC = () => {
                 id="new-certs"
                 type="checkbox"
                 defaultChecked={true}
-                className="h-4 w-4 text-cert-blue focus:ring-cert-blue border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
             </div>
           </div>
         </div>
         
+        {/* Zona de perigo */}
         <div className="pt-4 border-t">
           <h3 className="text-lg font-medium text-red-600">Danger Zone</h3>
           <p className="text-sm text-gray-500 mb-4">

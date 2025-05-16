@@ -10,6 +10,12 @@ interface AffiliateInfo {
   applicationDate?: string;
 }
 
+interface TwoFactorAuth {
+  enabled: boolean;
+  secret: string;
+  backupCodes?: string[];
+}
+
 interface User {
   id: string;
   email: string;
@@ -17,15 +23,21 @@ interface User {
   role: 'user' | 'admin';
   affiliate: AffiliateInfo;
   photoURL?: string;
+  twoFactorAuth?: TwoFactorAuth;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{requiresTwoFactor: boolean} | void>;
+  verifyTwoFactorCode: (code: string) => Promise<boolean>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => void;
   isAdmin: () => boolean;
+  updateUserProfile: (userData: Partial<User>) => void;
+  setupTwoFactor: () => Promise<{secret: string, qrCodeUrl: string}>;
+  verifyAndEnableTwoFactor: (code: string) => Promise<boolean>;
+  disableTwoFactor: () => Promise<void>;
 }
 
 // Usuário de teste padrão
@@ -41,6 +53,10 @@ const DEFAULT_USER: User = {
     referrals: 0,
     link: 'https://certquest.com/ref/user123',
     applicationDate: '2025-05-11'
+  },
+  twoFactorAuth: {
+    enabled: false,
+    secret: ''
   }
 };
 
@@ -56,16 +72,25 @@ const ADMIN_USER: User = {
     earnings: 0,
     referrals: 0,
     link: ''
+  },
+  twoFactorAuth: {
+    enabled: false,
+    secret: ''
   }
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
-  signIn: async () => {},
+  signIn: async () => ({}),
+  verifyTwoFactorCode: async () => false,
   signUp: async () => {},
   signOut: () => {},
   isAdmin: () => false,
+  updateUserProfile: () => {},
+  setupTwoFactor: async () => ({ secret: '', qrCodeUrl: '' }),
+  verifyAndEnableTwoFactor: async () => false,
+  disableTwoFactor: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -73,6 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pendingTwoFactorAuth, setPendingTwoFactorAuth] = useState<{email: string, password: string, rememberMe: boolean} | null>(null);
+  const [tempTwoFactorSecret, setTempTwoFactorSecret] = useState<string>('');
 
   // Carregar usuário do localStorage ou sessionStorage quando o componente é montado
   useEffect(() => {
@@ -107,6 +134,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Simular verificação de credenciais
       if (email === 'user@certquest.com' && password === 'user123') {
+        // Verificar se o usuário tem 2FA ativado
+        if (DEFAULT_USER.twoFactorAuth?.enabled) {
+          // Armazenar credenciais temporariamente para verificação de 2FA
+          setPendingTwoFactorAuth({ email, password, rememberMe });
+          return { requiresTwoFactor: true };
+        }
+        
         setUser(DEFAULT_USER);
         
         // Armazenar dados do usuário baseado na opção "Lembrar-me"
@@ -128,6 +162,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         navigate('/dashboard');
       } else if (email === 'admin@certquest.com' && password === 'admin123') {
+        // Verificar se o administrador tem 2FA ativado
+        if (ADMIN_USER.twoFactorAuth?.enabled) {
+          // Armazenar credenciais temporariamente para verificação de 2FA
+          setPendingTwoFactorAuth({ email, password, rememberMe });
+          return { requiresTwoFactor: true };
+        }
+        
         setUser(ADMIN_USER);
         
         // Armazenar dados do administrador baseado na opção "Lembrar-me"
@@ -202,15 +243,207 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = () => user?.role === 'admin';
 
+  // Função para verificar o código de 2FA
+  const verifyTwoFactorCode = async (code: string): Promise<boolean> => {
+    if (!pendingTwoFactorAuth) {
+      toast({
+        title: "Erro",
+        description: "Nenhuma autenticação pendente.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    // Aqui você verificaria o código TOTP com o backend
+    // Para este exemplo, vamos apenas simular a verificação
+    const isValid = code === '123456'; // Simulação - em produção, use uma biblioteca TOTP
+
+    if (isValid) {
+      // Continuar o processo de login
+      const { email, password, rememberMe } = pendingTwoFactorAuth;
+      
+      if (email === 'user@certquest.com') {
+        setUser(DEFAULT_USER);
+        if (rememberMe) {
+          localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+          sessionStorage.removeItem('user');
+        } else {
+          sessionStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+          localStorage.removeItem('user');
+        }
+        navigate('/dashboard');
+      } else if (email === 'admin@certquest.com') {
+        setUser(ADMIN_USER);
+        if (rememberMe) {
+          localStorage.setItem('user', JSON.stringify(ADMIN_USER));
+          sessionStorage.removeItem('user');
+        } else {
+          sessionStorage.setItem('user', JSON.stringify(ADMIN_USER));
+          localStorage.removeItem('user');
+        }
+      }
+      
+      // Limpar o estado pendente
+      setPendingTwoFactorAuth(null);
+      
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Verificação de dois fatores concluída.",
+      });
+      
+      return true;
+    } else {
+      toast({
+        title: "Código inválido",
+        description: "O código de verificação não é válido ou expirou.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+  
+  // Função para configurar 2FA
+  const setupTwoFactor = async (): Promise<{secret: string, qrCodeUrl: string}> => {
+    // Gerar um segredo aleatório de 20 caracteres (base32)
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let secret = '';
+    for (let i = 0; i < 20; i++) {
+      secret += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    
+    setTempTwoFactorSecret(secret);
+    
+    // Gerar URL para QR code
+    const qrCodeUrl = `otpauth://totp/CertQuest:${user?.email}?secret=${secret}&issuer=CertQuest`;
+    
+    return { secret, qrCodeUrl };
+  };
+  
+  // Função para verificar e ativar 2FA
+  const verifyAndEnableTwoFactor = async (code: string): Promise<boolean> => {
+    if (!tempTwoFactorSecret || !user) {
+      toast({
+        title: "Erro",
+        description: "Nenhuma configuração de 2FA em andamento.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    // Aqui você verificaria o código TOTP com o backend
+    // Para este exemplo, vamos apenas simular a verificação
+    const isValid = code === '123456'; // Simulação - em produção, use uma biblioteca TOTP
+    
+    if (isValid) {
+      // Atualizar o usuário com 2FA ativado
+      const updatedUser = {
+        ...user,
+        twoFactorAuth: {
+          enabled: true,
+          secret: tempTwoFactorSecret
+        }
+      };
+      
+      setUser(updatedUser);
+      
+      // Atualizar no storage
+      if (localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+      if (sessionStorage.getItem('user')) {
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+      
+      // Limpar o segredo temporário
+      setTempTwoFactorSecret('');
+      
+      toast({
+        title: "2FA Ativado",
+        description: "A autenticação de dois fatores foi ativada com sucesso.",
+      });
+      
+      return true;
+    } else {
+      toast({
+        title: "Código inválido",
+        description: "O código de verificação não é válido ou expirou.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+  
+  // Função para desativar 2FA
+  const disableTwoFactor = async (): Promise<void> => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Atualizar o usuário com 2FA desativado
+    const updatedUser = {
+      ...user,
+      twoFactorAuth: {
+        enabled: false,
+        secret: ''
+      }
+    };
+    
+    setUser(updatedUser);
+    
+    // Atualizar no storage
+    if (localStorage.getItem('user')) {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    if (sessionStorage.getItem('user')) {
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    
+    toast({
+      title: "2FA Desativado",
+      description: "A autenticação de dois fatores foi desativada com sucesso.",
+    });
+  };
+  
+  // Função para atualizar o perfil do usuário
+  const updateUserProfile = (userData: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...userData };
+    setUser(updatedUser);
+    
+    // Atualizar no storage
+    if (localStorage.getItem('user')) {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    if (sessionStorage.getItem('user')) {
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    
+    toast({
+      title: "Perfil atualizado",
+      description: "Suas informações foram atualizadas com sucesso.",
+    });
+  };
+
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
+    <AuthContext.Provider
+      value={{
+        user,
         loading,
         signIn,
+        verifyTwoFactorCode,
         signUp,
         signOut,
         isAdmin,
+        updateUserProfile,
+        setupTwoFactor,
+        verifyAndEnableTwoFactor,
+        disableTwoFactor
       }}
     >
       {children}
