@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, CreditCard, Clock, Package, PieChart } from "lucide-react";
-import { getAllExams } from "@/services/adminService";
-import { Exam } from "@/types/admin";
+import { getAllExams, getUsers } from "@/services/adminService";
+import { Exam, Student } from "@/types/admin";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Overview = () => {
   const [simulados, setSimulados] = useState<Exam[]>([]);
+  const [alunos, setAlunos] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingAlunos, setIsLoadingAlunos] = useState(true);
 
   useEffect(() => {
     const fetchSimulados = async () => {
@@ -21,8 +23,22 @@ export const Overview = () => {
         setIsLoading(false);
       }
     };
-
     fetchSimulados();
+  }, []);
+
+  useEffect(() => {
+    const fetchAlunos = async () => {
+      try {
+        setIsLoadingAlunos(true);
+        const data = await getUsers();
+        setAlunos(data as Student[]);
+      } catch (error) {
+        console.error('Erro ao buscar alunos:', error);
+      } finally {
+        setIsLoadingAlunos(false);
+      }
+    };
+    fetchAlunos();
   }, []);
 
   // Função para normalizar categorias
@@ -81,6 +97,10 @@ export const Overview = () => {
     return colorMap[categoryKey] || 'bg-gray-500';
   };
 
+  // Contagem de alunos
+  const totalAlunos = alunos.length;
+  const totalAtivos = alunos.filter(a => a.progress > 0).length;
+
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
@@ -94,10 +114,16 @@ export const Overview = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">25</div>
-            <p className="text-xs text-muted-foreground">
-              +2 desde o último mês
-            </p>
+            {isLoadingAlunos ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{totalAlunos}</div>
+                <p className="text-xs text-muted-foreground">
+                  {totalAtivos} ativos no sistema
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         

@@ -113,7 +113,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       text: question?.text || '',
-      type: question?.type || 'single_choice',
+      type: question?.type || 'multiple_choice',
       explanation: question?.explanation || '',
       category: question?.category || '',
       difficulty: question?.difficulty || 'Médio',

@@ -50,14 +50,78 @@ export interface Exam {
   updatedAt: string;
 }
 
-export const getUsers = async (): Promise<User[]> => {
-  try {
-    const response = await api.get('/admin/users');
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar usuários:', error);
-    return [];
+// Dados simulados para alunos/usuários
+const mockStudents = [
+  {
+    id: '1',
+    name: 'João Silva',
+    email: 'joao.silva@email.com',
+    provider: 'email',
+    plan_type: 'free',
+    attempts_left: 2,
+    progress: 80,
+    achievements: 3,
+    lastActive: '2023-06-01T12:00:00Z',
+    exams: ['1', '2'],
+    created_at: '2023-01-10T09:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'Maria Oliveira',
+    email: 'maria.oliveira@email.com',
+    provider: 'google',
+    plan_type: 'premium',
+    attempts_left: 5,
+    progress: 100,
+    achievements: 5,
+    lastActive: '2023-06-02T14:30:00Z',
+    exams: ['3'],
+    created_at: '2023-02-15T10:30:00Z',
+  },
+  {
+    id: '3',
+    name: 'Carlos Souza',
+    email: 'carlos.souza@email.com',
+    provider: 'github',
+    plan_type: 'basic',
+    attempts_left: 1,
+    progress: 0,
+    achievements: 0,
+    lastActive: '2023-05-30T08:15:00Z',
+    exams: [],
+    created_at: '2023-03-20T11:45:00Z',
+  },
+  {
+    id: '4',
+    name: 'Ana Paula',
+    email: 'ana.paula@email.com',
+    provider: 'email',
+    plan_type: 'premium',
+    attempts_left: 3,
+    progress: 60,
+    achievements: 2,
+    lastActive: '2023-06-03T16:40:00Z',
+    exams: ['4', '5'],
+    created_at: '2023-04-05T13:20:00Z',
+  },
+  {
+    id: '5',
+    name: 'Pedro Santos',
+    email: 'pedro.santos@email.com',
+    provider: 'email',
+    plan_type: 'free',
+    attempts_left: 0,
+    progress: 10,
+    achievements: 1,
+    lastActive: '2023-06-04T18:25:00Z',
+    exams: ['6'],
+    created_at: '2023-05-12T15:10:00Z',
   }
+];
+
+export const getUsers = async (): Promise<any[]> => {
+  // Sempre retorna os dados mockados para teste
+  return mockStudents;
 };
 
 export const updateUser = async (userId: string, userData: Partial<User>): Promise<User> => {
