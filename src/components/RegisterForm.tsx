@@ -1,16 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { UserPlus, Lock, Mail, User, Github, Globe } from 'lucide-react';
+import { UserPlus, Lock, Mail, User, Github, Globe, Check, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Progress } from '@/components/ui/progress';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
+}
+
+// Enum para classificar a força da senha
+enum PasswordStrength {
+  Empty = 0,
+  VeryWeak = 1,
+  Weak = 2,
+  Medium = 3,
+  Strong = 4,
+  VeryStrong = 5
+}
+
+// Interface para os critérios de senha
+interface PasswordCriteria {
+  minLength: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
+  hasNumber: boolean;
+  hasSpecial: boolean;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
@@ -20,9 +40,100 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>(PasswordStrength.Empty);
+  const [passwordCriteria, setPasswordCriteria] = useState<PasswordCriteria>({
+    minLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecial: false
+  });
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Função para calcular a força da senha
+  const calculatePasswordStrength = (password: string): PasswordStrength => {
+    if (!password) return PasswordStrength.Empty;
+    
+    let strength = 0;
+    
+    // Verificar comprimento mínimo (8 caracteres)
+    const hasMinLength = password.length >= 8;
+    if (hasMinLength) strength++;
+    
+    // Verificar se contém letras maiúsculas
+    const hasUppercase = /[A-Z]/.test(password);
+    if (hasUppercase) strength++;
+    
+    // Verificar se contém letras minúsculas
+    const hasLowercase = /[a-z]/.test(password);
+    if (hasLowercase) strength++;
+    
+    // Verificar se contém números
+    const hasNumber = /[0-9]/.test(password);
+    if (hasNumber) strength++;
+    
+    // Verificar se contém caracteres especiais
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    if (hasSpecial) strength++;
+    
+    // Atualizar os critérios
+    setPasswordCriteria({
+      minLength: hasMinLength,
+      hasUppercase,
+      hasLowercase,
+      hasNumber,
+      hasSpecial
+    });
+    
+    return strength as PasswordStrength;
+  };
+  
+  // Atualizar a força da senha quando a senha mudar
+  useEffect(() => {
+    setPasswordStrength(calculatePasswordStrength(password));
+  }, [password]);
+  
+  // Função para obter a cor do indicador de força
+  const getStrengthColor = (): string => {
+    switch (passwordStrength) {
+      case PasswordStrength.Empty:
+        return 'bg-gray-200';
+      case PasswordStrength.VeryWeak:
+        return 'bg-red-500';
+      case PasswordStrength.Weak:
+        return 'bg-orange-500';
+      case PasswordStrength.Medium:
+        return 'bg-yellow-500';
+      case PasswordStrength.Strong:
+        return 'bg-lime-500';
+      case PasswordStrength.VeryStrong:
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-200';
+    }
+  };
+  
+  // Função para obter o texto do indicador de força
+  const getStrengthText = (): string => {
+    switch (passwordStrength) {
+      case PasswordStrength.Empty:
+        return 'Digite sua senha';
+      case PasswordStrength.VeryWeak:
+        return 'Muito fraca';
+      case PasswordStrength.Weak:
+        return 'Fraca';
+      case PasswordStrength.Medium:
+        return 'Média';
+      case PasswordStrength.Strong:
+        return 'Forte';
+      case PasswordStrength.VeryStrong:
+        return 'Muito forte';
+      default:
+        return 'Digite sua senha';
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +225,58 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
                   onChange={e => setPassword(e.target.value)}
                 />
               </div>
+              
+              {/* Indicador de força da senha */}
+              {password.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Força da senha:</span>
+                    <span className={`text-sm font-medium ${getStrengthColor().replace('bg-', 'text-')}`}>
+                      {getStrengthText()}
+                    </span>
+                  </div>
+                  
+                  <Progress 
+                    value={(passwordStrength / 5) * 100} 
+                    className="h-2"
+                    indicatorClassName={getStrengthColor()}
+                  />
+                  
+                  {/* Critérios de senha */}
+                  <div className="grid grid-cols-2 gap-1 mt-2">
+                    <div className="flex items-center space-x-1">
+                      {passwordCriteria.minLength ? 
+                        <Check className="h-3.5 w-3.5 text-green-500" /> : 
+                        <X className="h-3.5 w-3.5 text-gray-400" />}
+                      <span className="text-xs">Mínimo 8 caracteres</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {passwordCriteria.hasUppercase ? 
+                        <Check className="h-3.5 w-3.5 text-green-500" /> : 
+                        <X className="h-3.5 w-3.5 text-gray-400" />}
+                      <span className="text-xs">Letra maiúscula</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {passwordCriteria.hasLowercase ? 
+                        <Check className="h-3.5 w-3.5 text-green-500" /> : 
+                        <X className="h-3.5 w-3.5 text-gray-400" />}
+                      <span className="text-xs">Letra minúscula</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {passwordCriteria.hasNumber ? 
+                        <Check className="h-3.5 w-3.5 text-green-500" /> : 
+                        <X className="h-3.5 w-3.5 text-gray-400" />}
+                      <span className="text-xs">Número</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      {passwordCriteria.hasSpecial ? 
+                        <Check className="h-3.5 w-3.5 text-green-500" /> : 
+                        <X className="h-3.5 w-3.5 text-gray-400" />}
+                      <span className="text-xs">Caractere especial</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center space-x-2">
