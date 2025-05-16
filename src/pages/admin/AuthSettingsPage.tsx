@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FcGoogle } from 'react-icons/fc';
-import { Github } from 'lucide-react';
+import { Github, ShieldCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import AdminLayout from '@/components/layouts/AdminLayout';
@@ -21,9 +21,17 @@ interface AuthProvider {
   enabled: boolean;
 }
 
+interface ReCaptchaSettings {
+  siteKey: string;
+  secretKey: string;
+  enabled: boolean;
+  threshold: number; // Número de tentativas antes de mostrar o CAPTCHA
+}
+
 interface AuthSettings {
   google: AuthProvider;
   github: AuthProvider;
+  recaptcha: ReCaptchaSettings;
 }
 
 const AuthSettingsPage = () => {
@@ -45,6 +53,12 @@ const AuthSettingsPage = () => {
       clientSecret: '',
       callbackUrl: '',
       enabled: false
+    },
+    recaptcha: {
+      siteKey: '',
+      secretKey: '',
+      enabled: false,
+      threshold: 3 // Padrão: mostrar CAPTCHA após 3 tentativas
     }
   });
 
@@ -85,6 +99,16 @@ const AuthSettingsPage = () => {
     }));
   };
 
+  const handleReCaptchaChange = (field: keyof ReCaptchaSettings, value: string | boolean | number) => {
+    setSettings(prev => ({
+      ...prev,
+      recaptcha: {
+        ...prev.recaptcha,
+        [field]: value
+      }
+    }));
+  };
+
   const saveProviderSettings = async (provider: 'google' | 'github') => {
     setSaving(true);
     setError('');
@@ -99,6 +123,25 @@ const AuthSettingsPage = () => {
     } catch (err: any) {
       console.error(`Erro ao salvar configurações de ${provider}:`, err);
       setError(`Erro ao salvar configurações de ${provider === 'google' ? 'Google' : 'GitHub'}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveReCaptchaSettings = async () => {
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/admin/settings/auth/recaptcha`,
+        settings.recaptcha
+      );
+      setSuccess('Configurações do reCAPTCHA salvas com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao salvar configurações do reCAPTCHA:', err);
+      setError('Erro ao salvar configurações do reCAPTCHA');
     } finally {
       setSaving(false);
     }
@@ -130,6 +173,10 @@ const AuthSettingsPage = () => {
             <TabsTrigger value="github" className="flex items-center">
               <Github className="mr-2 h-4 w-4" />
               GitHub
+            </TabsTrigger>
+            <TabsTrigger value="recaptcha" className="flex items-center">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              reCAPTCHA
             </TabsTrigger>
           </TabsList>
           
@@ -271,6 +318,79 @@ const AuthSettingsPage = () => {
                   onClick={() => saveProviderSettings('github')} 
                   disabled={loading || saving}
                 >
+                  {saving ? 'Salvando...' : 'Salvar Configurações'}
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="recaptcha">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações do Google reCAPTCHA</CardTitle>
+                <CardDescription>
+                  Configure as credenciais para proteção com reCAPTCHA. Você precisa registrar seu site no
+                  <a href="https://www.google.com/recaptcha/admin" target="_blank" rel="noopener noreferrer" className="text-primary ml-1">
+                    Google reCAPTCHA Admin Console
+                  </a>.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="recaptcha-enabled" className="text-base">Ativar proteção com reCAPTCHA</Label>
+                  <Switch
+                    id="recaptcha-enabled"
+                    checked={settings.recaptcha.enabled}
+                    onCheckedChange={(checked) => handleReCaptchaChange('enabled', checked)}
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="recaptcha-site-key">Site Key (Chave do Site)</Label>
+                  <Input
+                    id="recaptcha-site-key"
+                    placeholder="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                    value={settings.recaptcha.siteKey}
+                    onChange={(e) => handleReCaptchaChange('siteKey', e.target.value)}
+                    disabled={loading || !settings.recaptcha.enabled}
+                  />
+                  <p className="text-sm text-muted-foreground">A chave pública que será usada no frontend</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="recaptcha-secret-key">Secret Key (Chave Secreta)</Label>
+                  <Input
+                    id="recaptcha-secret-key"
+                    type="password"
+                    placeholder="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+                    value={settings.recaptcha.secretKey}
+                    onChange={(e) => handleReCaptchaChange('secretKey', e.target.value)}
+                    disabled={loading || !settings.recaptcha.enabled}
+                  />
+                  <p className="text-sm text-muted-foreground">A chave secreta que será usada no backend para verificação</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="recaptcha-threshold">Limite de Tentativas</Label>
+                  <Input
+                    id="recaptcha-threshold"
+                    type="number"
+                    min="1"
+                    max="10"
+                    placeholder="3"
+                    value={settings.recaptcha.threshold}
+                    onChange={(e) => handleReCaptchaChange('threshold', parseInt(e.target.value) || 3)}
+                    disabled={loading || !settings.recaptcha.enabled}
+                  />
+                  <p className="text-sm text-muted-foreground">Número de tentativas de login malsucedidas antes de mostrar o CAPTCHA</p>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button variant="outline" disabled={loading || saving}>
+                  Cancelar
+                </Button>
+                <Button onClick={saveReCaptchaSettings} disabled={loading || saving}>
                   {saving ? 'Salvando...' : 'Salvar Configurações'}
                 </Button>
               </CardFooter>

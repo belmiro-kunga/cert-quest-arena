@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Github } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { FcGoogle } from 'react-icons/fc';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const LoginForm = () => {
     email: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +29,7 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      await signIn(formData.email, formData.password);
+      await signIn(formData.email, formData.password, rememberMe);
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -117,6 +119,21 @@ const LoginForm = () => {
                 )}
               </Button>
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2 my-4">
+            <Checkbox 
+              id="remember-me" 
+              checked={rememberMe} 
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+              disabled={loading}
+            />
+            <label 
+              htmlFor="remember-me" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Lembrar-me
+            </label>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

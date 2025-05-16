@@ -22,7 +22,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => void;
   isAdmin: () => boolean;
@@ -74,8 +74,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Carregar usuário do localStorage quando o componente é montado
+  // Carregar usuário do localStorage ou sessionStorage quando o componente é montado
   useEffect(() => {
+    // Verificar primeiro no localStorage (lembrar-me ativado)
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
@@ -85,16 +86,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Erro ao carregar usuário do localStorage:', error);
         localStorage.removeItem('user');
       }
+      return;
+    }
+    
+    // Se não encontrou no localStorage, verificar no sessionStorage (lembrar-me desativado)
+    const sessionUser = sessionStorage.getItem('user');
+    if (sessionUser) {
+      try {
+        const parsedUser = JSON.parse(sessionUser);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Erro ao carregar usuário do sessionStorage:', error);
+        sessionStorage.removeItem('user');
+      }
     }
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     setLoading(true);
     try {
       // Simular verificação de credenciais
       if (email === 'user@certquest.com' && password === 'user123') {
         setUser(DEFAULT_USER);
-        localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+        
+        // Armazenar dados do usuário baseado na opção "Lembrar-me"
+        if (rememberMe) {
+          // Armazenar no localStorage (persistente mesmo após fechar o navegador)
+          localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+          // Limpar sessionStorage para evitar duplicação
+          sessionStorage.removeItem('user');
+        } else {
+          // Armazenar no sessionStorage (dura apenas durante a sessão do navegador)
+          sessionStorage.setItem('user', JSON.stringify(DEFAULT_USER));
+          // Limpar localStorage para evitar duplicação
+          localStorage.removeItem('user');
+        }
+        
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo de volta!",
@@ -102,7 +129,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate('/dashboard');
       } else if (email === 'admin@certquest.com' && password === 'admin123') {
         setUser(ADMIN_USER);
-        localStorage.setItem('user', JSON.stringify(ADMIN_USER));
+        
+        // Armazenar dados do administrador baseado na opção "Lembrar-me"
+        if (rememberMe) {
+          localStorage.setItem('user', JSON.stringify(ADMIN_USER));
+          sessionStorage.removeItem('user');
+        } else {
+          sessionStorage.setItem('user', JSON.stringify(ADMIN_USER));
+          localStorage.removeItem('user');
+        }
+        
         toast({
           title: "Login administrativo realizado com sucesso",
           description: "Bem-vindo, Administrador!",
@@ -154,7 +190,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = () => {
     setUser(null);
+    // Limpar dados do usuário de ambos os storages
     localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     toast({
       title: "Logout realizado",
       description: "Até logo!",
