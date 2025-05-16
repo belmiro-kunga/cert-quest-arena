@@ -171,12 +171,113 @@ export const deleteLanguage = async (code: string): Promise<void> => {
   }
 };
 
-export const getAllExams = async (): Promise<Exam[]> => {
-  try {
-    const response = await api.get('/simulados/ativos');
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar simulados:', error);
-    return [];
+// Dados simulados para exames
+const mockExams = [
+  {
+    id: "1",
+    titulo: "AWS Certified Solutions Architect",
+    descricao: "Prepare-se para a certificação AWS Solutions Architect",
+    preco: 49.99,
+    preco_usd: 49.99,
+    is_gratis: false,
+    nivel_dificuldade: "Intermediário",
+    duracao_minutos: 120,
+    quantidade_questoes: 65,
+    categoria: "AWS",
+    created_at: "2023-01-15T10:30:00Z",
+    updated_at: "2023-05-20T14:45:00Z"
+  },
+  {
+    id: "2",
+    titulo: "AWS Certified Developer",
+    descricao: "Certificação para desenvolvedores AWS",
+    preco: 39.99,
+    preco_usd: 39.99,
+    is_gratis: false,
+    nivel_dificuldade: "Intermediário",
+    duracao_minutos: 90,
+    quantidade_questoes: 50,
+    categoria: "AWS",
+    created_at: "2023-02-10T09:15:00Z",
+    updated_at: "2023-06-05T11:20:00Z"
+  },
+  {
+    id: "3",
+    titulo: "Microsoft Azure Administrator",
+    descricao: "Prepare-se para a certificação Azure Administrator",
+    preco: 44.99,
+    preco_usd: 44.99,
+    is_gratis: false,
+    nivel_dificuldade: "Intermediário",
+    duracao_minutos: 100,
+    quantidade_questoes: 60,
+    categoria: "Microsoft Azure",
+    created_at: "2023-03-05T13:45:00Z",
+    updated_at: "2023-07-12T10:30:00Z"
+  },
+  {
+    id: "4",
+    titulo: "Google Cloud Associate Engineer",
+    descricao: "Certificação para engenheiros GCP",
+    preco: 0,
+    preco_usd: 0,
+    is_gratis: true,
+    nivel_dificuldade: "Básico",
+    duracao_minutos: 60,
+    quantidade_questoes: 40,
+    categoria: "Google Cloud",
+    created_at: "2023-04-20T15:30:00Z",
+    updated_at: "2023-08-18T09:45:00Z"
+  },
+  {
+    id: "5",
+    titulo: "CompTIA Security+",
+    descricao: "Certificação em segurança de TI",
+    preco: 59.99,
+    preco_usd: 59.99,
+    is_gratis: false,
+    nivel_dificuldade: "Avançado",
+    duracao_minutos: 150,
+    quantidade_questoes: 90,
+    categoria: "CompTIA",
+    created_at: "2023-05-15T11:20:00Z",
+    updated_at: "2023-09-22T14:15:00Z"
+  },
+  {
+    id: "6",
+    titulo: "Cisco CCNA",
+    descricao: "Certificação Cisco CCNA",
+    preco: 0,
+    preco_usd: 0,
+    is_gratis: true,
+    nivel_dificuldade: "Intermediário",
+    duracao_minutos: 120,
+    quantidade_questoes: 70,
+    categoria: "Cisco",
+    created_at: "2023-06-10T08:45:00Z",
+    updated_at: "2023-10-05T16:30:00Z"
   }
+];
+
+export const getAllExams = async (): Promise<Exam[]> => {
+  // Sempre retorna os dados mockados para teste
+  return mockExams.map((simulado) => ({
+    id: String(simulado.id || ''),
+    title: simulado.titulo || '',
+    description: simulado.descricao || '',
+    price: simulado.preco || 0,
+    preco_usd: simulado.preco_usd || 0,
+    is_gratis: simulado.is_gratis === true,
+    difficulty: simulado.nivel_dificuldade || '',
+    duration: simulado.duracao_minutos || 60,
+    questions_count: simulado.quantidade_questoes || 0,
+    category: simulado.categoria || '',
+    categoria: simulado.categoria || '',
+    created_at: simulado.created_at || new Date().toISOString(),
+    updated_at: simulado.updated_at || new Date().toISOString(),
+    totalQuestions: simulado.quantidade_questoes || 0,
+    isActive: true,
+    createdAt: simulado.created_at || new Date().toISOString(),
+    updatedAt: simulado.updated_at || new Date().toISOString()
+  }));
 };

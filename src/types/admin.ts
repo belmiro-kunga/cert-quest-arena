@@ -35,11 +35,16 @@ export interface Exam {
   duration: number;
   questions_count: number;
   difficulty: string;
+  category: string;
+  categoria?: string;
+  is_gratis?: boolean;
+  preco_usd?: number;
   created_at: string;
   updated_at: string;
-  category: string;
-  image_url: string;
-  language: ExamLanguage; // Novo campo para idioma
+  isActive?: boolean;
+  totalQuestions?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type QuestionType = 
