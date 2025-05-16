@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -44,6 +44,21 @@ const DEFAULT_USER: User = {
   }
 };
 
+// Administrador padrão
+const ADMIN_USER: User = {
+  id: 'admin1',
+  email: 'admin@certquest.com',
+  name: 'Administrador',
+  role: 'admin',
+  photoURL: '',
+  affiliate: {
+    status: null,
+    earnings: 0,
+    referrals: 0,
+    link: ''
+  }
+};
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
@@ -59,17 +74,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Carregar usuário do localStorage quando o componente é montado
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Erro ao carregar usuário do localStorage:', error);
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
       // Simular verificação de credenciais
       if (email === 'user@certquest.com' && password === 'user123') {
         setUser(DEFAULT_USER);
+        localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo de volta!",
         });
         navigate('/dashboard');
+      } else if (email === 'admin@certquest.com' && password === 'admin123') {
+        setUser(ADMIN_USER);
+        localStorage.setItem('user', JSON.stringify(ADMIN_USER));
+        toast({
+          title: "Login administrativo realizado com sucesso",
+          description: "Bem-vindo, Administrador!",
+        });
+        // Não redirecionar automaticamente - deixar o componente AdminLoginForm fazer isso
       } else {
         throw new Error('Email ou senha incorretos');
       }
@@ -116,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = () => {
     setUser(null);
+    localStorage.removeItem('user');
     toast({
       title: "Logout realizado",
       description: "Até logo!",

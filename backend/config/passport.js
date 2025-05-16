@@ -4,20 +4,38 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const { pool } = require('../db');
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user?.id || null);
 });
 
 passport.deserializeUser(async (id, done) => {
+  if (!id) return done(null, null);
+  
   try {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-    done(null, result.rows[0]);
+    done(null, result.rows[0] || null);
   } catch (err) {
     done(err, null);
   }
 });
 
-// Google Strategy
-passport.use(new GoogleStrategy({
+// Função auxiliar para verificar se as credenciais estão configuradas
+const isProviderConfigured = (provider) => {
+  switch (provider) {
+    case 'google':
+      return process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_CALLBACK_URL;
+    case 'github':
+      return process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && process.env.GITHUB_CALLBACK_URL;
+    default:
+      return false;
+  }
+};
+
+// Configuração básica do Passport
+passport.initialize();
+
+// Google Strategy - Configurar apenas se as credenciais estiverem disponíveis
+if (isProviderConfigured('google')) {
+  passport.use('google', new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL
@@ -52,8 +70,9 @@ passport.use(new GoogleStrategy({
   }
 ));
 
-// GitHub Strategy
-passport.use(new GitHubStrategy({
+// GitHub Strategy - Configurar apenas se as credenciais estiverem disponíveis
+if (isProviderConfigured('github')) {
+  passport.use('github', new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
     callbackURL: process.env.GITHUB_CALLBACK_URL
@@ -86,7 +105,7 @@ passport.use(new GitHubStrategy({
     } catch (err) {
       return done(err, null);
     }
-  }
-));
+  }));
+}
 
 module.exports = passport;

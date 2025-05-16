@@ -33,10 +33,13 @@ const AdminPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    // Verificar autenticação apenas uma vez na montagem do componente
+    // usando uma verificação direta em vez de chamar a função isAuthenticated
+    const isAdmin = adminUser !== null;
+    if (!isAdmin) {
       navigate('/admin/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [adminUser, navigate]);
 
   if (!adminUser) {
     return null;

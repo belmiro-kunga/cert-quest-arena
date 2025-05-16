@@ -2,44 +2,68 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
+// Middleware para verificar se a estratégia está disponível
+const checkStrategy = (strategy) => (req, res, next) => {
+  if (!passport._strategies[strategy]) {
+    return res.status(503).json({
+      error: `Autenticação com ${strategy} não está configurada`
+    });
+  }
+  next();
+};
+
 // Rota para iniciar autenticação Google
 router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+  checkStrategy('google'),
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    session: true
+  })
 );
 
 // Callback do Google
 router.get('/google/callback',
+  checkStrategy('google'),
   passport.authenticate('google', { 
-    failureRedirect: '/login',
+    failureRedirect: '/login?error=google_auth_failed',
+    successRedirect: '/dashboard',
     session: true 
-  }),
-  (req, res) => {
-    // Sucesso na autenticação
-    res.redirect('/dashboard');
-  }
+  })
 );
 
 // Rota para iniciar autenticação GitHub
 router.get('/github',
-  passport.authenticate('github', { scope: ['user:email'] })
+  checkStrategy('github'),
+  passport.authenticate('github', { 
+    scope: ['user:email'],
+    session: true
+  })
 );
 
 // Callback do GitHub
 router.get('/github/callback',
+  checkStrategy('github'),
   passport.authenticate('github', { 
-    failureRedirect: '/login',
+    failureRedirect: '/login?error=github_auth_failed',
+    successRedirect: '/dashboard',
     session: true 
-  }),
-  (req, res) => {
-    // Sucesso na autenticação
-    res.redirect('/dashboard');
-  }
+  })
 );
 
 // Rota de logout
-router.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
+router.get('/logout', (req, res, next) => {
+  req.logout((err) => {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
+});
+
+// Status da autenticação
+router.get('/status', (req, res) => {
+  res.json({
+    authenticated: req.isAuthenticated(),
+    user: req.user
+  });
 });
 
 module.exports = router;

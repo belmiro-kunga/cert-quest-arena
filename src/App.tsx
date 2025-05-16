@@ -12,9 +12,9 @@ import { PaymentConfigProvider } from '@/contexts/PaymentConfigContext';
 // Pages
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import CertificationsPage from "./pages/CertificationsPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import Dashboard from "./pages/Dashboard";
 import QuizPage from "./pages/QuizPage";
 import ExamPage from "./pages/ExamPage";
@@ -33,6 +33,7 @@ import PacoteDetalhes from './pages/PacoteDetalhes';
 import SimuladoRunningPage from './pages/SimuladoRunningPage';
 import SimuladoResultPage from './pages/SimuladoResultPage';
 import StudyPage from './pages/StudyPage';
+import AuthSettingsPage from './pages/admin/AuthSettingsPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -58,7 +59,8 @@ const App = () => {
                       {/* Public Routes */}
                       <Route path="/" element={<Index />} />
                       <Route path="/login" element={<LoginPage />} />
-                      <Route path="/signup" element={<SignUpPage />} />
+                      <Route path="/registro" element={<SignUpPage />} />
+                      <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/simulados" element={<SimuladosPage />} />
                       <Route path="/simulados/:id" element={<SimuladoDetailPage />} />
@@ -104,6 +106,7 @@ const App = () => {
                       {/* Admin Routes */}
                       <Route path="/admin/login" element={<AdminLoginPage />} />
                       <Route path="/admin/*" element={<AdminPage />} />
+                      <Route path="/admin/settings/auth" element={<AuthSettingsPage />} />
 
                       {/* Payment Routes */}
                       <Route path="/exams/:examId" element={<ExamPage />} />

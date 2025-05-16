@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,6 +99,7 @@ const LoginForm = () => {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="pr-10"
                 disabled={loading}
                 required
               />
@@ -156,23 +157,17 @@ const LoginForm = () => {
           </div>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-4">
-        <Button
-          variant="link"
-          className="text-sm"
-          onClick={() => navigate('/forgot-password')}
-        >
-          Esqueceu sua senha?
-        </Button>
-        <div className="text-sm text-muted-foreground text-center">
+      <CardFooter className="flex flex-col space-y-2">
+        <div className="text-sm text-center">
+          <Link to="/recuperar-senha" className="text-primary hover:underline">
+            Esqueceu sua senha?
+          </Link>
+        </div>
+        <div className="text-sm text-center">
           Não tem uma conta?{' '}
-          <Button
-            variant="link"
-            className="p-0 h-auto"
-            onClick={() => navigate('/register')}
-          >
+          <Link to="/registro" className="text-primary hover:underline">
             Criar conta
-          </Button>
+          </Link>
         </div>
       </CardFooter>
     </Card>
