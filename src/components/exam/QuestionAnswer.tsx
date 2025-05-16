@@ -62,14 +62,35 @@ export const QuestionAnswer: React.FC<QuestionAnswerProps> = ({
     const options = question.options || [];
     const selectedOption = typeof answer === 'string' ? String(answer) : '';
     const correctOption = question.correctOption;
+    const isAnswered = !!selectedOption;
+    const isCorrect = selectedOption === correctOption;
+    const showFeedback = isAnswered;
 
     return (
       <div className="space-y-2">
+        {showFeedback && (
+          <div className="mb-2">
+            {isCorrect ? (
+              <span className="inline-flex items-center text-green-600 font-semibold">
+                <CheckCircle2 className="w-5 h-5 mr-1" /> Resposta correta!
+              </span>
+            ) : (
+              <span className="inline-flex items-center text-red-600 font-semibold">
+                <XCircle className="w-5 h-5 mr-1" /> Resposta incorreta.
+              </span>
+            )}
+            {question.explanation && (
+              <div className="mt-1 text-sm text-muted-foreground">
+                <strong>Explicação:</strong> {question.explanation}
+              </div>
+            )}
+          </div>
+        )}
         {options.map((option, index) => {
           const isSelected = selectedOption === option;
-          const isCorrect = correctOption === option;
-          const showAsCorrect = showCorrect && isCorrect;
-          const showAsIncorrect = !showCorrect && isSelected && !isCorrect;
+          const isOptionCorrect = correctOption === option;
+          const showAsCorrect = showCorrect && isOptionCorrect;
+          const showAsIncorrect = !showCorrect && isSelected && !isOptionCorrect;
 
           return (
             <div

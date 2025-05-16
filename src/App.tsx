@@ -32,6 +32,7 @@ import Pacotes from './pages/Pacotes';
 import PacoteDetalhes from './pages/PacoteDetalhes';
 import SimuladoRunningPage from './pages/SimuladoRunningPage';
 import SimuladoResultPage from './pages/SimuladoResultPage';
+import StudyPage from './pages/StudyPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -67,6 +68,10 @@ const App = () => {
                       {/* Rotas de Pacotes */}
                       <Route path="/pacotes" element={<Pacotes />} />
                       <Route path="/pacotes/:id" element={<PacoteDetalhes />} />
+
+                      {/* Rotas de Estudo */}
+                      <Route path="/study" element={<StudyPage />} />
+                      <Route path="/study/flashcards" element={<StudyPage />} />
 
                       {/* Protected User Routes */}
                       <Route 

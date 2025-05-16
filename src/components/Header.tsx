@@ -14,7 +14,7 @@ import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
-import { ShoppingCart, Menu, X, User, Settings, LogOut, Gift, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Settings, LogOut, Gift, ChevronDown, BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import CurrencySelector from './CurrencySelector';
@@ -114,6 +114,10 @@ const Header = () => {
             <Link to="/simulados" className="text-gray-600 hover:text-gray-900 transition-colors">
               Simulados
             </Link>
+            <Link to="/study" className="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1">
+              <BookOpen className="h-4 w-4 text-blue-500" />
+              <span>Modo Estudo</span>
+            </Link>
             
             {/* Menu Dropdown de Simulados Gratuitos */}
             <DropdownMenu>
@@ -199,17 +203,25 @@ const Header = () => {
             <nav className="flex flex-col space-y-4 mb-4">
               <Link 
                 to="/" 
-                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
+                className="text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-md hover:bg-gray-100"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Home
               </Link>
               <Link 
                 to="/simulados" 
-                className="text-gray-600 hover:text-gray-900 transition-colors px-2"
+                className="text-gray-600 hover:text-gray-900 transition-colors px-4 py-2 rounded-md hover:bg-gray-100"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Simulados
+              </Link>
+              <Link 
+                to="/study" 
+                className="text-gray-600 hover:text-blue-600 transition-colors px-4 py-2 rounded-md hover:bg-blue-50 flex items-center gap-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <BookOpen className="h-5 w-5 text-blue-500" />
+                <span>Modo Estudo</span>
               </Link>
               
               {/* Menu de Simulados Gratuitos para Mobile */}

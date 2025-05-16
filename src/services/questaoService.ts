@@ -130,19 +130,41 @@ export const getQuestoesBySimuladoId = async (simuladoId: number, language?: str
     
     // Converter para o formato necessário para o simulado em andamento
     const questoes = response.data.map((questao: any) => {
-      const corretaId = questao.opcoes ? 
-        questao.opcoes.find((opcao: any) => opcao.correta)?.id : undefined;
+      // Verificar se é múltipla escolha
+      const isMultipleChoice = questao.tipo === 'multiple_choice';
+      
+      // Para múltipla escolha, capturamos todos os IDs das respostas corretas
+      let resposta_correta: string | string[] = '';
+      
+      if (isMultipleChoice) {
+        // Para múltipla escolha, criamos um array com os IDs das opções corretas
+        resposta_correta = questao.opcoes
+          ? questao.opcoes
+              .filter((opcao: any) => opcao.correta)
+              .map((opcao: any) => String(opcao.id))
+          : [];
+          
+        console.log(`Questão de múltipla escolha (ID: ${questao.id}) - respostas corretas:`, resposta_correta);
+      } else {
+        // Para escolha única, só pegamos o ID da opção correta
+        const corretaId = questao.opcoes
+          ? questao.opcoes.find((opcao: any) => opcao.correta)?.id
+          : undefined;
         
+        resposta_correta = corretaId ? String(corretaId) : '';
+      }
+      
       return {
         id: questao.id,
         simulado_id: questao.simulado_id,
         enunciado: questao.texto,
+        tipo: questao.tipo, // Adicionamos o tipo da questão
         alternativas: questao.opcoes ? questao.opcoes.map((opcao: any) => ({
           id: String(opcao.id),
           texto: opcao.texto,
           correta: opcao.correta || false
         })) : [],
-        resposta_correta: corretaId ? String(corretaId) : undefined,
+        resposta_correta: resposta_correta,
         explicacao: questao.explicacao || 'Nenhuma explicação disponível para esta questão.',
         url_referencia: questao.url_referencia || '',
         referencia_ativa: typeof questao.referencia_ativa === 'boolean' ? questao.referencia_ativa : true

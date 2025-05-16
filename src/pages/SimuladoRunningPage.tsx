@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,9 +11,16 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Clock, ArrowLeft, ArrowRight, Check, CircleAlert } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Check, CircleAlert, Keyboard } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const SimuladoRunningPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,10 +29,11 @@ const SimuladoRunningPage: React.FC = () => {
   const [simulado, setSimulado] = useState<Exam | null>(null);
   const [questoes, setQuestoes] = useState<Questao[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string | string[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
 
   // Carregar simulado e questões
   useEffect(() => {
@@ -103,12 +111,99 @@ const SimuladoRunningPage: React.FC = () => {
     return (Object.keys(selectedAnswers).length / questoes.length) * 100;
   };
 
-  // Manipular seleção de resposta
-  const handleAnswerSelect = (questionId: number, alternativaId: string) => {
+  // Lidar com atalhos de teclado
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (isLoading || isFinished) return;
+
+    const currentQuestion = questoes[currentQuestionIndex];
+    if (!currentQuestion) return;
+
+    // Atalhos para navegação
+    if (event.key === 'ArrowLeft' || event.key === 'p' || event.key === 'P') {
+      // Navegar para a questão anterior
+      if (currentQuestionIndex > 0) {
+        handlePreviousQuestion();
+      }
+    } else if (event.key === 'ArrowRight' || event.key === 'n' || event.key === 'N') {
+      // Navegar para a próxima questão
+      if (currentQuestionIndex < questoes.length - 1) {
+        handleNextQuestion();
+      }
+    } else if (event.key === 'Enter' && event.ctrlKey) {
+      // Finalizar simulado com Ctrl+Enter
+      handleFinishSimulado();
+    } else if (event.key === 'h' || event.key === 'H') {
+      // Mostrar/esconder atalhos de teclado
+      setShowKeyboardShortcuts(prev => !prev);
+    } else if (event.key >= '1' && event.key <= '9') {
+      // Selecionar alternativa pelo número
+      const numKey = parseInt(event.key);
+      const alternativas = currentQuestion.alternativas;
+      
+      if (numKey <= alternativas.length) {
+        const alternativaId = alternativas[numKey - 1].id;
+        
+        if (currentQuestion.tipo === 'multiple_choice') {
+          handleMultipleAnswerSelect(currentQuestion.id, alternativaId);
+        } else {
+          handleSingleAnswerSelect(currentQuestion.id, alternativaId);
+        }
+      }
+    }
+  }, [currentQuestionIndex, questoes, isLoading, isFinished]);
+
+  // Configurar listener de teclado
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  // Manipular seleção de resposta para escolha única
+  const handleSingleAnswerSelect = (questionId: number, alternativaId: string) => {
     setSelectedAnswers(prev => ({
       ...prev,
       [questionId]: alternativaId
     }));
+  };
+
+  // Manipular seleção de resposta para múltipla escolha
+  const handleMultipleAnswerSelect = (questionId: number, alternativaId: string) => {
+    setSelectedAnswers(prev => {
+      // Se ainda não existe resposta para essa questão, iniciar com um array contendo essa alternativa
+      if (!prev[questionId]) {
+        return {
+          ...prev,
+          [questionId]: [alternativaId]
+        };
+      }
+      
+      // Se já existe resposta e é um array
+      if (Array.isArray(prev[questionId])) {
+        const currentAnswers = prev[questionId] as string[];
+        
+        // Se alternativa já está marcada, desmarcar
+        if (currentAnswers.includes(alternativaId)) {
+          return {
+            ...prev,
+            [questionId]: currentAnswers.filter(id => id !== alternativaId)
+          };
+        }
+        
+        // Adicionar nova alternativa
+        return {
+          ...prev,
+          [questionId]: [...currentAnswers, alternativaId]
+        };
+      }
+      
+      // Caso anômalo (deveria ser array mas não é)
+      return {
+        ...prev,
+        [questionId]: [alternativaId]
+      };
+    });
   };
 
   // Navegar para a próxima questão
@@ -143,12 +238,38 @@ const SimuladoRunningPage: React.FC = () => {
     questoes.forEach(questao => {
       // Verificar se a questão foi respondida
       if (selectedAnswers[questao.id]) {
-        // Verificar se a resposta do usuário corresponde à resposta correta
-        if (questao.resposta_correta && selectedAnswers[questao.id] === questao.resposta_correta) {
-          correctAnswers++;
-          correctAnswersMap[questao.id] = true;
-        } else {
-          correctAnswersMap[questao.id] = false;
+        // Para questões de múltipla escolha
+        if (questao.tipo === 'multiple_choice') {
+          const userAnswers = Array.isArray(selectedAnswers[questao.id]) 
+            ? selectedAnswers[questao.id] as string[]
+            : [selectedAnswers[questao.id] as string];
+            
+          const correctOptions = Array.isArray(questao.resposta_correta) 
+            ? questao.resposta_correta 
+            : questao.resposta_correta.split(',');
+            
+          // Verificar se todas as respostas estão corretas
+          const isCorrect = 
+            // Tem a mesma quantidade de respostas
+            userAnswers.length === correctOptions.length &&
+            // Todas as respostas corretas estão nas respostas do usuário
+            correctOptions.every(opt => userAnswers.includes(opt));
+            
+          if (isCorrect) {
+            correctAnswers++;
+            correctAnswersMap[questao.id] = true;
+          } else {
+            correctAnswersMap[questao.id] = false;
+          }
+        } 
+        // Para questões de escolha única
+        else {
+          if (questao.resposta_correta && selectedAnswers[questao.id] === questao.resposta_correta) {
+            correctAnswers++;
+            correctAnswersMap[questao.id] = true;
+          } else {
+            correctAnswersMap[questao.id] = false;
+          }
         }
       }
     });
@@ -195,12 +316,13 @@ const SimuladoRunningPage: React.FC = () => {
 
     const currentQuestion = questoes[currentQuestionIndex];
     const selectedAnswer = selectedAnswers[currentQuestion.id];
+    const isMultipleChoice = currentQuestion.tipo === 'multiple_choice';
     
     return (
       <Card className="mb-6">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-xl flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2" id={`questao-${currentQuestion.id}-titulo`}>
               Questão {currentQuestionIndex + 1} de {questoes.length}
               {currentQuestion.url_referencia ? (
                 <a
@@ -214,59 +336,132 @@ const SimuladoRunningPage: React.FC = () => {
                   aria-label="Abrir referência da questão em nova aba"
                   style={{ pointerEvents: 'auto' }}
                 >
-                  <CircleAlert className="w-5 h-5 text-blue-500 hover:text-blue-700" />
+                  <CircleAlert className="w-5 h-5 text-blue-500 hover:text-blue-700" aria-hidden="true" />
                 </a>
               ) : (
                 <span title="Nenhuma referência disponível">
-                  <CircleAlert className="w-5 h-5 text-gray-400" />
+                  <CircleAlert className="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  <span className="sr-only">Nenhuma referência disponível</span>
                 </span>
               )}
             </CardTitle>
             <Badge variant="outline" className="px-2 py-1">
-              <Clock className="mr-1 h-4 w-4" /> {formatTimeLeft()}
+              <Clock className="mr-1 h-4 w-4" aria-hidden="true" /> {formatTimeLeft()}
             </Badge>
           </div>
-          <CardDescription className="text-base mt-2">
+          <CardDescription className="text-base mt-2" id={`questao-${currentQuestion.id}-enunciado`}>
             {currentQuestion.enunciado}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <RadioGroup 
-            value={selectedAnswer} 
-            onValueChange={(value) => handleAnswerSelect(currentQuestion.id, value)}
-          >
-            {currentQuestion.alternativas && currentQuestion.alternativas.map((alternativa) => (
-              <div key={alternativa.id} className="flex items-start space-x-2 py-2">
-                <RadioGroupItem value={alternativa.id} id={`alternativa-${alternativa.id}`} />
-                <Label 
-                  htmlFor={`alternativa-${alternativa.id}`}
-                  className="cursor-pointer flex-1"
-                >
-                  {alternativa.texto}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+          {isMultipleChoice ? (
+            // Renderização de múltipla escolha com checkboxes
+            <div 
+              className="space-y-2"
+              role="group"
+              aria-labelledby={`questao-${currentQuestion.id}-titulo questao-${currentQuestion.id}-enunciado`}
+              aria-describedby={`questao-${currentQuestion.id}-instrucao`}
+            >
+              <p id={`questao-${currentQuestion.id}-instrucao`} className="sr-only">
+                Esta é uma questão de múltipla escolha. Você pode selecionar mais de uma alternativa.
+              </p>
+              
+              {currentQuestion.alternativas && currentQuestion.alternativas.map((alternativa, index) => {
+                const isSelected = Array.isArray(selectedAnswer) && selectedAnswer.includes(alternativa.id);
+                const checkboxId = `checkbox-${alternativa.id}`;
+                
+                return (
+                  <div 
+                    key={alternativa.id} 
+                    className="flex items-start space-x-2 py-2 border border-gray-200 rounded-md p-2 hover:bg-gray-50"
+                  >
+                    <Checkbox
+                      id={checkboxId}
+                      checked={isSelected}
+                      onCheckedChange={() => handleMultipleAnswerSelect(currentQuestion.id, alternativa.id)}
+                      aria-labelledby={`label-${alternativa.id}`}
+                      aria-checked={isSelected}
+                    />
+                    <Label 
+                      htmlFor={checkboxId}
+                      className="cursor-pointer flex-1"
+                      id={`label-${alternativa.id}`}
+                    >
+                      <span className="sr-only">Alternativa {index + 1}:</span>
+                      {alternativa.texto}
+                    </Label>
+                    <span className="sr-only">
+                      {isSelected ? 'Selecionada' : 'Não selecionada'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            // Renderização de escolha única com radio buttons
+            <RadioGroup 
+              value={typeof selectedAnswer === 'string' ? selectedAnswer : ''} 
+              onValueChange={(value) => handleSingleAnswerSelect(currentQuestion.id, value)}
+              aria-labelledby={`questao-${currentQuestion.id}-titulo questao-${currentQuestion.id}-enunciado`}
+            >
+              {currentQuestion.alternativas && currentQuestion.alternativas.map((alternativa, index) => {
+                const radioId = `alternativa-${alternativa.id}`;
+                const isSelected = typeof selectedAnswer === 'string' && selectedAnswer === alternativa.id;
+                
+                return (
+                  <div 
+                    key={alternativa.id} 
+                    className="flex items-start space-x-2 py-2 border border-gray-200 rounded-md p-2 hover:bg-gray-50"
+                  >
+                    <RadioGroupItem 
+                      value={alternativa.id} 
+                      id={radioId} 
+                      aria-labelledby={`label-${alternativa.id}`}
+                    />
+                    <Label 
+                      htmlFor={radioId}
+                      className="cursor-pointer flex-1"
+                      id={`label-${alternativa.id}`}
+                    >
+                      <span className="sr-only">Alternativa {index + 1}:</span>
+                      {alternativa.texto}
+                    </Label>
+                    <span className="sr-only">
+                      {isSelected ? 'Selecionada' : 'Não selecionada'}
+                    </span>
+                  </div>
+                );
+              })}
+            </RadioGroup>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button 
             variant="outline" 
             onClick={handlePreviousQuestion}
             disabled={currentQuestionIndex === 0}
+            aria-label="Ir para questão anterior"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
             Anterior
           </Button>
           
           {currentQuestionIndex < questoes.length - 1 ? (
-            <Button onClick={handleNextQuestion}>
+            <Button 
+              onClick={handleNextQuestion}
+              aria-label="Ir para próxima questão"
+            >
               Próxima
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </Button>
           ) : (
-            <Button onClick={handleFinishSimulado} className="bg-green-600 hover:bg-green-700">
+            <Button 
+              onClick={handleFinishSimulado} 
+              className="bg-green-600 hover:bg-green-700"
+              aria-label="Finalizar simulado e ver resultados"
+            >
               Finalizar
-              <Check className="ml-2 h-4 w-4" />
+              <Check className="ml-2 h-4 w-4" aria-hidden="true" />
             </Button>
           )}
         </CardFooter>
@@ -301,6 +496,26 @@ const SimuladoRunningPage: React.FC = () => {
               <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium border border-blue-100">{questoes.length} questões</span>
               <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-100">Duração: {simulado?.duration} min</span>
               <span className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium border border-yellow-100">Nível: {new URLSearchParams(window.location.search).get('nivel') || 'N/A'}</span>
+              
+              {/* Botão de atalhos de teclado */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-sm font-medium border border-gray-200"
+                      onClick={() => setShowKeyboardShortcuts(prev => !prev)}
+                    >
+                      <Keyboard className="h-4 w-4 mr-1" />
+                      Atalhos
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mostrar atalhos de teclado</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </CardHeader>
           <CardContent>
@@ -311,6 +526,37 @@ const SimuladoRunningPage: React.FC = () => {
                 <span>Total: {questoes.length}</span>
               </div>
             </div>
+            
+            {/* Informações de atalhos de teclado */}
+            {showKeyboardShortcuts && (
+              <Alert className="mb-6 bg-blue-50 border-blue-200">
+                <Keyboard className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-800 flex items-center">Atalhos de teclado</AlertTitle>
+                <AlertDescription className="text-blue-700 grid grid-cols-2 gap-2 text-sm mt-2">
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-white rounded border border-blue-200 text-blue-700 font-mono text-xs">1-9</kbd>
+                    <span>Selecionar opção</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-white rounded border border-blue-200 text-blue-700 font-mono text-xs">→</kbd>
+                    <span>Próxima questão</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-white rounded border border-blue-200 text-blue-700 font-mono text-xs">←</kbd>
+                    <span>Questão anterior</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-white rounded border border-blue-200 text-blue-700 font-mono text-xs">Ctrl+Enter</kbd>
+                    <span>Finalizar simulado</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <kbd className="px-2 py-1 bg-white rounded border border-blue-200 text-blue-700 font-mono text-xs">H</kbd>
+                    <span>Ocultar este painel</span>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {timeLeft < 300 && timeLeft > 0 && (
               <Alert variant="destructive" className="mb-6">
                 <Clock className="h-4 w-4" />
