@@ -7,9 +7,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UserPlus, Lock, Mail, User, Github, Globe } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface RegisterFormProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
@@ -21,6 +22,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [success, setSuccess] = useState('');
   const { signUp } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +41,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       });
       
       setTimeout(() => {
-        onSuccess();
+        onSuccess?.();
       }, 1000);
     } catch (err: any) {
       console.error("Registration error:", err);
@@ -162,7 +164,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       <CardFooter className="text-center">
         <div className="text-sm text-gray-600 w-full">
           Já tem uma conta?{' '}
-          <Button variant="link" className="text-cert-blue hover:text-cert-blue/90 p-0">
+          <Button 
+            variant="link" 
+            className="text-cert-blue hover:text-cert-blue/90 p-0"
+            onClick={() => navigate('/login')}
+          >
             Login
           </Button>
         </div>
