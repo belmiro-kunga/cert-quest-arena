@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from '@/components/LoginForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { ArrowLeft } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -24,7 +25,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cert-gray px-4">
+    <div className="min-h-screen flex items-center justify-center bg-cert-gray px-4 relative">
+      <Link to="/" className="absolute top-6 left-6 flex items-center text-white hover:text-gray-200 transition-colors">
+        <ArrowLeft className="mr-1 h-4 w-4" />
+        <span>Voltar à página inicial</span>
+      </Link>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center">
