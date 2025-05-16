@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Github } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { FcGoogle } from 'react-icons/fc';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -29,6 +31,28 @@ const LoginForm = () => {
     } catch (error: any) {
       setError(error.message);
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      window.location.href = '/auth/google';
+    } catch (error: any) {
+      setError('Erro ao fazer login com Google');
+      setLoading(false);
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      window.location.href = '/auth/github';
+    } catch (error: any) {
+      setError('Erro ao fazer login com GitHub');
       setLoading(false);
     }
   };
@@ -97,6 +121,39 @@ const LoginForm = () => {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Ou continue com
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full"
+            >
+              <FcGoogle className="mr-2 h-4 w-4" />
+              Google
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleGithubLogin}
+              disabled={loading}
+              className="w-full"
+            >
+              <Github className="mr-2 h-4 w-4" />
+              GitHub
+            </Button>
+          </div>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">

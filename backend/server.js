@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
+const passport = require('./config/passport');
 const cors = require('cors');
 const db = require('./db'); // Import the db configuration
 
@@ -38,7 +40,25 @@ app.use((req, res, next) => {
 });
 
 // Middleware para parsing de JSON com logs de erro
-app.use(express.json()); // for parsing application/json
+app.use(express.json());
+
+// Configuração da sessão
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+  }
+}));
+
+// Inicialização do Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Rotas de autenticação
+app.use('/auth', require('./routes/auth')); // for parsing application/json
 
 // Middleware para capturar erros de parsing JSON
 app.use((err, req, res, next) => {
