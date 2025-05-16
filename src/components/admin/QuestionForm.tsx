@@ -43,6 +43,7 @@ import { Question, QuestionType } from '@/types/admin';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 
 const questionTypes: { value: QuestionType; label: string; description: string }[] = [
   {
@@ -97,9 +98,15 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
   question,
   examId,
 }) => {
-  const form = useForm<Question>({
-    resolver: zodResolver(questionSchema),
-    defaultValues: question || {
+  const getInitialFormValues = () => {
+    if (question) {
+      return {
+        ...question,
+        correctOptions: question.type === 'multiple_choice' ? (Array.isArray(question.correctOptions) ? question.correctOptions : []) : [],
+      };
+    }
+    // Valores padrão para uma nova questão
+    return {
       type: 'single_choice',
       text: '',
       explanation: '',
@@ -108,18 +115,57 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
       tags: [],
       points: 1,
       examId,
-    },
+      options: [], // Inicializar options para nova questão
+      correctOptions: [], // Inicializar correctOptions como array vazio
+    };
+  };
+
+  const form = useForm<Question>({
+    resolver: zodResolver(questionSchema),
+    defaultValues: getInitialFormValues(),
   });
 
   const questionType = form.watch('type');
 
+  // Efeito para limpar/preparar campos ao mudar o tipo da questão
+  React.useEffect(() => {
+    // Se mudar para multiple_choice, garantir que correctOptions seja um array
+    if (questionType === 'multiple_choice') {
+      if (!Array.isArray(form.getValues('correctOptions'))) {
+        form.setValue('correctOptions', [], { shouldValidate: true, shouldDirty: true });
+      }
+    } else {
+      // Para outros tipos, podemos limpar correctOptions se não for relevante
+      // form.setValue('correctOptions', undefined); // Ou deixar como está, Zod deve lidar com isso
+    }
+  }, [questionType, form]);
+
   const handleSubmit = (data: Question) => {
+    // Validação adicional para questões de múltipla escolha
+    if (data.type === 'multiple_choice') {
+      const correctOptions = data.correctOptions || []; // Certificar que é um array
+      if (correctOptions.length < 2) {
+        toast({
+          title: "Erro de validação",
+          description: "Questões de múltipla escolha devem ter pelo menos 2 opções corretas.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     onSubmit(data);
+    form.reset(); // Resetar o formulário após o envio bem-sucedido
     onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        form.reset(getInitialFormValues()); // Resetar ao fechar o dialog
+        onClose();
+      }
+    }}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>{question ? 'Editar Questão' : 'Nova Questão'}</DialogTitle>
@@ -130,7 +176,26 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <Tabs defaultValue={questionType} onValueChange={(value) => form.setValue('type', value as QuestionType)}>
+            <Tabs 
+              value={questionType} // Controlar o valor do Tabs
+              onValueChange={(value) => {
+                const newType = value as QuestionType;
+                form.setValue('type', newType, { shouldValidate: true });
+                if (newType === 'multiple_choice') {
+                  // Se já não for um array (por exemplo, vindo de outro tipo), inicializa.
+                  if (!Array.isArray(form.getValues('correctOptions'))) {
+                     form.setValue('correctOptions', [], { shouldValidate: true, shouldDirty: true });
+                  }
+                  // Sempre garantir que options também seja um array para MCQs
+                  if (!Array.isArray(form.getValues('options'))){
+                    form.setValue('options', [], {shouldValidate: false});
+                  }
+                } else {
+                  // Opcional: limpar correctOptions se mudar para um tipo que não o usa
+                  // form.setValue('correctOptions', undefined, { shouldValidate: false }); 
+                }
+              }}
+            >
               <TabsList className="grid grid-cols-4 gap-4">
                 {questionTypes.map((type) => (
                   <TabsTrigger
@@ -143,13 +208,13 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                 ))}
               </TabsList>
 
-              {questionTypes.map((type) => (
-                <TabsContent key={type.value} value={type.value}>
+              {questionTypes.map((typeInfo) => (
+                <TabsContent key={typeInfo.value} value={typeInfo.value} forceMount>
                   <Card>
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-2 mb-4">
-                        <Badge variant="outline">{type.label}</Badge>
-                        <p className="text-sm text-muted-foreground">{type.description}</p>
+                        <Badge variant="outline">{typeInfo.label}</Badge>
+                        <p className="text-sm text-muted-foreground">{typeInfo.description}</p>
                       </div>
 
                       <div className="space-y-4">
@@ -171,25 +236,25 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                         />
 
                         {/* Campos específicos para cada tipo de questão */}
-                        {type.value === 'multiple_choice' && (
+                        {questionType === 'multiple_choice' && (
                           <MultipleChoiceFields form={form} />
                         )}
-                        {type.value === 'single_choice' && (
+                        {questionType === 'single_choice' && (
                           <SingleChoiceFields form={form} />
                         )}
-                        {type.value === 'drag_and_drop' && (
+                        {questionType === 'drag_and_drop' && (
                           <DragAndDropFields form={form} />
                         )}
-                        {type.value === 'practical_scenario' && (
+                        {questionType === 'practical_scenario' && (
                           <PracticalScenarioFields form={form} />
                         )}
-                        {type.value === 'fill_in_blank' && (
+                        {questionType === 'fill_in_blank' && (
                           <FillInBlankFields form={form} />
                         )}
-                        {type.value === 'command_line' && (
+                        {questionType === 'command_line' && (
                           <CommandLineFields form={form} />
                         )}
-                        {type.value === 'network_topology' && (
+                        {questionType === 'network_topology' && (
                           <NetworkTopologyFields form={form} />
                         )}
 
@@ -329,7 +394,10 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
             </Tabs>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={() => {
+                form.reset(getInitialFormValues()); // Resetar ao cancelar
+                onClose();
+              }}>
                 Cancelar
               </Button>
               <Button type="submit">

@@ -14,7 +14,7 @@ export const baseQuestionSchema = z.object({
 export const multipleChoiceSchema = baseQuestionSchema.extend({
   type: z.literal('multiple_choice'),
   options: z.array(z.string()).min(2, 'Adicione pelo menos 2 opções'),
-  correctOptions: z.array(z.number()).min(1, 'Selecione pelo menos uma opção correta'),
+  correctOptions: z.array(z.string()).default([]),
 });
 
 export const singleChoiceSchema = baseQuestionSchema.extend({
@@ -25,15 +25,17 @@ export const singleChoiceSchema = baseQuestionSchema.extend({
 
 export const dragAndDropSchema = baseQuestionSchema.extend({
   type: z.literal('drag_and_drop'),
-  items: z.array(z.object({
-    id: z.string(),
+  dragAndDropType: z.enum(['ordering', 'matching']),
+  dragAndDropItems: z.array(z.object({
     text: z.string().min(1, 'O texto do item é obrigatório'),
-    category: z.string().min(1, 'A categoria é obrigatória'),
+    category: z.string().optional(),
+    hint: z.string().optional()
   })).min(2, 'Adicione pelo menos 2 itens'),
-  correctPlacements: z.array(z.object({
-    itemId: z.string(),
-    targetCategory: z.string(),
-  })).min(1, 'Defina pelo menos uma categoria para os itens'),
+  dragAndDropCategories: z.array(z.object({
+    name: z.string().min(1, 'O nome da categoria é obrigatório'),
+    description: z.string().optional()
+  })).optional(),
+  correctOrder: z.array(z.number()).optional(),
 });
 
 export const practicalScenarioSchema = baseQuestionSchema.extend({
