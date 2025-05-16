@@ -339,6 +339,7 @@ const Index = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {exams
                   .filter(exam => exam.is_gratis === true)
+                  .slice(0, 12)
                   .map((exam) => {
                     const topics = Array.isArray((exam as any).topicos) && (exam as any).topicos.length > 0
                       ? (exam as any).topicos
@@ -608,6 +609,7 @@ const Index = () => {
                     
                     return true;
                   })
+                  .slice(0, 12)
                   .map((exam) => {
                   // Para exames do servidor
                   // Priorizar exam.topicos do backend, senão fallback

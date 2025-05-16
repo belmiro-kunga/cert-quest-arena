@@ -300,6 +300,8 @@ const SimuladosList: React.FC = () => {
               
               // Filtrar por gratuito se o filtro estiver ativo
               if (isFreeFilter && !s.is_gratis) return false;
+              // Quando NÃO estiver filtrando gratuitos, mostrar apenas pagos
+              if (!isFreeFilter && s.is_gratis) return false;
               
               // Filtrar por categoria se uma categoria estiver selecionada
               if (categoryFilter && !matchesCategory(s, categoryFilter)) return false;
@@ -320,13 +322,12 @@ const SimuladosList: React.FC = () => {
                   .filter(s => {
                     // Filtrar por idioma
                     if (s.language !== preferredLanguage) return false;
-                    
                     // Filtrar por gratuito se o filtro estiver ativo
                     if (isFreeFilter && !s.is_gratis) return false;
-                    
+                    // Quando NÃO estiver filtrando gratuitos, mostrar apenas pagos
+                    if (!isFreeFilter && s.is_gratis) return false;
                     // Filtrar por categoria se uma categoria estiver selecionada
                     if (categoryFilter && !matchesCategory(s, categoryFilter)) return false;
-                    
                     return true;
                   })
                   .map((simulado) => (
