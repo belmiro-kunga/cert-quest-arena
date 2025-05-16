@@ -43,7 +43,7 @@ const SimuladoRunningPage: React.FC = () => {
         setTimeLeft(simuladoData.duration * 60); // Converter minutos para segundos
         
         // Carregar questões
-        const questoesData = await getQuestoesBySimuladoId(parseInt(id));
+        const questoesData = await getQuestoesBySimuladoId(parseInt(id), simuladoData.language);
         setQuestoes(questoesData);
         
         if (questoesData.length === 0) {

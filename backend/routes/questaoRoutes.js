@@ -15,7 +15,8 @@ questaoModel.initialize().catch(err => {
 router.get('/simulado/:simuladoId', async (req, res) => {
   try {
     const simuladoId = req.params.simuladoId;
-    const questoes = await questaoModel.getQuestoesBySimuladoId(simuladoId);
+    const language = req.query.language;
+    const questoes = await questaoModel.getQuestoesBySimuladoId(simuladoId, language);
     res.json(questoes);
   } catch (error) {
     console.error(`Erro ao buscar questões do simulado ${req.params.simuladoId}:`, error);

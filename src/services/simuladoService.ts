@@ -67,25 +67,25 @@ export const simuladoToExam = (simulado: Simulado): Exam => {
   // Garantir que todos os campos obrigatórios tenham valores padrão
   const exam = {
     id: String(simulado.id || 0),
-    title: simulado.titulo || 'Sem título',
-    description: simulado.descricao || '',
-    price: typeof simulado.preco === 'number' ? simulado.preco : (simulado.preco ? parseFloat(simulado.preco) : 0),
-    discountPrice: simulado.preco_desconto ? parseFloat(String(simulado.preco_desconto)) : undefined,
+    title: simulado.title || simulado.titulo || 'Sem título',
+    description: simulado.description || simulado.descricao || '',
+    price: typeof simulado.preco === 'number' ? simulado.preco : (simulado.preco ? parseFloat(simulado.preco) : (simulado.price || 0)),
+    discountPrice: simulado.preco_desconto ? parseFloat(String(simulado.preco_desconto)) : (simulado.discountPrice ? parseFloat(String(simulado.discountPrice)) : undefined),
     language: simulado.language || 'pt',
-    difficulty: simulado.nivel_dificuldade || 'Médio',
-    duration: simulado.duracao_minutos || 60,
-    questions_count: typeof simulado.quantidade_questoes === 'number' 
-      ? simulado.quantidade_questoes 
-      : (simulado.quantidade_questoes ? parseInt(String(simulado.quantidade_questoes), 10) : 0),
-    category: (simulado as any).category || '',
-    image_url: (simulado as any).image_url || '',
-    created_at: simulado.data_criacao || '',
-    updated_at: (simulado as any).updated_at || '',
+    difficulty: simulado.difficulty || simulado.nivel_dificuldade || 'Médio',
+    duration: simulado.duracao_minutos || simulado.duration || 60,
+    questions_count: simulado.questions_count || simulado.quantidade_questoes || 0,
+    category: simulado.category || simulado.categoria || '',
+    categoria: simulado.categoria || simulado.category || '',
+    image_url: simulado.image_url || '',
+    created_at: simulado.data_criacao || simulado.created_at || '',
+    updated_at: simulado.data_atualizacao || simulado.updated_at || '',
     topicos: simulado.topicos || [],
     is_subscription: simulado.is_subscription || false,
     subscription_duration: simulado.subscription_duration || 90,
     subscription_price: simulado.subscription_price,
-    subscription_currency: simulado.subscription_currency || 'BRL'
+    subscription_currency: simulado.subscription_currency || 'BRL',
+    is_gratis: simulado.is_gratis === true
   };
   
   // Log para depuração

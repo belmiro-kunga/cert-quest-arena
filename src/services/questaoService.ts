@@ -119,10 +119,13 @@ export const getQuestionsByExamId = async (examId: string): Promise<BaseQuestion
 import type { Alternativa, Questao } from '@/types/simulado';
 
 // Buscar todas as questões de um simulado para o simulado em andamento
-export const getQuestoesBySimuladoId = async (simuladoId: number): Promise<Questao[]> => {
+export const getQuestoesBySimuladoId = async (simuladoId: number, language?: string): Promise<Questao[]> => {
   try {
     console.log(`Buscando questões do simulado ${simuladoId}...`);
-    const response = await axios.get(`${API_URL}/questoes/simulado/${simuladoId}`);
+    const url = language
+      ? `${API_URL}/questoes/simulado/${simuladoId}?language=${language}`
+      : `${API_URL}/questoes/simulado/${simuladoId}`;
+    const response = await axios.get(url);
     console.log('Questões recebidas:', response.data);
     
     // Converter para o formato necessário para o simulado em andamento

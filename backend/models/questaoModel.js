@@ -114,16 +114,21 @@ const createQuestao = async (questao) => {
 
 // Obter todas as questões de um simulado
 // Agora aceita parâmetro opcional de idioma
-const getQuestoesBySimuladoId = async (simuladoId, language = 'pt') => {
+const getQuestoesBySimuladoId = async (simuladoId, language) => {
   try {
-    // Buscar todas as questões do simulado
-    const questoesResult = await db.query(
-      `SELECT * FROM questoes WHERE simulado_id = $1 AND language = $2 ORDER BY id`,
-      [simuladoId, language]
-    );
-    
+    let questoesResult;
+    if (language) {
+      questoesResult = await db.query(
+        `SELECT * FROM questoes WHERE simulado_id = $1 AND language = $2 ORDER BY id`,
+        [simuladoId, language]
+      );
+    } else {
+      questoesResult = await db.query(
+        `SELECT * FROM questoes WHERE simulado_id = $1 ORDER BY id`,
+        [simuladoId]
+      );
+    }
     const questoes = questoesResult.rows;
-    
     // Para cada questão, buscar suas opções (se aplicável)
     for (const questao of questoes) {
       if (questao.tipo === 'multiple_choice' || questao.tipo === 'single_choice') {
@@ -134,7 +139,6 @@ const getQuestoesBySimuladoId = async (simuladoId, language = 'pt') => {
         questao.opcoes = opcoesResult.rows;
       }
     }
-    
     return questoes;
   } catch (error) {
     console.error(`Erro ao buscar questões do simulado ${simuladoId}:`, error);
