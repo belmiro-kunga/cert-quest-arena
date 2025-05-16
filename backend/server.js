@@ -58,7 +58,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Rotas de autenticação
-app.use('/auth', require('./routes/auth')); // for parsing application/json
+app.use('/auth', require('./routes/auth'));
+
+// Rotas de configuração de autenticação (admin)
+app.use('/admin/settings/auth', require('./routes/authSettings')); // for parsing application/json
 
 // Middleware para capturar erros de parsing JSON
 app.use((err, req, res, next) => {

@@ -20,7 +20,7 @@ import MarketplaceAffiliateSettings from "./admin/MarketplaceAffiliateSettings";
 import MarketplaceSalesMetrics from "./admin/MarketplaceSalesMetrics";
 import MarketplaceSalesPolicies from "./admin/MarketplaceSalesPolicies";
 import PacotesAdmin from "./admin/PacotesAdmin";
-import SystemSettings from "./admin/SystemSettings";
+import AuthSettings from "./admin/settings/AuthSettings";
 import { Routes, Route } from "react-router-dom";
 import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -162,7 +162,7 @@ const AdminPage = () => {
             <Route path="/settings/languages" element={<LanguagesPage />} />
             <Route path="/settings/currencies" element={<CurrenciesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/system-settings" element={<SystemSettings />} />
+            <Route path="/settings/auth" element={<AuthSettings />} />
             <Route path="/email-templates" element={<EmailTemplates />} />
             <Route path="/marketplace/sales-metrics" element={<MarketplaceSalesMetrics />} />
             <Route path="/marketplace/sales-policies" element={<MarketplaceSalesPolicies />} />

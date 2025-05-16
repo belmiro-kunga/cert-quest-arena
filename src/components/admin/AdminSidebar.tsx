@@ -20,6 +20,7 @@ import {
   ClipboardCheck,
   Package,
   Cog,
+  Lock,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -88,12 +89,12 @@ const sidebarItems = [
         href: '/admin/email-templates',
         icon: Mail,
       },
+      {
+        title: 'Autenticação Social',
+        href: '/admin/settings/auth',
+        icon: Lock,
+      },
     ],
-  },
-  {
-    title: 'Configurações do Sistema',
-    href: '/admin/system-settings',
-    icon: Cog,
   },
   {
     title: 'Marketplace',
