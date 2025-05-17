@@ -68,4 +68,18 @@ router.put('/:key', async (req, res) => {
   }
 });
 
+// Rota para obter apenas a moeda padrão (compatível com frontend)
+router.get('/default_currency', async (req, res) => {
+  try {
+    const setting = await systemSettingsModel.getSetting('default_currency');
+    if (!setting) {
+      return res.status(404).json({ error: 'Configuração de moeda padrão não encontrada' });
+    }
+    res.json({ currency: setting.value });
+  } catch (error) {
+    console.error('Erro ao buscar moeda padrão:', error);
+    res.status(500).json({ error: 'Erro ao buscar moeda padrão' });
+  }
+});
+
 module.exports = router; 

@@ -124,4 +124,23 @@ CREATE TABLE IF NOT EXISTS payments (
     provider VARCHAR(50) NOT NULL,
     provider_payment_id VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-); 
+);
+
+-- Tabela de Configurações do Sistema (inclui reCAPTCHA)
+CREATE TABLE IF NOT EXISTS system_settings (
+    id SERIAL PRIMARY KEY,
+    category VARCHAR(50) NOT NULL,
+    key VARCHAR(100) NOT NULL,
+    value TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (category, key)
+);
+
+-- Valores padrão para reCAPTCHA
+INSERT INTO system_settings (category, key, value)
+VALUES 
+  ('recaptcha', 'enabled', 'true'),
+  ('recaptcha', 'siteKey', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'),
+  ('recaptcha', 'secretKey', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'),
+  ('recaptcha', 'threshold', '3')
+ON CONFLICT (category, key) DO NOTHING; 
