@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
@@ -200,19 +200,26 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         )}
       </div>
 
-      <div className="flex items-center space-x-2 my-4">
-        <Checkbox 
-          id="remember-me" 
-          checked={rememberMe} 
-          onCheckedChange={(checked) => setRememberMe(checked === true)}
-          disabled={isLoading}
-        />
-        <label 
-          htmlFor="remember-me" 
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          {t('login.rememberMe', 'Lembrar-me')}
-        </label>
+      <div className="flex items-center justify-between my-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="remember-me" 
+            checked={rememberMe} 
+            onCheckedChange={(checked) => setRememberMe(checked === true)}
+            disabled={isLoading}
+          />
+          <label 
+            htmlFor="remember-me" 
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {t('login.rememberMe', 'Lembrar-me')}
+          </label>
+        </div>
+        <div>
+          <Button variant="link" className="p-0 h-auto text-sm text-cert-blue" asChild>
+            <Link to="/recuperar-senha">Esqueceu a senha?</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Mostrar CAPTCHA após o número configurado de tentativas */}
