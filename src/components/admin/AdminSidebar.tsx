@@ -99,6 +99,11 @@ const sidebarItems = [
         href: '/admin/settings/auth',
         icon: Lock,
       },
+      {
+        title: 'Políticas Legais',
+        href: '/admin/settings/legal',
+        icon: FileText,
+      },
     ],
   },
   {

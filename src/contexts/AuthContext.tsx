@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { authService, User as AuthUser } from '@/services/authService';
 
 interface AffiliateInfo {
   status: 'pending' | 'approved' | 'rejected' | null;
@@ -12,7 +13,7 @@ interface AffiliateInfo {
 
 interface TwoFactorAuth {
   enabled: boolean;
-  secret: string;
+  secret?: string;
   backupCodes?: string[];
 }
 
@@ -132,61 +133,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     setLoading(true);
     try {
-      // Simular verificação de credenciais
-      if (email === 'user@certquest.com' && password === 'user123') {
-        // Verificar se o usuário tem 2FA ativado
-        if (DEFAULT_USER.twoFactorAuth?.enabled) {
-          // Armazenar credenciais temporariamente para verificação de 2FA
-          setPendingTwoFactorAuth({ email, password, rememberMe });
-          return { requiresTwoFactor: true };
+      // Usar o serviço de autenticação para fazer login
+      const newUser = await authService.signIn(email, password);
+      
+      // Verificar se o usuário tem 2FA ativado
+      if (newUser.twoFactorAuth?.enabled) {
+        // Armazenar credenciais temporariamente para verificação de 2FA
+        setPendingTwoFactorAuth({ email, password, rememberMe });
+        return { requiresTwoFactor: true };
+      }
+      
+      // Converter para o formato User do contexto
+      const contextUser: User = {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        affiliate: newUser.affiliate || {
+          status: null,
+          earnings: 0,
+          referrals: 0,
+          link: ''
+        },
+        photoURL: newUser.photoURL,
+        twoFactorAuth: newUser.twoFactorAuth || {
+          enabled: false,
+          secret: ''
         }
-        
-        setUser(DEFAULT_USER);
-        
-        // Armazenar dados do usuário baseado na opção "Lembrar-me"
-        if (rememberMe) {
-          // Armazenar no localStorage (persistente mesmo após fechar o navegador)
-          localStorage.setItem('user', JSON.stringify(DEFAULT_USER));
-          // Limpar sessionStorage para evitar duplicação
-          sessionStorage.removeItem('user');
-        } else {
-          // Armazenar no sessionStorage (dura apenas durante a sessão do navegador)
-          sessionStorage.setItem('user', JSON.stringify(DEFAULT_USER));
-          // Limpar localStorage para evitar duplicação
-          localStorage.removeItem('user');
-        }
-        
-        toast({
-          title: "Login realizado com sucesso",
-          description: "Bem-vindo de volta!",
-        });
-        navigate('/dashboard');
-      } else if (email === 'admin@certquest.com' && password === 'admin123') {
-        // Verificar se o administrador tem 2FA ativado
-        if (ADMIN_USER.twoFactorAuth?.enabled) {
-          // Armazenar credenciais temporariamente para verificação de 2FA
-          setPendingTwoFactorAuth({ email, password, rememberMe });
-          return { requiresTwoFactor: true };
-        }
-        
-        setUser(ADMIN_USER);
-        
-        // Armazenar dados do administrador baseado na opção "Lembrar-me"
-        if (rememberMe) {
-          localStorage.setItem('user', JSON.stringify(ADMIN_USER));
-          sessionStorage.removeItem('user');
-        } else {
-          sessionStorage.setItem('user', JSON.stringify(ADMIN_USER));
-          localStorage.removeItem('user');
-        }
-        
-        toast({
-          title: "Login administrativo realizado com sucesso",
-          description: "Bem-vindo, Administrador!",
-        });
-        // Não redirecionar automaticamente - deixar o componente AdminLoginForm fazer isso
+      };
+      
+      setUser(contextUser);
+      
+      // Armazenar dados do usuário baseado na opção "Lembrar-me"
+      if (rememberMe) {
+        // Armazenar no localStorage (persistente mesmo após fechar o navegador)
+        localStorage.setItem('user', JSON.stringify(contextUser));
+        // Limpar sessionStorage para evitar duplicação
+        sessionStorage.removeItem('user');
       } else {
-        throw new Error('Email ou senha incorretos');
+        // Armazenar no sessionStorage (dura apenas durante a sessão do navegador)
+        sessionStorage.setItem('user', JSON.stringify(contextUser));
+        // Limpar localStorage para evitar duplicação
+        localStorage.removeItem('user');
+      }
+      
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Bem-vindo de volta!",
+      });
+      
+      // Redirecionar com base no papel do usuário
+      if (contextUser.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
       }
     } catch (error: any) {
       toast({
@@ -203,15 +203,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
-      // Simular criação de usuário
-      const newUser: User = {
-        ...DEFAULT_USER,
-        id: Math.random().toString(),
-        email,
-        name,
+      // Usar o serviço de autenticação para registrar o usuário
+      const newUser = await authService.signUp(email, password, name);
+      
+      // Converter para o formato User do contexto
+      const contextUser: User = {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        affiliate: newUser.affiliate || {
+          status: null,
+          earnings: 0,
+          referrals: 0,
+          link: ''
+        },
+        photoURL: newUser.photoURL,
+        twoFactorAuth: newUser.twoFactorAuth || {
+          enabled: false,
+          secret: ''
+        }
       };
       
-      setUser(newUser);
+      setUser(contextUser);
+      
+      // Armazenar no sessionStorage (sessão temporária)
+      sessionStorage.setItem('user', JSON.stringify(contextUser));
+      
       toast({
         title: "Conta criada com sucesso",
         description: "Bem-vindo ao CertQuest Arena!",
@@ -229,16 +247,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signOut = () => {
-    setUser(null);
-    // Limpar dados do usuário de ambos os storages
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('user');
-    toast({
-      title: "Logout realizado",
-      description: "Até logo!",
-    });
-    navigate('/');
+  const signOut = async () => {
+    try {
+      // Usar o serviço de autenticação para fazer logout
+      await authService.signOut();
+      
+      // Limpar o estado do usuário
+      setUser(null);
+      
+      // Limpar dados do usuário de ambos os storages
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
+      
+      toast({
+        title: "Logout realizado",
+        description: "Até logo!",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, limpar os dados locais
+      setUser(null);
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
+      navigate('/');
+    }
   };
 
   const isAdmin = () => user?.role === 'admin';

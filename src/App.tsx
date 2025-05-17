@@ -2,6 +2,7 @@ import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import APIStatusNotification from "@/components/APIStatusNotification";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CartProvider } from '@/contexts/CartContext';
@@ -42,6 +43,7 @@ import StudyPage from './pages/StudyPage';
 import AuthSettingsPage from './pages/admin/AuthSettingsPage';
 import PageContentManager from './pages/admin/PageContentManager';
 import PageContentEditor from './pages/admin/PageContentEditor';
+import TestApiPage from './pages/TestApiPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -53,6 +55,7 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
+      <APIStatusNotification />
       <TooltipProvider>
         <BrowserRouter>
           <Toaster />
@@ -80,6 +83,7 @@ const App = () => {
                       <Route path="/contato" element={<ContactPage />} />
                       <Route path="/simulados/:id/start" element={<SimuladoRunningPage />} />
                       <Route path="/simulados/:id/resultado" element={<SimuladoResultPage />} />
+                      <Route path="/test-api" element={<TestApiPage />} />
                       
                       {/* Rotas de Pacotes */}
                       <Route path="/pacotes" element={<Pacotes />} />

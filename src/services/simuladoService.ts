@@ -22,6 +22,7 @@ export interface Simulado {
   nivel_dificuldade?: string;
   nota_minima?: number;
   data_criacao?: string;
+  data_atualizacao?: string;
   ativo?: boolean;
   language?: string; // Novo campo para idioma
   preco_brl?: number; // Preço em reais
@@ -32,6 +33,19 @@ export interface Simulado {
   subscription_duration?: number;
   subscription_price?: number;
   subscription_currency?: string;
+  
+  // Campos adicionais para compatibilidade com a API e o frontend
+  title?: string;
+  description?: string;
+  price?: number;
+  discountPrice?: number;
+  difficulty?: string;
+  duration?: number;
+  questions_count?: number;
+  category?: string;
+  image_url?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Interface para mapear entre o tipo Exam do frontend e o tipo Simulado do backend
@@ -444,13 +458,33 @@ const fallbackExams: Exam[] = [
 // Busca todos os simulados ativos para os alunos
 export const getActiveExams = async (): Promise<Exam[]> => {
   try {
+    // Verificar se a API está disponível antes de fazer a requisição
+    // Importar a função isAPIAvailable do arquivo de configuração
+    const { isAPIAvailable } = await import('@/config');
+    const apiAvailable = await isAPIAvailable();
+    
+    if (!apiAvailable) {
+      console.log('API não está disponível. Usando dados de fallback para simulados.');
+      return fallbackExams;
+    }
+    
     console.log('Chamando API para buscar simulados ativos:', `${API_URL}/simulados/ativos`);
-    const response = await axios.get(`${API_URL}/simulados/ativos`);
+    
+    // Configurar um timeout para a requisição
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos de timeout
+    
+    const response = await axios.get(`${API_URL}/simulados/ativos`, {
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
     console.log('Resposta da API de simulados ativos:', response.data);
 
     if (!response.data || !Array.isArray(response.data)) {
       console.error('Resposta da API não é um array:', response.data);
-      return [];
+      return fallbackExams; // Usar dados de fallback se a resposta não for válida
     }
 
     const exams = response.data.map((simulado: any) => ({
@@ -478,6 +512,13 @@ export const getActiveExams = async (): Promise<Exam[]> => {
     }));
 
     console.log('Exams convertidos:', exams);
+    
+    // Se não houver dados retornados, usar os dados de fallback
+    if (exams.length === 0) {
+      console.log('Nenhum simulado encontrado na API. Usando dados de fallback.');
+      return fallbackExams;
+    }
+    
     return exams;
   } catch (error) {
     console.error('Erro ao buscar simulados ativos:', error);

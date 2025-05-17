@@ -1,215 +1,143 @@
-import { supabase } from '@/lib/supabase';
-import { emailService } from './emailService';
+import axios from 'axios';
+import { API_URL } from '@/config';
+
+export interface AffiliateInfo {
+  status: 'pending' | 'approved' | 'rejected' | null;
+  earnings: number;
+  referrals: number;
+  link: string;
+  applicationDate?: string;
+}
+
+export interface TwoFactorAuth {
+  enabled: boolean;
+  secret?: string;
+  backupCodes?: string[];
+}
 
 export interface User {
   id: string;
   email: string;
   name: string;
   role: 'user' | 'admin';
-  createdAt: string;
-  updatedAt: string;
+  photoURL?: string;
+  affiliate?: AffiliateInfo;
+  twoFactorAuth?: TwoFactorAuth;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const authService = {
   async signUp(email: string, password: string, name: string): Promise<User> {
     try {
-      // Registra o usuário no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Registra o usuário na API local
+      const response = await axios.post(`${API_URL}/auth/register`, {
         email,
         password,
-        options: {
-          data: {
-            name,
-          },
-        },
+        name
       });
 
-      if (authError) {
-        console.error('Erro ao registrar usuário:', authError);
-        throw authError;
-      }
+      // Armazenar o token no localStorage
+      localStorage.setItem('token', response.data.token);
 
-      if (!authData.user) {
-        throw new Error('Usuário não criado');
-      }
-
-      // Cria o perfil do usuário
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email,
-        name,
-        role: 'user',
-      });
-
-      if (profileError) {
-        console.error('Erro ao criar perfil:', profileError);
-        throw profileError;
-      }
-
-      // Envia email de confirmação
-      await emailService.sendRegistrationConfirmation(
-        email,
-        name,
-        authData.session?.access_token || ''
-      );
-
-      return {
-        id: authData.user.id,
-        email: authData.user.email!,
-        name,
-        role: 'user',
-        createdAt: authData.user.created_at,
-        updatedAt: authData.user.updated_at,
-      };
-    } catch (error) {
+      return response.data.user;
+    } catch (error: any) {
       console.error('Erro no registro:', error);
-      throw error;
+      throw new Error(error.response?.data?.error || 'Erro ao registrar usuário');
     }
   },
 
   async signIn(email: string, password: string): Promise<User> {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email,
-        password,
+        password
       });
 
-      if (error) {
-        console.error('Erro ao fazer login:', error);
-        throw error;
-      }
+      // Armazenar o token no localStorage
+      localStorage.setItem('token', response.data.token);
 
-      if (!data.user) {
-        throw new Error('Usuário não encontrado');
-      }
-
-      // Busca o perfil do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError);
-        throw profileError;
-      }
-
-      return {
-        id: data.user.id,
-        email: data.user.email!,
-        name: profile.name,
-        role: profile.role,
-        createdAt: data.user.created_at,
-        updatedAt: data.user.updated_at,
-      };
-    } catch (error) {
+      return response.data.user;
+    } catch (error: any) {
       console.error('Erro no login:', error);
-      throw error;
+      throw new Error(error.response?.data?.error || 'Credenciais inválidas');
     }
   },
 
   async signOut(): Promise<void> {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Erro ao fazer logout:', error);
-        throw error;
+      // Remover o token do localStorage
+      localStorage.removeItem('token');
+      
+      // Opcional: notificar o servidor sobre o logout
+      const token = localStorage.getItem('token');
+      if (token) {
+        await axios.post(`${API_URL}/auth/logout`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no logout:', error);
-      throw error;
+      // Mesmo com erro, remover o token local
+      localStorage.removeItem('token');
     }
   },
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error) {
-        console.error('Erro ao buscar usuário atual:', error);
-        throw error;
-      }
-
-      if (!user) {
+      const token = localStorage.getItem('token');
+      if (!token) {
         return null;
       }
 
-      // Busca o perfil do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const response = await axios.get(`${API_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-      if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError);
-        throw profileError;
-      }
-
-      return {
-        id: user.id,
-        email: user.email!,
-        name: profile.name,
-        role: profile.role,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
-      };
-    } catch (error) {
+      return response.data.user;
+    } catch (error: any) {
       console.error('Erro ao buscar usuário atual:', error);
-      throw error;
+      // Se o token for inválido, remover do localStorage
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        return null;
+      }
+      return null;
     }
   },
 
   async resetPassword(email: string): Promise<void> {
     try {
-      // Busca o perfil do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('email', email)
-        .single();
-
-      if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError);
-        throw profileError;
-      }
-
-      // Gera o token de recuperação
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        console.error('Erro ao solicitar redefinição de senha:', error);
-        throw error;
-      }
-
-      // Envia email de recuperação
-      await emailService.sendPasswordRecovery(
-        email,
-        profile.name,
-        data?.user?.id || ''
-      );
-    } catch (error) {
+      await axios.post(`${API_URL}/auth/reset-password`, { email });
+    } catch (error: any) {
       console.error('Erro na redefinição de senha:', error);
-      throw error;
+      throw new Error(error.response?.data?.error || 'Erro ao solicitar redefinição de senha');
     }
   },
 
-  async updatePassword(password: string): Promise<void> {
+  async updatePassword(password: string, token?: string): Promise<void> {
     try {
-      const { error } = await supabase.auth.updateUser({
-        password,
-      });
-
-      if (error) {
-        console.error('Erro ao atualizar senha:', error);
-        throw error;
+      const authToken = token || localStorage.getItem('token');
+      if (!authToken) {
+        throw new Error('Usuário não autenticado');
       }
-    } catch (error) {
-      console.error('Erro na atualização de senha:', error);
-      throw error;
+
+      await axios.post(
+        `${API_URL}/auth/update-password`,
+        { password },
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`
+          }
+        }
+      );
+    } catch (error: any) {
+      console.error('Erro ao atualizar senha:', error);
+      throw new Error(error.response?.data?.error || 'Erro ao atualizar senha');
     }
   },
 }; 

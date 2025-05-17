@@ -4,13 +4,17 @@ const session = require('express-session');
 const cors = require('cors');
 const passport = require('passport');
 const db = require('./db'); // Import the db configuration
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { Pool } = require('pg');
+const paymentController = require('./controllers/paymentController');
 
 // Importar modelos
 const simuladoModel = require('./models/simuladoModel');
 const pacoteModel = require('./models/pacoteModel');
 const systemSettingsModel = require('./models/systemSettingsModel');
 const AuthSettings = require('./models/AuthSettings');
-const PageContent = require('./models/PageContent');
+const userModel = require('./models/userModel');
 
 // Importar rotas
 const simuladoRoutes = require('./routes/simuladoRoutes');
@@ -19,11 +23,12 @@ const resultRoutes = require('./routes/resultRoutes');
 const pacoteRoutes = require('./routes/pacoteRoutes');
 const systemSettingsRoutes = require('./routes/systemSettings');
 const recaptchaRoutes = require('./routes/recaptchaRoutes');
-const pageContentRoutes = require('./routes/pageContentRoutes');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 // Criar a aplicação Express
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3008;
 
 // Middleware para parsing de JSON
 app.use(express.json());
@@ -123,6 +128,41 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
+// Health Check Endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    // Verificar a conexão com o banco de dados
+    const dbResult = await db.query('SELECT 1');
+    
+    // Verificar outros serviços críticos aqui, se necessário
+    
+    // Se tudo estiver funcionando, retornar status 200
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: dbResult.rows.length > 0 ? 'online' : 'offline',
+        api: 'online'
+      },
+      version: '1.0.0'
+    });
+  } catch (err) {
+    console.error('Health check falhou:', err);
+    
+    // Se houver um erro, retornar status 500 com detalhes
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: 'offline',
+        api: 'online'
+      },
+      error: err.message,
+      version: '1.0.0'
+    });
+  }
+});
+
 // Registrar rotas da API
 console.log('Registrando rotas de simulados...');
 app.use('/api/simulados', simuladoRoutes);
@@ -144,51 +184,74 @@ console.log('Registrando rotas de configurações do sistema...');
 app.use('/api/system-settings', systemSettingsRoutes);
 console.log('Rotas de configurações do sistema registradas!');
 
-console.log('Registrando rotas de conteúdo de páginas...');
-app.use('/api/pages', pageContentRoutes);
-console.log('Rotas de conteúdo de páginas registradas!');
+console.log('Registrando rotas de autenticação...');
+app.use('/api/auth', authRoutes);
+console.log('Rotas de autenticação registradas!');
+
+console.log('Registrando rotas de usuários...');
+app.use('/api/users', userRoutes);
+console.log('Rotas de usuários registradas!');
 
 // Inicializar tabelas e dados
 const initializeDatabase = async () => {
   try {
     console.log('Inicializando tabelas do banco de dados...');
     
-    // Inicializar tabelas de simulados
-    await simuladoModel.initialize();
-    console.log('Tabelas de simulados inicializadas.');
+    // Inicializar tabelas de questões
+    await simuladoModel.initializeQuestionsTable();
+    console.log('Tabelas de questões verificadas/criadas com sucesso');
+    
+    // Verificar coluna de preço
+    await simuladoModel.checkPriceColumn();
+    console.log('Verificação da coluna preco concluída');
     
     // Inicializar tabelas de pacotes
-    await pacoteModel.createTableIfNotExists();
+    await pacoteModel.initializePackagesTable();
+    console.log('Tabelas de pacotes verificadas/criadas com sucesso');
+    await pacoteModel.initializePackages();
+    console.log('Tabelas de pacotes inicializadas');
+    
+    // Inicializar tabelas de simulados
+    await simuladoModel.initializeSimuladosTable();
+    console.log('Tabela de simulados verificada/criada com sucesso');
+    await simuladoModel.initializeSimuladosTable();
+    console.log('Tabela de simulados verificada/criada com sucesso');
+    await simuladoModel.initializeSimulados();
+    console.log('Tabelas de simulados inicializadas.');
+    
+    // Verificar coluna de preço novamente (para garantir)
+    await simuladoModel.checkPriceColumn();
+    console.log('Verificação da coluna preco concluída');
+    
+    // Inicializar tabelas de pacotes novamente (para garantir)
+    await pacoteModel.initializePackagesTable();
+    console.log('Tabelas de pacotes verificadas/criadas com sucesso');
+    await pacoteModel.initializePackages();
     console.log('Tabelas de pacotes inicializadas.');
     
-    // Inicializar tabelas de configurações do sistema
-    await systemSettingsModel.createTableIfNotExists();
+    // Inicializar tabela de configurações do sistema
+    await systemSettingsModel.initializeSystemSettingsTable();
+    console.log('Tabela de configurações do sistema verificada/criada com sucesso');
+    await systemSettingsModel.initializeSystemSettings();
     console.log('Tabelas de configurações do sistema inicializadas');
-
-    // Inicializar tabela de configurações de autenticação
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS auth_settings (
-        id SERIAL PRIMARY KEY,
-        provider VARCHAR(50) NOT NULL,
-        client_id TEXT,
-        client_secret TEXT,
-        callback_url TEXT,
-        enabled BOOLEAN DEFAULT false,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    
+    // Inicializar configurações de autenticação
+    await AuthSettings.initializeAuthSettings();
     console.log('Tabela de configurações de autenticação inicializada');
     
+    // Inicializar tabelas de usuários
+    await userModel.createUserTable();
+    console.log('Tabelas de usuários verificadas/criadas com sucesso');
+    
     console.log('Inicialização do banco de dados concluída com sucesso!');
-  } catch (error) {
-    console.error('Erro ao inicializar o banco de dados:', error);
+  } catch (err) {
+    console.error('Erro ao inicializar o banco de dados:', err);
   }
 };
 
-// Start the server
+// Iniciar o servidor
 app.listen(PORT, async () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`API disponível em http://localhost:${PORT}/api`);
   
   // Inicializar banco de dados
@@ -200,3 +263,345 @@ app.listen(PORT, async () => {
   console.log(`Gerenciamento de pacotes em http://localhost:${PORT}/api/pacotes`);
   console.log(`Gerenciamento de configurações do sistema em http://localhost:${PORT}/api/system-settings`);
 });
+
+const pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: 'simulado',
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT || 5432,
+});
+
+// Teste a conexão
+pool.connect((err, client, release) => {
+    if (err) {
+        console.error('Erro ao conectar ao banco:', err);
+        return;
+    }
+    console.log('Conectado ao PostgreSQL com sucesso!');
+    release();
+});
+
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+
+// Middleware para controle de acesso por papel
+function requireRole(role) {
+    return (req, res, next) => {
+        if (!req.user || !req.user.roles || !req.user.roles.includes(role)) {
+            return res.status(403).json({ error: 'Acesso negado. Permissão insuficiente.' });
+        }
+        next();
+    };
+}
+
+// Middleware para autenticação
+function auth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Token não fornecido.' });
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch {
+        res.status(401).json({ error: 'Token inválido.' });
+    }
+}
+
+// Rotas de Autenticação
+app.post('/register', async (req, res) => {
+    const { nome, email, senha } = req.body;
+    if (!nome || !email || !senha) return res.status(400).json({ error: 'Preencha todos os campos.' });
+    
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        
+        const checkResult = await client.query('SELECT id FROM usuarios WHERE email = $1', [email]);
+        if (checkResult.rows.length > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'Email já cadastrado.' });
+        }
+        
+        const hash = await bcrypt.hash(senha, 10);
+        const insertResult = await client.query(
+            'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3) RETURNING id, nome, email',
+            [nome, email, hash]
+        );
+        
+        await client.query('COMMIT');
+        
+        res.json({ 
+            message: 'Usuário cadastrado com sucesso!', 
+            user: {
+                id: insertResult.rows[0].id,
+                nome: insertResult.rows[0].nome,
+                email: insertResult.rows[0].email
+            }
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Erro no cadastro:', err);
+        res.status(500).json({ error: 'Erro no servidor ao cadastrar usuário.' });
+    } finally {
+        client.release();
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const { email, senha } = req.body;
+    if (!email || !senha) return res.status(400).json({ error: 'Preencha todos os campos.' });
+    
+    const client = await pool.connect();
+    try {
+        const result = await client.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+        
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Usuário não encontrado.' });
+        }
+        
+        const user = result.rows[0];
+        const match = await bcrypt.compare(senha, user.senha);
+        
+        if (!match) {
+            return res.status(400).json({ error: 'Senha incorreta.' });
+        }
+        
+        const token = jwt.sign(
+            { 
+                id: user.id, 
+                nome: user.nome, 
+                email: user.email, 
+                roles: user.admin ? ['admin'] : [] 
+            },
+            JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+        
+        res.json({ 
+            token,
+            user: {
+                id: user.id,
+                nome: user.nome,
+                email: user.email,
+                admin: user.admin
+            }
+        });
+    } catch (err) {
+        console.error('Erro no login:', err);
+        res.status(500).json({ error: 'Erro no servidor ao fazer login.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Usuário
+app.get('/me', auth, async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT id, nome, email, photo FROM usuarios WHERE id = $1', [req.user.id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+        const user = result.rows[0];
+        res.json({ 
+            user: {
+                id: user.id,
+                name: user.nome,
+                email: user.email,
+                photo: user.photo || null
+            }
+        });
+    } catch (err) {
+        console.error('Erro ao buscar dados do usuário:', err);
+        res.status(500).json({ error: 'Erro ao buscar dados do usuário.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Certificações
+app.get('/certificacoes', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT * FROM certificacoes WHERE ativo = TRUE');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar certificações.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Simulados
+app.get('/simulados', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT * FROM simulados WHERE ativo = TRUE');
+        
+        const formattedRows = result.rows.map(row => ({
+            id: row.id.toString(),
+            title: row.titulo,
+            description: row.descricao,
+            questionsCount: row.qt_questoes,
+            duration: row.duracao_minutos,
+            difficulty: row.dificuldade,
+            price: row.preco,
+            discountPrice: row.preco_desconto,
+            discountPercentage: row.percentual_desconto,
+            discountExpiresAt: row.data_fim_desconto,
+            purchases: row.qt_vendas || 0,
+            rating: row.avaliacao || 0,
+            passingScore: row.nota_aprovacao || 70,
+            questions: []
+        }));
+        
+        res.json(formattedRows);
+    } catch (err) {
+        console.error('Erro ao buscar simulados:', err);
+        res.status(500).json({ error: 'Erro ao buscar simulados.' });
+    } finally {
+        client.release();
+    }
+});
+
+app.get('/simulados/:id', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT * FROM simulados WHERE id = $1', [req.params.id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Simulado não encontrado.' });
+        
+        const simulado = {
+            id: result.rows[0].id.toString(),
+            title: result.rows[0].titulo,
+            description: result.rows[0].descricao,
+            questionsCount: result.rows[0].qt_questoes,
+            duration: result.rows[0].duracao_minutos,
+            difficulty: result.rows[0].dificuldade,
+            price: result.rows[0].preco,
+            discountPrice: result.rows[0].preco_desconto,
+            discountPercentage: result.rows[0].percentual_desconto,
+            discountExpiresAt: result.rows[0].data_fim_desconto,
+            purchases: result.rows[0].qt_vendas || 0,
+            rating: result.rows[0].avaliacao || 0,
+            passingScore: result.rows[0].nota_aprovacao || 70,
+            questions: []
+        };
+        
+        res.json(simulado);
+    } catch (err) {
+        console.error('Erro ao buscar simulado:', err);
+        res.status(500).json({ error: 'Erro ao buscar simulado.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Tentativas
+app.post('/tentativas', auth, async (req, res) => {
+    const { simulado_id, respostas } = req.body;
+    if (!simulado_id || !Array.isArray(respostas)) {
+        return res.status(400).json({ error: 'Dados incompletos.' });
+    }
+    
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const result = await client.query(
+            'INSERT INTO tentativas_simulado (usuario_id, simulado_id, data_inicio) VALUES ($1, $2, NOW()) RETURNING id',
+            [req.user.id, simulado_id]
+        );
+        const tentativa_id = result.rows[0].id;
+        
+        for (const resp of respostas) {
+            await client.query(
+                'INSERT INTO respostas_usuario (tentativa_id, questao_id, alternativa_id, correta) VALUES ($1, $2, $3, $4)',
+                [tentativa_id, resp.questao_id, resp.alternativa_id, resp.correta]
+            );
+        }
+        
+        await client.query(
+            'UPDATE tentativas_simulado SET data_fim = NOW() WHERE id = $1',
+            [tentativa_id]
+        );
+        
+        await client.query('COMMIT');
+        res.json({ tentativa_id, message: 'Tentativa registrada com sucesso!' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Erro ao registrar tentativa:', err);
+        res.status(500).json({ error: 'Erro ao registrar tentativa.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Notificações
+app.get('/notificacoes', auth, async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query(
+            'SELECT * FROM notificacoes WHERE usuario_id = $1 ORDER BY data_criacao DESC',
+            [req.user.id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Erro ao buscar notificações:', err);
+        res.status(500).json({ error: 'Erro ao buscar notificações.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Pedidos
+app.post('/pedidos', auth, async (req, res) => {
+    const { itens, valor_total, metodo_pagamento } = req.body;
+    if (!Array.isArray(itens) || !valor_total) {
+        return res.status(400).json({ error: 'Dados incompletos.' });
+    }
+    
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const result = await client.query(
+            'INSERT INTO pedidos (usuario_id, valor_total, status, metodo_pagamento, data_pedido) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
+            [req.user.id, valor_total, 'pendente', metodo_pagamento]
+        );
+        const pedido_id = result.rows[0].id;
+        
+        for (const item of itens) {
+            await client.query(
+                'INSERT INTO itens_pedido (pedido_id, simulado_id, preco) VALUES ($1, $2, $3)',
+                [pedido_id, item.simulado_id, item.preco]
+            );
+        }
+        
+        await client.query('COMMIT');
+        res.json({ pedido_id, message: 'Pedido criado com sucesso!' });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Erro ao criar pedido:', err);
+        res.status(500).json({ error: 'Erro ao criar pedido.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Admin
+app.get('/admin/usuarios', auth, requireRole('admin'), async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT id, nome, email, admin, ativo FROM usuarios');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Erro ao buscar usuários:', err);
+        res.status(500).json({ error: 'Erro ao buscar usuários.' });
+    } finally {
+        client.release();
+    }
+});
+
+// Rotas de Pagamento
+app.get('/api/admin/payments', auth, requireRole('admin'), paymentController.getPayments);
+app.post('/api/payment/create-session', auth, paymentController.createPaymentSession);
+app.post('/api/payment/webhook', paymentController.handleWebhook);

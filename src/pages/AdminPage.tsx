@@ -21,6 +21,8 @@ import MarketplaceSalesMetrics from "./admin/MarketplaceSalesMetrics";
 import MarketplaceSalesPolicies from "./admin/MarketplaceSalesPolicies";
 import PacotesAdmin from "./admin/PacotesAdmin";
 import AuthSettings from "./admin/settings/AuthSettings";
+import LegalPoliciesPage from "./admin/settings/LegalPoliciesPage";
+import StudentsPage from "./admin/StudentsPage";
 import { Routes, Route } from "react-router-dom";
 import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -90,8 +92,9 @@ const AdminPage = () => {
             <Route path="/dashboard" element={<Overview />} />
             
             {/* Students Routes */}
+            <Route path="/students" element={<StudentsPage />} />
             <Route 
-              path="/students" 
+              path="/students/old" 
               element={
                 <Students 
                   students={state.students}
@@ -166,6 +169,7 @@ const AdminPage = () => {
             <Route path="/settings/currencies" element={<CurrenciesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/auth" element={<AuthSettings />} />
+            <Route path="/settings/legal" element={<LegalPoliciesPage />} />
             <Route path="/email-templates" element={<EmailTemplates />} />
             <Route path="/marketplace/sales-metrics" element={<MarketplaceSalesMetrics />} />
             <Route path="/marketplace/sales-policies" element={<MarketplaceSalesPolicies />} />
