@@ -10,6 +10,7 @@ const simuladoModel = require('./models/simuladoModel');
 const pacoteModel = require('./models/pacoteModel');
 const systemSettingsModel = require('./models/systemSettingsModel');
 const AuthSettings = require('./models/AuthSettings');
+const PageContent = require('./models/PageContent');
 
 // Importar rotas
 const simuladoRoutes = require('./routes/simuladoRoutes');
@@ -18,6 +19,7 @@ const resultRoutes = require('./routes/resultRoutes');
 const pacoteRoutes = require('./routes/pacoteRoutes');
 const systemSettingsRoutes = require('./routes/systemSettings');
 const recaptchaRoutes = require('./routes/recaptchaRoutes');
+const pageContentRoutes = require('./routes/pageContentRoutes');
 
 // Criar a aplicação Express
 const app = express();
@@ -37,7 +39,10 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:8080',
+      'http://localhost:8092',
       'http://127.0.0.1:56728',  // Browser preview
+      'http://127.0.0.1:49580',  // Browser preview atual
+      /^http:\/\/localhost:\d+$/,  // Qualquer porta em localhost
       /^http:\/\/127\.0\.0\.1:\d+$/  // Qualquer porta em 127.0.0.1
     ];
     
@@ -138,6 +143,10 @@ console.log('Rotas de pacotes registradas!');
 console.log('Registrando rotas de configurações do sistema...');
 app.use('/api/system-settings', systemSettingsRoutes);
 console.log('Rotas de configurações do sistema registradas!');
+
+console.log('Registrando rotas de conteúdo de páginas...');
+app.use('/api/pages', pageContentRoutes);
+console.log('Rotas de conteúdo de páginas registradas!');
 
 // Inicializar tabelas e dados
 const initializeDatabase = async () => {

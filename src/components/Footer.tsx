@@ -1,7 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import CertificationSimuladosModal from './simulado/CertificationSimuladosModal';
 
 const Footer: React.FC = () => {
+  // Estado para controlar o modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  
+  // Função para abrir o modal com a categoria selecionada
+  const handleCategoryClick = (category: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    setSelectedCategory(category);
+    setModalOpen(true);
+  };
+  
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-10">
@@ -21,30 +33,29 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Certificações</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">AWS</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Microsoft Azure</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Google Cloud</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">CompTIA</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Cisco</a></li>
+              <li><a href="#" onClick={(e) => handleCategoryClick('aws', e)} className="text-gray-300 hover:text-white">AWS</a></li>
+              <li><a href="#" onClick={(e) => handleCategoryClick('azure', e)} className="text-gray-300 hover:text-white">Microsoft Azure</a></li>
+              <li><a href="#" onClick={(e) => handleCategoryClick('google-cloud', e)} className="text-gray-300 hover:text-white">Google Cloud</a></li>
+              <li><a href="#" onClick={(e) => handleCategoryClick('comptia', e)} className="text-gray-300 hover:text-white">CompTIA</a></li>
+              <li><a href="#" onClick={(e) => handleCategoryClick('cisco', e)} className="text-gray-300 hover:text-white">Cisco</a></li>
             </ul>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-4">Empresa</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">Sobre nós</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Blog</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Depoimentos</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Entre em contato</a></li>
+              <li><a href="/sobre" className="text-gray-300 hover:text-white">Sobre nós</a></li>
+              <li><a href="/contato" className="text-gray-300 hover:text-white">Entre em contato</a></li>
             </ul>
           </div>
           
           <div>
             <h4 className="text-lg font-semibold mb-4">Legal</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white">Termos de uso</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Política de privacidade</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Cookies</a></li>
+              <li><a href="/legal" className="text-gray-300 hover:text-white">Informações Legais</a></li>
+              <li><a href="/termos" className="text-gray-300 hover:text-white">Termos de Uso</a></li>
+              <li><a href="/privacidade" className="text-gray-300 hover:text-white">Política de Privacidade</a></li>
+              <li><a href="/cookies" className="text-gray-300 hover:text-white">Política de Cookies</a></li>
             </ul>
           </div>
         </div>
@@ -77,6 +88,13 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Modal de simulados relacionados */}
+      <CertificationSimuladosModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        category={selectedCategory} 
+      />
     </footer>
   );
 };

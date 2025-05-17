@@ -70,6 +70,11 @@ const sidebarItems = [
     icon: CreditCard,
   },
   {
+    title: 'Páginas',
+    href: '/admin/pages',
+    icon: FileText,
+  },
+  {
     title: 'Configurações',
     href: '/admin/settings',
     icon: Settings,

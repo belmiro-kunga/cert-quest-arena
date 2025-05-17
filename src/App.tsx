@@ -17,6 +17,10 @@ import SignUpPage from "./pages/SignUpPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import CookiePolicyPage from "./pages/CookiePolicyPage";
+import LegalPage from "./pages/LegalPage";
 import Dashboard from "./pages/Dashboard";
 import QuizPage from "./pages/QuizPage";
 import ExamPage from "./pages/ExamPage";
@@ -36,6 +40,8 @@ import SimuladoRunningPage from './pages/SimuladoRunningPage';
 import SimuladoResultPage from './pages/SimuladoResultPage';
 import StudyPage from './pages/StudyPage';
 import AuthSettingsPage from './pages/admin/AuthSettingsPage';
+import PageContentManager from './pages/admin/PageContentManager';
+import PageContentEditor from './pages/admin/PageContentEditor';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -68,6 +74,10 @@ const App = () => {
                       <Route path="/simulados/:id" element={<SimuladoDetailPage />} />
                       <Route path="/termos" element={<TermsOfServicePage />} />
                       <Route path="/privacidade" element={<PrivacyPolicyPage />} />
+                      <Route path="/cookies" element={<CookiePolicyPage />} />
+                      <Route path="/legal" element={<LegalPage />} />
+                      <Route path="/sobre" element={<AboutPage />} />
+                      <Route path="/contato" element={<ContactPage />} />
                       <Route path="/simulados/:id/start" element={<SimuladoRunningPage />} />
                       <Route path="/simulados/:id/resultado" element={<SimuladoResultPage />} />
                       
@@ -111,6 +121,8 @@ const App = () => {
                       <Route path="/admin/login" element={<AdminLoginPage />} />
                       <Route path="/admin/*" element={<AdminPage />} />
                       <Route path="/admin/settings/auth" element={<AuthSettingsPage />} />
+                      <Route path="/admin/pages" element={<PageContentManager />} />
+                      <Route path="/admin/pages/:pageKey/edit" element={<PageContentEditor />} />
 
                       {/* Payment Routes */}
                       <Route path="/exams/:examId" element={<ExamPage />} />

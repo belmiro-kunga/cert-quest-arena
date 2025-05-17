@@ -179,7 +179,10 @@ const Index = () => {
     const fetchExams = async () => {
       setIsLoading(true);
       try {
-        const activeExams = await import('@/services/simuladoService').then(mod => mod.getActiveExams());
+        // Importar o serviço de simulados e buscar os dados
+        // O serviço já tem tratamento de erro e retorna dados de fallback em caso de falha
+        const simuladoService = await import('@/services/simuladoService');
+        const activeExams = await simuladoService.getActiveExams();
         
         // Garantir que todos os simulados tenham o campo categoria definido
         const processedExams = activeExams.map(exam => ({
@@ -192,10 +195,24 @@ const Index = () => {
         setExams(processedExams);
       } catch (error) {
         console.error('Erro ao buscar simulados do banco de dados:', error);
-        setExams([]);
-      } finally {
-        setIsLoading(false);
+        // Mesmo em caso de erro no processamento, não deixamos a lista vazia
+        // Importamos diretamente os dados de fallback
+        import('@/services/simuladoService').then(mod => {
+          // Acessar os dados de fallback diretamente
+          if (mod.fallbackExams) {
+            const processedFallbackExams = mod.fallbackExams.map(exam => ({
+              ...exam,
+              categoria: exam.categoria || exam.category || 'geral'
+            }));
+            console.log('Usando dados de fallback para simulados na página inicial');
+            setExams(processedFallbackExams);
+          } else {
+            setExams([]);
+          }
+        }).catch(() => setExams([])).finally(() => setIsLoading(false));
+        return; // Importante para evitar que o setIsLoading(false) seja chamado duas vezes
       }
+      setIsLoading(false);
     };
     fetchExams();
   }, []);

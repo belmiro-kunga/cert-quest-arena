@@ -166,6 +166,32 @@ const SimuladosList: React.FC = () => {
     return categoryMatch;
   };
 
+  // Função para obter o título da categoria selecionada
+  const getCategoryTitle = (category: string): string => {
+    const categoryTitles: Record<string, string> = {
+      'aws': 'Simulados para Certificações AWS',
+      'azure': 'Simulados para Certificações Microsoft Azure',
+      'google-cloud': 'Simulados para Certificações Google Cloud',
+      'comptia': 'Simulados para Certificações CompTIA',
+      'cisco': 'Simulados para Certificações Cisco'
+    };
+    
+    return categoryTitles[category.toLowerCase()] || `Simulados para ${category}`;
+  };
+  
+  // Função para obter a descrição da categoria selecionada
+  const getCategoryDescription = (category: string): string => {
+    const categoryDescriptions: Record<string, string> = {
+      'aws': 'Prepare-se para suas certificações Amazon Web Services com nossos simulados especializados. Cobrimos exames como AWS Certified Solutions Architect, Developer, SysOps Administrator e mais.',
+      'azure': 'Domine as certificações Microsoft Azure com nossos simulados detalhados. Ideal para AZ-900, AZ-104, AZ-204, AZ-305 e outras certificações Azure.',
+      'google-cloud': 'Simulados completos para as certificações Google Cloud Platform. Prepare-se para exames como Professional Cloud Architect, Associate Cloud Engineer e mais.',
+      'comptia': 'Simulados abrangentes para as certificações CompTIA, incluindo A+, Network+, Security+, Cloud+ e outras certificações essenciais para profissionais de TI.',
+      'cisco': 'Prepare-se para as certificações Cisco com nossos simulados especializados. Ideal para CCNA, CCNP, DevNet e outras certificações de rede.'
+    };
+    
+    return categoryDescriptions[category.toLowerCase()] || 'Prepare-se para suas certificações com nossos simulados de alta qualidade';
+  };
+
   // Função para renderizar o badge de categoria
   const renderCategoryBadge = (category: string) => {
     if (!category) return null;
@@ -173,7 +199,7 @@ const SimuladosList: React.FC = () => {
     const categoryMap: Record<string, { color: string, label: string }> = {
       'aws': { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'AWS' },
       'azure': { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Microsoft Azure' },
-      'gcp': { color: 'bg-red-100 text-red-800 border-red-200', label: 'Google Cloud' },
+      'google-cloud': { color: 'bg-red-100 text-red-800 border-red-200', label: 'Google Cloud' },
       'comptia': { color: 'bg-green-100 text-green-800 border-green-200', label: 'CompTIA' },
       'cisco': { color: 'bg-indigo-100 text-indigo-800 border-indigo-200', label: 'Cisco' }
     };
@@ -192,13 +218,19 @@ const SimuladosList: React.FC = () => {
     <div className="container mx-auto py-8">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">
-          {isFreeFilter ? "Simulados Gratuitos" : "Simulados Disponíveis"}
+          {categoryFilter ? getCategoryTitle(categoryFilter) : (isFreeFilter ? "Simulados Gratuitos" : "Simulados Disponíveis")}
         </h1>
         <p className="text-muted-foreground">
-          {isFreeFilter 
-            ? "Acesse nossos simulados gratuitos para testar seus conhecimentos" 
-            : "Prepare-se para suas certificações com nossos simulados de alta qualidade"}
+          {categoryFilter ? getCategoryDescription(categoryFilter) : 
+            (isFreeFilter 
+              ? "Acesse nossos simulados gratuitos para testar seus conhecimentos" 
+              : "Prepare-se para suas certificações com nossos simulados de alta qualidade")}
         </p>
+        {categoryFilter && (
+          <div className="mt-4">
+            {renderCategoryBadge(categoryFilter)}
+          </div>
+        )}
       </div>
 
       {/* Filtros */}
