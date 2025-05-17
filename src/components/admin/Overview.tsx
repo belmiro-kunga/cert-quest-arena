@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, CreditCard, Clock, Package, PieChart } from "lucide-react";
-import { getAllExams, getUsers } from "@/services/adminService";
 import { Exam, Student } from "@/types/admin";
 import { Skeleton } from "@/components/ui/skeleton";
 

@@ -70,7 +70,6 @@ import {
   criarPacotesAutomaticos 
 } from '@/services/pacoteService';
 import { Exam } from '@/services/adminService';
-import { getAllExams } from '@/services/adminService';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 const PacotesAdmin: React.FC = () => {
@@ -126,8 +125,8 @@ const PacotesAdmin: React.FC = () => {
 
   const loadSimulados = async () => {
     try {
-      const data = await getAllExams();
-      setSimulados(data);
+      // const data = await getAllExams();
+      setSimulados([]);
     } catch (error) {
       console.error('Erro ao carregar simulados:', error);
       toast({

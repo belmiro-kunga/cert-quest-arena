@@ -7,7 +7,6 @@ import { Students } from "@/components/admin/Students";
 import SimuladoAdmin from '@/components/admin/simulado/SimuladoAdmin';
 import { Coupons } from "@/components/admin/Coupons";
 import { GamificationAdmin } from "@/components/admin/GamificationAdmin";
-import Payments from "@/components/admin/Payments";
 import { StudySystem } from "@/components/admin/StudySystem";
 import { EmailTemplates } from "@/components/admin/EmailTemplates";
 import { useAdminPage } from "@/hooks/useAdminPage";
@@ -28,6 +27,7 @@ import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import PaymentSettings from '@/components/admin/settings/PaymentSettings';
 
 const AdminPage = () => {
   const { state, actions } = useAdminPage();
@@ -164,7 +164,6 @@ const AdminPage = () => {
             {/* Other Routes */}
             <Route path="/gamification" element={<GamificationAdmin />} />
             <Route path="/achievements" element={<div>Achievements section will be implemented soon</div>} />
-            <Route path="/payments" element={<Payments />} />
             <Route path="/settings/languages" element={<LanguagesPage />} />
             <Route path="/settings/currencies" element={<CurrenciesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
@@ -176,6 +175,7 @@ const AdminPage = () => {
             <Route path="/marketplace/affiliate-settings" element={<MarketplaceAffiliateSettings />} />
             <Route path="/marketplace/affiliate-requests" element={<AffiliateRequests />} />
             <Route path="/affiliate-requests" element={<AffiliateRequests />} />
+            <Route path="/payments" element={<PaymentSettings />} />
           </Routes>
         </div>
       </div>

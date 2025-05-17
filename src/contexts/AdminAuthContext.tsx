@@ -54,6 +54,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
         setAdminUser(admin);
         localStorage.setItem('adminUser', JSON.stringify(admin));
+        // Adiciona o token fixo de admin para autenticação nas rotas protegidas
+        localStorage.setItem('token', 'admin-token');
         toast({
           title: "Login administrativo bem-sucedido",
           description: "Bem-vindo ao painel administrativo!",
@@ -75,6 +77,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setLoading(true);
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
+    // Remove também o token de autenticação admin
+    localStorage.removeItem('token');
     setAdminUser(null);
     setLoading(false);
   };

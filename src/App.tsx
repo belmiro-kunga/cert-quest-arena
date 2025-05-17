@@ -31,8 +31,6 @@ import AdminPage from "./pages/AdminPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import CheckoutPage from '@/pages/CheckoutPage';
 import CartPage from '@/pages/CartPage';
-import { PaymentPage } from './pages/Payment';
-import { PaymentResultPage } from './pages/PaymentResult';
 import SimuladosPage from './pages/SimuladosPage';
 import SimuladoDetailPage from './pages/SimuladoDetailPage';
 import Pacotes from './pages/Pacotes';
@@ -41,13 +39,10 @@ import SimuladoRunningPage from './pages/SimuladoRunningPage';
 import SimuladoResultPage from './pages/SimuladoResultPage';
 import StudyPage from './pages/StudyPage';
 import AuthSettingsPage from './pages/admin/AuthSettingsPage';
-import PageContentManager from './pages/admin/PageContentManager';
-import PageContentEditor from './pages/admin/PageContentEditor';
 import TestApiPage from './pages/TestApiPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
-import { PaymentProvider } from './contexts/PaymentContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 
 const queryClient = new QueryClient();
@@ -65,7 +60,6 @@ const App = () => {
               <PaymentConfigProvider>
                 <CartProvider>
                   <CurrencyProvider>
-                    <PaymentProvider>
                     <Routes>
                       {/* Public Routes */}
                       <Route path="/" element={<Index />} />
@@ -125,21 +119,14 @@ const App = () => {
                       <Route path="/admin/login" element={<AdminLoginPage />} />
                       <Route path="/admin/*" element={<AdminPage />} />
                       <Route path="/admin/settings/auth" element={<AuthSettingsPage />} />
-                      <Route path="/admin/pages" element={<PageContentManager />} />
-                      <Route path="/admin/pages/:pageKey/edit" element={<PageContentEditor />} />
 
                       {/* Payment Routes */}
                       <Route path="/exams/:examId" element={<ExamPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
-                      <Route path="/payment" element={<PaymentPage />} />
-                      <Route path="/payment/success" element={<PaymentResultPage />} />
-                      <Route path="/payment/failure" element={<PaymentResultPage />} />
-                      <Route path="/payment/pending" element={<PaymentResultPage />} />
 
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                    </PaymentProvider>
                   </CurrencyProvider>
                 </CartProvider>
               </PaymentConfigProvider>

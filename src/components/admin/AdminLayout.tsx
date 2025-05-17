@@ -29,8 +29,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { path: '/admin/simulados', label: 'Simulados', icon: <FileQuestion className="h-5 w-5" /> },
     { path: '/admin/pacotes', label: 'Pacotes', icon: <Package className="h-5 w-5" /> },
     { path: '/admin/usuarios', label: 'Usuários', icon: <Users className="h-5 w-5" /> },
-    { path: '/admin/pages', label: 'Páginas', icon: <FileText className="h-5 w-5" /> },
-    { path: '/admin/mensagens', label: 'Mensagens', icon: <MessageSquare className="h-5 w-5" /> },
     { path: '/admin/settings', label: 'Configurações', icon: <Settings className="h-5 w-5" /> },
   ];
 

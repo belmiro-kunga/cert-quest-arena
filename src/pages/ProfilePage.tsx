@@ -8,7 +8,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import ProfileSidebar from '@/components/profile/ProfileSidebar';
 import ProfileTabTriggers from '@/components/profile/ProfileTabTriggers';
 import ProfileTab from '@/components/profile/tabs/ProfileTab';
-import PaymentTab from '@/components/profile/tabs/PaymentTab';
 import HistoryTab from '@/components/profile/tabs/HistoryTab';
 import SecurityTab from '@/components/profile/tabs/SecurityTab';
 import AffiliateTab from '@/components/profile/tabs/AffiliateTab';
@@ -94,10 +93,6 @@ const ProfilePage = () => {
                     user={user} 
                     updateUserProfile={handleUpdateProfile} 
                   />
-                </TabsContent>
-                
-                <TabsContent value="payment">
-                  <PaymentTab user={user} />
                 </TabsContent>
                 
                 <TabsContent value="history">
