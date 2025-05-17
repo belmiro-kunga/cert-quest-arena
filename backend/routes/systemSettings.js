@@ -82,4 +82,9 @@ router.get('/default_currency', async (req, res) => {
   }
 });
 
+// Rota para obter templates de email (compatível com frontend)
+router.get('/email-templates', async (req, res) => {
+  res.json([]);
+});
+
 module.exports = router; 

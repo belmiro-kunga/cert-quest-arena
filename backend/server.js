@@ -25,6 +25,7 @@ const systemSettingsRoutes = require('./routes/systemSettings');
 const recaptchaRoutes = require('./routes/recaptchaRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const flashcardsRoutes = require('./routes/flashcardsRoutes');
 
 // Criar a aplicação Express
 const app = express();
@@ -48,7 +49,11 @@ const corsOptions = {
       'http://127.0.0.1:56728',  // Browser preview
       'http://127.0.0.1:49580',  // Browser preview atual
       /^http:\/\/localhost:\d+$/,  // Qualquer porta em localhost
-      /^http:\/\/127\.0\.0\.1:\d+$/  // Qualquer porta em 127.0.0.1
+      /^http:\/\/127\.0\.0\.1:\d+$/,  // Qualquer porta em 127.0.0.1
+      'http://localhost:80',
+      'http://localhost',
+      'http://192.168.100.55:80',
+      'http://192.168.100.55',
     ];
     
     // Verificar se a origem está na lista ou corresponde ao padrão regex
@@ -191,6 +196,10 @@ console.log('Rotas de autenticação registradas!');
 console.log('Registrando rotas de usuários...');
 app.use('/api/users', userRoutes);
 console.log('Rotas de usuários registradas!');
+
+console.log('Registrando rotas de flashcards...');
+app.use('/api/flashcards', flashcardsRoutes);
+console.log('Rotas de flashcards registradas!');
 
 // Inicializar tabelas e dados
 const initializeDatabase = async () => {
