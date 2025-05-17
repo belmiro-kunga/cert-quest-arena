@@ -17,6 +17,7 @@ const questaoRoutes = require('./routes/questaoRoutes');
 const resultRoutes = require('./routes/resultRoutes');
 const pacoteRoutes = require('./routes/pacoteRoutes');
 const systemSettingsRoutes = require('./routes/systemSettings');
+const recaptchaRoutes = require('./routes/recaptchaRoutes');
 
 // Criar a aplicação Express
 const app = express();
@@ -87,7 +88,10 @@ app.use((req, res, next) => {
 app.use('/auth', require('./routes/auth'));
 
 // Rotas de configuração de autenticação (admin)
-app.use('/admin/settings/auth', require('./routes/authSettings')); // for parsing application/json
+app.use('/admin/settings/auth', require('./routes/authSettings'));
+
+// Rotas do reCAPTCHA
+app.use('/auth/recaptcha', recaptchaRoutes);
 
 // Middleware para capturar erros de parsing JSON
 app.use((err, req, res, next) => {

@@ -64,7 +64,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     const fetchRecaptchaConfig = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/recaptcha-config`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/recaptcha/config`
         );
         if (response.data && response.data.enabled) {
           setRecaptchaConfig(response.data);
@@ -251,6 +251,16 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
           Não tem uma conta?{' '}
           <Link to="/registro" className="text-cert-blue hover:underline">
             Criar conta
+          </Link>
+        </p>
+        <p className="text-xs text-muted-foreground mt-2">
+          Ao entrar, você concorda com nossos{' '}
+          <Link to="/termos" className="text-cert-blue hover:underline" target="_blank">
+            Termos de Uso
+          </Link>{' '}
+          e{' '}
+          <Link to="/privacidade" className="text-cert-blue hover:underline" target="_blank">
+            Política de Privacidade
           </Link>
         </p>
       </div>

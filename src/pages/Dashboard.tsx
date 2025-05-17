@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { User, Settings, Trophy, Star, Target, BookOpen, Clock, Award, TrendingUp, Zap, Calendar } from 'lucide-react';
+import NewDeviceAlert from '@/components/auth/NewDeviceAlert';
+import { isNewDevice } from '@/services/deviceDetection';
 import {
   LineChart,
   Line,
@@ -41,7 +43,17 @@ const Dashboard = () => {
   }, [preferredLanguage]);
 
   // Simulando dados do usuário
-  const user = JSON.parse(localStorage.getItem('user') || '{"name": "Usuário", "email": "user@example.com"}');
+  const user = JSON.parse(localStorage.getItem('user') || '{"name": "Usuário", "email": "user@example.com", "id": "user-123"}');
+  
+  // Estado para controlar a exibição do alerta de novo dispositivo
+  const [showNewDeviceAlert, setShowNewDeviceAlert] = useState(false);
+  
+  // Verificar se é um novo dispositivo ao carregar o dashboard
+  useEffect(() => {
+    if (user && user.id) {
+      setShowNewDeviceAlert(isNewDevice(user.id));
+    }
+  }, [user]);
   
   // Dados de estatísticas simulados
   const stats = {
@@ -159,6 +171,10 @@ const Dashboard = () => {
       <Header />
       <main className="flex-grow py-8 px-4">
         <div className="container mx-auto">
+          {/* Alerta de novo dispositivo */}
+          {showNewDeviceAlert && user && user.id && (
+            <NewDeviceAlert userId={user.id} />
+          )}
           {/* Cabeçalho do Perfil */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             {/* Seletor de Idioma */}

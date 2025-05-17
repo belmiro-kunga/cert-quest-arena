@@ -15,6 +15,8 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import Dashboard from "./pages/Dashboard";
 import QuizPage from "./pages/QuizPage";
 import ExamPage from "./pages/ExamPage";
@@ -64,6 +66,8 @@ const App = () => {
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/simulados" element={<SimuladosPage />} />
                       <Route path="/simulados/:id" element={<SimuladoDetailPage />} />
+                      <Route path="/termos" element={<TermsOfServicePage />} />
+                      <Route path="/privacidade" element={<PrivacyPolicyPage />} />
                       <Route path="/simulados/:id/start" element={<SimuladoRunningPage />} />
                       <Route path="/simulados/:id/resultado" element={<SimuladoResultPage />} />
                       

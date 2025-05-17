@@ -43,7 +43,7 @@ const AdminLoginForm = () => {
     const fetchRecaptchaConfig = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/recaptcha-config`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/recaptcha/config`
         );
         if (response.data && response.data.enabled) {
           // Para administradores, usamos um threshold mais restritivo (metade do valor normal, mínimo 1)
