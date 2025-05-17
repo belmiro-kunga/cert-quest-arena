@@ -88,7 +88,7 @@ const Header = () => {
         </Button>
         <Button
           className="bg-blue-600 hover:bg-blue-700 text-white"
-          onClick={() => navigate('/signup')}
+          onClick={() => navigate('/registro')}
         >
           Cadastrar
         </Button>
