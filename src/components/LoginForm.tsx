@@ -245,6 +245,15 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       >
         {isLoading ? t('Entrando...') : t('Entrar')}
       </Button>
+      
+      <div className="text-center mt-4">
+        <p className="text-sm text-muted-foreground">
+          Não tem uma conta?{' '}
+          <Link to="/registro" className="text-cert-blue hover:underline">
+            Criar conta
+          </Link>
+        </p>
+      </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
