@@ -11,6 +11,8 @@ interface CurrencyContextType {
   isLoading: boolean;
 }
 
+const DEFAULT_CURRENCY: Currency = 'USD';
+
 const currencySymbols: Record<Currency, string> = {
   USD: '$',
   EUR: '€',
@@ -25,21 +27,22 @@ const exchangeRates: Record<Currency, number> = {
 };
 
 const CurrencyContext = createContext<CurrencyContextType>({
-  currency: 'USD',
+  currency: DEFAULT_CURRENCY,
   setCurrency: () => {},
   formatPrice: () => '',
   isLoading: true
 });
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currency, setCurrency] = useState<Currency>('USD');
+  const [currency, setCurrency] = useState<Currency>(DEFAULT_CURRENCY);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch default currency from system settings
   useEffect(() => {
     const fetchDefaultCurrency = async () => {
       try {
-        console.log('Fetching default currency from system settings...');
+        setIsLoading(true);
+        console.log('Iniciando busca da moeda padrão...');
         
         // Use a timeout to prevent hanging if the API is not responding
         const response = await Promise.race([
@@ -49,34 +52,38 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           )
         ]) as { data: { value: string } };
         
-        console.log('Default currency response:', response.data);
+        if (!response?.data) {
+          console.warn('Resposta da API sem dados, usando moeda padrão:', DEFAULT_CURRENCY);
+          return;
+        }
+
+        const { value } = response.data;
+        console.log('Moeda recebida da API:', value);
         
-        if (response.data && response.data.value) {
-          const defaultCurrency = response.data.value as Currency;
-          console.log('Setting default currency to:', defaultCurrency);
-          
-          if (defaultCurrency === 'USD' || defaultCurrency === 'EUR' || defaultCurrency === 'BRL') {
-            setCurrency(defaultCurrency);
-          } else {
-            console.warn(`Invalid currency value: ${defaultCurrency}, using USD as fallback`);
-            setCurrency('USD');
-          }
+        if (!value) {
+          console.warn('Valor da moeda não encontrado na resposta, usando moeda padrão:', DEFAULT_CURRENCY);
+          return;
+        }
+
+        const defaultCurrency = value.toUpperCase() as Currency;
+        
+        if (Object.keys(currencySymbols).includes(defaultCurrency)) {
+          console.log('Definindo moeda válida:', defaultCurrency);
+          setCurrency(defaultCurrency);
         } else {
-          console.warn('No default currency found in response, using USD as fallback');
-          setCurrency('USD');
+          console.warn(`Moeda inválida recebida: ${defaultCurrency}, usando moeda padrão: ${DEFAULT_CURRENCY}`);
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          console.error('Axios error fetching default currency:', error.message);
-          if (error.response) {
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-          }
+          console.error('Erro na requisição Axios:', {
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+          });
         } else {
-          console.error('Error fetching default currency:', error);
+          console.error('Erro ao buscar moeda padrão:', error);
         }
-        console.warn('Using USD as fallback due to error');
-        setCurrency('USD');
+        console.warn(`Usando moeda padrão devido ao erro: ${DEFAULT_CURRENCY}`);
       } finally {
         setIsLoading(false);
       }
@@ -86,14 +93,24 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   const formatPrice = (priceInUSD: number) => {
+    if (typeof priceInUSD !== 'number') {
+      console.warn('Preço inválido recebido:', priceInUSD);
+      return currencySymbols[currency] + '0.00';
+    }
+
     const convertedPrice = priceInUSD * exchangeRates[currency];
     
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(convertedPrice);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(convertedPrice);
+    } catch (error) {
+      console.error('Erro ao formatar preço:', error);
+      return currencySymbols[currency] + convertedPrice.toFixed(2);
+    }
   };
 
   return (

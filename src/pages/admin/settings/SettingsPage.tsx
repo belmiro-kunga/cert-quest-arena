@@ -282,10 +282,6 @@ const SettingsPage = () => {
               <Mail className="h-4 w-4 mr-2" />
               Email
             </TabsTrigger>
-            <TabsTrigger value="payment">
-              <CreditCard className="h-4 w-4 mr-2" />
-              Pagamentos
-            </TabsTrigger>
             <TabsTrigger value="billing">
               <Receipt className="h-4 w-4 mr-2" />
               Faturamento
@@ -741,10 +737,6 @@ const SettingsPage = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="payment">
-            {/* PaymentSettings component will be rendered in the Payment page */}
           </TabsContent>
 
           <TabsContent value="billing">

@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, FileText, CreditCard, Clock, Package, PieChart } from "lucide-react";
 import { Exam, Student } from "@/types/admin";
 import { Skeleton } from "@/components/ui/skeleton";
+import { examService } from "@/services/examService";
+import { userService } from "@/services/userService";
 
 export const Overview = () => {
   const [simulados, setSimulados] = useState<Exam[]>([]);
@@ -14,10 +16,11 @@ export const Overview = () => {
     const fetchSimulados = async () => {
       try {
         setIsLoading(true);
-        const data = await getAllExams();
-        setSimulados(data as Exam[]);
+        const data = await examService.getAllExams();
+        setSimulados(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Erro ao buscar simulados:', error);
+        setSimulados([]);
       } finally {
         setIsLoading(false);
       }
@@ -29,10 +32,11 @@ export const Overview = () => {
     const fetchAlunos = async () => {
       try {
         setIsLoadingAlunos(true);
-        const data = await getUsers();
-        setAlunos(data as Student[]);
+        const data = await userService.getAllUsers();
+        setAlunos(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Erro ao buscar alunos:', error);
+        setAlunos([]);
       } finally {
         setIsLoadingAlunos(false);
       }
@@ -73,13 +77,15 @@ export const Overview = () => {
 
   // Contar simulados por categoria
   const categoryCounts = simulados.reduce((acc: Record<string, number>, simulado) => {
+    if (!simulado) return acc;
+    
     // Obter a categoria do simulado e normalizá-la
     const categoria = normalizeCategory(simulado.categoria || simulado.category || '');
     
     // Adicionar à contagem
     acc[categoria] = (acc[categoria] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
   // Função para obter a cor baseada na categoria
   const getCategoryColor = (category: string): string => {
@@ -98,7 +104,7 @@ export const Overview = () => {
 
   // Contagem de alunos
   const totalAlunos = alunos.length;
-  const totalAtivos = alunos.filter(a => a.progress > 0).length;
+  const totalAtivos = alunos.filter(a => a?.progress > 0).length;
 
   return (
     <div className="p-6 space-y-6">
@@ -140,7 +146,7 @@ export const Overview = () => {
               <>
                 <div className="text-2xl font-bold">{simulados.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {simulados.filter(s => s.is_gratis).length} simulados gratuitos
+                  {simulados.filter(s => s?.is_gratis).length} simulados gratuitos
                 </p>
               </>
             )}

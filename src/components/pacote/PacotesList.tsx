@@ -158,7 +158,7 @@ const PacotesList: React.FC<PacotesListProps> = ({
         </div>
       ) : (
         <>
-          {pacotes.length === 0 ? (
+          {!Array.isArray(pacotes) || pacotes.length === 0 ? (
             <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
               <Package className="h-20 w-20 mx-auto text-gray-300 mb-6" />
               <p className="text-2xl font-medium text-muted-foreground">

@@ -2,10 +2,10 @@
 // Em projetos Vite, usamos import.meta.env em vez de process.env
 
 // URL principal da API
-const PRIMARY_API_URL = 'http://localhost:3001/api';
+const PRIMARY_API_URL = 'http://localhost:80/api';
 
 // URL alternativa da API (pode ser a mesma se não houver um servidor de backup)
-const FALLBACK_API_URL = 'http://localhost:3001/api';
+const FALLBACK_API_URL = 'http://localhost:80/api';
 
 // Verificar se devemos usar a URL alternativa
 const useAlternativeAPI = localStorage.getItem('useAlternativeAPI') === 'true';

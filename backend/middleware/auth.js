@@ -1,30 +1,32 @@
 const jwt = require('jsonwebtoken');
 
-const auth = async (req, res, next) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-      return res.status(401).json({ error: 'Autenticação necessária' });
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+
+// Middleware para controle de acesso por papel
+function requireRole(role) {
+    return (req, res, next) => {
+        if (!req.user || !req.user.roles || !req.user.roles.includes(role)) {
+            return res.status(403).json({ error: 'Acesso negado. Permissão insuficiente.' });
+        }
+        next();
+    };
+}
+
+// Middleware para autenticação
+function auth(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Token não fornecido.' });
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch {
+        res.status(401).json({ error: 'Token inválido.' });
     }
+}
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Por favor, autentique-se' });
-  }
-};
-
-const isAdmin = async (req, res, next) => {
-  try {
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Acesso negado. Apenas administradores podem acessar este recurso.' });
-    }
-    next();
-  } catch (error) {
-    res.status(403).json({ error: 'Acesso negado' });
-  }
-};
-
-module.exports = { auth, isAdmin }; 
+module.exports = {
+    auth,
+    requireRole
+}; 

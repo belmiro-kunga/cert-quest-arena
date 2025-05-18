@@ -32,9 +32,9 @@ export const authService = {
     try {
       // Registra o usuário na API local
       const response = await axios.post(`${API_URL}/auth/register`, {
-        email,
-        password,
-        name
+        nome: name,
+        email: email,
+        senha: password
       });
 
       // Armazenar o token no localStorage

@@ -92,7 +92,18 @@ const fallbackPacotes: Pacote[] = [
 export const getAllPacotes = async (): Promise<Pacote[]> => {
   try {
     const response = await api.get('/pacotes');
-    return response.data;
+    // Garantir que response.data é um array
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else if (response.data && typeof response.data === 'object') {
+      // Se for um objeto com uma propriedade que contém o array
+      const possibleArrays = Object.values(response.data).filter(Array.isArray);
+      if (possibleArrays.length > 0) {
+        return possibleArrays[0];
+      }
+    }
+    console.warn('API retornou dados em formato inesperado:', response.data);
+    return fallbackPacotes;
   } catch (error) {
     console.error('Erro ao buscar pacotes:', error);
     // Retornar dados de fallback em vez de lançar erro

@@ -2,20 +2,21 @@ require('dotenv').config(); // Load environment variables from .env file
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'cert_quest_arena',
   password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT || '5432', 10),
+  port: process.env.DB_PORT || 5432,
 });
 
-pool.on('connect', () => {
-  console.log('Connected to the PostgreSQL database!');
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+// Testar a conexão
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Erro ao conectar ao banco:', err);
+    return;
+  }
+  console.log('Conectado ao PostgreSQL com sucesso!');
+  release();
 });
 
 module.exports = {

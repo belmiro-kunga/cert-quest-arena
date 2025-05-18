@@ -26,10 +26,11 @@ const recaptchaRoutes = require('./routes/recaptchaRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const flashcardsRoutes = require('./routes/flashcardsRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Criar a aplicação Express
 const app = express();
-const PORT = process.env.PORT || 3008;
+const PORT = process.env.PORT || 80;
 
 // Middleware para parsing de JSON
 app.use(express.json());
@@ -100,7 +101,9 @@ app.use((req, res, next) => {
 });
 
 // Rotas de autenticação
-app.use('/auth', require('./routes/auth'));
+console.log('Registrando rotas de autenticação...');
+app.use('/api/auth', authRoutes);
+console.log('Rotas de autenticação registradas!');
 
 // Rotas de configuração de autenticação (admin)
 app.use('/admin/settings/auth', require('./routes/authSettings'));
@@ -189,10 +192,6 @@ console.log('Registrando rotas de configurações do sistema...');
 app.use('/api/system-settings', systemSettingsRoutes);
 console.log('Rotas de configurações do sistema registradas!');
 
-console.log('Registrando rotas de autenticação...');
-app.use('/api/auth', authRoutes);
-console.log('Rotas de autenticação registradas!');
-
 console.log('Registrando rotas de usuários...');
 app.use('/api/users', userRoutes);
 console.log('Rotas de usuários registradas!');
@@ -200,6 +199,10 @@ console.log('Rotas de usuários registradas!');
 console.log('Registrando rotas de flashcards...');
 app.use('/api/flashcards', flashcardsRoutes);
 console.log('Rotas de flashcards registradas!');
+
+console.log('Registrando rotas de pagamentos...');
+app.use('/api/payments', paymentRoutes);
+console.log('Rotas de pagamentos registradas!');
 
 // Inicializar tabelas e dados
 const initializeDatabase = async () => {
@@ -293,70 +296,10 @@ pool.connect((err, client, release) => {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
-// Middleware para controle de acesso por papel
-function requireRole(role) {
-    return (req, res, next) => {
-        if (!req.user || !req.user.roles || !req.user.roles.includes(role)) {
-            return res.status(403).json({ error: 'Acesso negado. Permissão insuficiente.' });
-        }
-        next();
-    };
-}
-
-// Middleware para autenticação
-function auth(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: 'Token não fornecido.' });
-    const token = authHeader.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch {
-        res.status(401).json({ error: 'Token inválido.' });
-    }
-}
+// Importar o middleware de autenticação se necessário
+const { auth, requireRole } = require('./middleware/auth');
 
 // Rotas de Autenticação
-app.post('/register', async (req, res) => {
-    const { nome, email, senha } = req.body;
-    if (!nome || !email || !senha) return res.status(400).json({ error: 'Preencha todos os campos.' });
-    
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-        
-        const checkResult = await client.query('SELECT id FROM usuarios WHERE email = $1', [email]);
-        if (checkResult.rows.length > 0) {
-            await client.query('ROLLBACK');
-            return res.status(400).json({ error: 'Email já cadastrado.' });
-        }
-        
-        const hash = await bcrypt.hash(senha, 10);
-        const insertResult = await client.query(
-            'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3) RETURNING id, nome, email',
-            [nome, email, hash]
-        );
-        
-        await client.query('COMMIT');
-        
-        res.json({ 
-            message: 'Usuário cadastrado com sucesso!', 
-            user: {
-                id: insertResult.rows[0].id,
-                nome: insertResult.rows[0].nome,
-                email: insertResult.rows[0].email
-            }
-        });
-    } catch (err) {
-        await client.query('ROLLBACK');
-        console.error('Erro no cadastro:', err);
-        res.status(500).json({ error: 'Erro no servidor ao cadastrar usuário.' });
-    } finally {
-        client.release();
-    }
-});
-
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     if (!email || !senha) return res.status(400).json({ error: 'Preencha todos os campos.' });

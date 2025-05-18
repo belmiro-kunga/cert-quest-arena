@@ -84,10 +84,11 @@ const StudentsPage: React.FC = () => {
     setError(null);
     try {
       const data = await userService.getUsersByRole('user');
-      setStudents(data);
+      setStudents(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error('Erro ao carregar alunos:', err);
       setError(err.message || 'Erro ao carregar a lista de alunos');
+      setStudents([]); // Garantir que students seja um array vazio em caso de erro
       toast({
         variant: 'destructive',
         title: 'Erro',
@@ -113,10 +114,12 @@ const StudentsPage: React.FC = () => {
   }, [isAuthenticated, adminUser, navigate]);
 
   // Filtrar alunos com base no termo de pesquisa
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    student.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = Array.isArray(students) 
+    ? students.filter(student => 
+        student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        student?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [];
 
   // Abrir o diálogo de edição
   const handleEdit = (student: User) => {
