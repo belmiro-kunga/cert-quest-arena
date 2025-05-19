@@ -1,6 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { Exam } from '@/types/admin';
 
+// Types
+export type Currency = 'BRL' | 'USD' | 'EUR';
+export type SubscriptionDuration = 30 | 90 | 180 | 365;
+
+export interface SimuladoInPacote {
+  id: string;
+  price: number;
+  title?: string;
+  description?: string;
+}
+
 // Interface para os pacotes de simulados
 export interface Pacote {
   id: number;
@@ -12,14 +23,16 @@ export interface Pacote {
   duracao_dias: number;
   ativo: boolean;
   is_subscription: boolean;
-  subscription_duration: number;
+  subscription_duration: SubscriptionDuration;
   subscription_price?: number;
-  subscription_currency: string;
-  simulados: Array<{ id: string; price: number }>;
+  subscription_currency: Currency;
+  simulados: SimuladoInPacote[];
   porcentagem_desconto: number;
   categoria: string;
   created_at: string;
   updated_at: string;
+  tags?: string[];
+  image_url?: string;
 }
 
 // Interface para criação/atualização de pacotes
@@ -27,283 +40,438 @@ export interface PacoteInput {
   titulo: string;
   descricao: string;
   preco_usd: number;
-  preco?: number; // Mantido para compatibilidade com backend
+  preco?: number;
   is_gratis: boolean;
   duracao_dias?: number;
   ativo?: boolean;
   is_subscription?: boolean;
-  subscription_duration?: number;
+  subscription_duration?: SubscriptionDuration;
   subscription_price?: number;
-  subscription_currency?: string;
+  subscription_currency?: Currency;
   categoria?: string;
-  porcentagem_desconto: number; // Campo obrigatório para o desconto
+  porcentagem_desconto: number;
   simulado_ids?: string[];
+  tags?: string[];
+  image_url?: string;
 }
 
-// Dados de fallback para quando a API estiver indisponível
-const fallbackPacotes: Pacote[] = [
-  {
-    id: 1,
-    titulo: 'Pacote AWS Certified Solutions Architect',
-    descricao: 'Prepare-se para a certificação AWS Solutions Architect com este pacote completo de simulados.',
-    preco: 199.90,
-    preco_usd: 39.99,
-    is_gratis: false,
-    duracao_dias: 90,
-    ativo: true,
-    is_subscription: false,
-    subscription_duration: 0,
-    subscription_currency: 'BRL',
-    simulados: [
-      { id: 'aws-saa-01', price: 79.90 },
-      { id: 'aws-saa-02', price: 79.90 },
-      { id: 'aws-saa-03', price: 79.90 }
-    ],
-    porcentagem_desconto: 20,
-    categoria: 'aws',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 2,
-    titulo: 'Pacote Microsoft Azure Administrator',
-    descricao: 'Domine as habilidades necessárias para a certificação Azure Administrator com simulados práticos.',
-    preco: 179.90,
-    preco_usd: 35.99,
-    is_gratis: false,
-    duracao_dias: 90,
-    ativo: true,
-    is_subscription: false,
-    subscription_duration: 0,
-    subscription_currency: 'BRL',
-    simulados: [
-      { id: 'azure-admin-01', price: 69.90 },
-      { id: 'azure-admin-02', price: 69.90 },
-      { id: 'azure-admin-03', price: 69.90 }
-    ],
-    porcentagem_desconto: 15,
-    categoria: 'azure',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+// Add interface for Simulado
+interface Simulado {
+  id: string;
+  title: string;
+  category: string;
+  price_usd: number;
+  is_active: boolean;
+}
+
+// Custom error types
+export class PacoteError extends Error {
+  constructor(message: string, public code: string, public details?: any) {
+    super(message);
+    this.name = 'PacoteError';
   }
-];
+}
 
-// Obter todos os pacotes ativos
-export const getAllPacotes = async (): Promise<Pacote[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('pacotes')
-      .select('*')
-      .eq('ativo', true);
+export class PacoteNotFoundError extends PacoteError {
+  constructor(id: string) {
+    super(`Pacote não encontrado: ${id}`, 'PACOTE_NOT_FOUND');
+  }
+}
 
-    if (error) {
-      console.error('Erro ao buscar pacotes do Supabase:', error);
-      console.log('Usando dados de fallback para pacotes devido a erro do Supabase');
-      return fallbackPacotes;
+export class PacoteValidationError extends PacoteError {
+  constructor(message: string, details?: any) {
+    super(message, 'PACOTE_VALIDATION_ERROR', details);
+  }
+}
+
+// Service class for better organization and dependency injection
+export class PacoteService {
+  private static instance: PacoteService;
+  private readonly tableName = 'pacotes';
+
+  private constructor() {}
+
+  public static getInstance(): PacoteService {
+    if (!PacoteService.instance) {
+      PacoteService.instance = new PacoteService();
     }
-    
-    // Se não houver dados ou se for um array vazio, usar fallback
-    if (!data || data.length === 0) {
-      console.log('Nenhum pacote encontrado no Supabase, usando dados de fallback');
-      return fallbackPacotes;
+    return PacoteService.instance;
+  }
+
+  // Validation helpers
+  private validatePacoteInput(input: PacoteInput): void {
+    const errors: string[] = [];
+
+    if (!input.titulo?.trim()) {
+      errors.push('Título é obrigatório');
     }
-    
-    return data;
-  } catch (error) {
-    // Capturar qualquer erro, incluindo erros de conexão
-    console.error('Erro ao buscar pacotes:', error);
-    console.log('Usando dados de fallback para pacotes devido a erro de conexão');
-    return fallbackPacotes;
-  }
-};
 
-// Obter pacote por ID
-export const getPacoteById = async (id: string): Promise<Pacote> => {
-  try {
-    const { data, error } = await supabase
-      .from('pacotes')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) throw error;
-    if (data) return data;
-
-    // Se não encontrar no Supabase, usar fallback
-    const fallbackPacote = fallbackPacotes.find(p => p.id.toString() === id);
-    if (fallbackPacote) {
-      console.log(`Usando dados de fallback para o pacote ${id} devido a erro`);
-      return fallbackPacote;
+    if (!input.descricao?.trim()) {
+      errors.push('Descrição é obrigatória');
     }
-    return fallbackPacotes[0];
-  } catch (error) {
-    console.error(`Erro ao buscar pacote ${id}:`, error);
-    const fallbackPacote = fallbackPacotes.find(p => p.id.toString() === id);
-    return fallbackPacote || fallbackPacotes[0];
+
+    if (typeof input.preco_usd !== 'number' || input.preco_usd < 0) {
+      errors.push('Preço USD inválido');
+    }
+
+    if (typeof input.porcentagem_desconto !== 'number' || 
+        input.porcentagem_desconto < 0 || 
+        input.porcentagem_desconto > 100) {
+      errors.push('Porcentagem de desconto deve estar entre 0 e 100');
+    }
+
+    if (errors.length > 0) {
+      throw new PacoteValidationError('Dados do pacote inválidos', errors);
+    }
   }
-};
 
-// Obter pacotes por categoria
-export const getPacotesByCategoria = async (categoria: string): Promise<Pacote[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('pacotes')
-      .select('*')
-      .eq('categoria', categoria)
-      .eq('ativo', true);
+  // CRUD operations
+  public async getAllPacotes(activeOnly: boolean = true): Promise<Pacote[]> {
+    try {
+      let query = supabase
+        .from(this.tableName)
+        .select('*');
 
-    if (error) throw error;
-    if (data && data.length > 0) return data;
+      if (activeOnly) {
+        query = query.eq('ativo', true);
+      }
 
-    // Se não encontrar no Supabase, usar fallback
-    const pacotesFiltrados = fallbackPacotes.filter(p => p.categoria === categoria);
-    console.log(`Usando dados de fallback para pacotes da categoria ${categoria} devido a erro`);
-    return pacotesFiltrados.length > 0 ? pacotesFiltrados : fallbackPacotes;
-  } catch (error) {
-    console.error(`Erro ao buscar pacotes da categoria ${categoria}:`, error);
-    const pacotesFiltrados = fallbackPacotes.filter(p => p.categoria === categoria);
-    return pacotesFiltrados.length > 0 ? pacotesFiltrados : fallbackPacotes;
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao buscar pacotes:', error);
+        return this.getFallbackPacotes();
+      }
+
+      if (!data || data.length === 0) {
+        console.log('Nenhum pacote encontrado, usando dados de fallback');
+        return this.getFallbackPacotes();
+      }
+
+      return data as Pacote[];
+    } catch (error) {
+      console.error('Erro ao buscar pacotes:', error);
+      return this.getFallbackPacotes();
+    }
   }
-};
 
-// Criar novo pacote (apenas admin)
-export const createPacote = async (pacoteData: PacoteInput): Promise<Pacote> => {
-  try {
-    const { data, error } = await supabase
-      .from('pacotes')
-      .insert([{
-        ...pacoteData,
-        preco: pacoteData.preco_usd,
+  public async getPacoteById(id: string): Promise<Pacote> {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error(`Erro ao buscar pacote ${id}:`, error);
+        return this.getFallbackPacoteById(id);
+      }
+
+      if (!data) {
+        throw new PacoteNotFoundError(id);
+      }
+
+      return data as Pacote;
+    } catch (error) {
+      if (error instanceof PacoteNotFoundError) {
+        throw error;
+      }
+      console.error(`Erro ao buscar pacote ${id}:`, error);
+      return this.getFallbackPacoteById(id);
+    }
+  }
+
+  public async getPacotesByCategoria(categoria: string): Promise<Pacote[]> {
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('categoria', categoria)
+        .eq('ativo', true);
+
+      if (error) {
+        console.error(`Erro ao buscar pacotes da categoria ${categoria}:`, error);
+        return this.getFallbackPacotesByCategoria(categoria);
+      }
+
+      if (!data || data.length === 0) {
+        return this.getFallbackPacotesByCategoria(categoria);
+      }
+
+      return data as Pacote[];
+    } catch (error) {
+      console.error(`Erro ao buscar pacotes da categoria ${categoria}:`, error);
+      return this.getFallbackPacotesByCategoria(categoria);
+    }
+  }
+
+  public async createPacote(input: PacoteInput): Promise<Pacote> {
+    try {
+      this.validatePacoteInput(input);
+
+      const pacoteData = {
+        ...input,
+        preco: input.preco_usd,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ativo: input.ativo ?? true
+      };
+
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .insert([pacoteData])
+        .select()
+        .single();
+
+      if (error) {
+        throw new PacoteError('Erro ao criar pacote', 'CREATE_ERROR', error);
+      }
+
+      if (!data) {
+        throw new PacoteError('Pacote não foi criado', 'CREATE_ERROR');
+      }
+
+      return data as Pacote;
+    } catch (error) {
+      if (error instanceof PacoteError) {
+        throw error;
+      }
+      throw new PacoteError('Erro ao criar pacote', 'CREATE_ERROR', error);
+    }
+  }
+
+  public async updatePacote(id: string, input: PacoteInput): Promise<Pacote> {
+    try {
+      this.validatePacoteInput(input);
+
+      const updateData = {
+        ...input,
+        preco: input.preco_usd,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new PacoteError(`Erro ao atualizar pacote ${id}`, 'UPDATE_ERROR', error);
+      }
+
+      if (!data) {
+        throw new PacoteNotFoundError(id);
+      }
+
+      return data as Pacote;
+    } catch (error) {
+      if (error instanceof PacoteError) {
+        throw error;
+      }
+      throw new PacoteError(`Erro ao atualizar pacote ${id}`, 'UPDATE_ERROR', error);
+    }
+  }
+
+  public async deletePacote(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from(this.tableName)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new PacoteError(`Erro ao excluir pacote ${id}`, 'DELETE_ERROR', error);
+      }
+    } catch (error) {
+      if (error instanceof PacoteError) {
+        throw error;
+      }
+      throw new PacoteError(`Erro ao excluir pacote ${id}`, 'DELETE_ERROR', error);
+    }
+  }
+
+  // Price calculation methods
+  public calcularPrecoTotalSemDesconto(pacote: Pacote): number {
+    if (pacote.is_gratis) return 0;
+
+    if (typeof pacote.preco_usd === 'number' && pacote.preco_usd > 0) {
+      return pacote.preco_usd;
+    }
+
+    if (typeof pacote.preco === 'number' && pacote.preco > 0) {
+      return pacote.preco;
+    }
+
+    if (Array.isArray(pacote.simulados) && pacote.simulados.length > 0) {
+      return pacote.simulados.reduce((total, simulado) => total + (simulado.price || 0), 0);
+    }
+
+    return 0;
+  }
+
+  public calcularPrecoTotalComDesconto(pacote: Pacote): number {
+    if (pacote.is_gratis) return 0;
+
+    const precoTotal = this.calcularPrecoTotalSemDesconto(pacote);
+    const desconto = (precoTotal * (pacote.porcentagem_desconto || 0)) / 100;
+    return Math.max(0, precoTotal - desconto);
+  }
+
+  public calcularEconomia(pacote: Pacote): number {
+    if (pacote.is_gratis) return 0;
+
+    const precoTotalSemDesconto = this.calcularPrecoTotalSemDesconto(pacote);
+    const precoTotalComDesconto = this.calcularPrecoTotalComDesconto(pacote);
+    return Math.max(0, precoTotalSemDesconto - precoTotalComDesconto);
+  }
+
+  // Fallback data methods
+  private getFallbackPacotes(): Pacote[] {
+    return [
+      {
+        id: 1,
+        titulo: 'Pacote AWS Certified Solutions Architect',
+        descricao: 'Prepare-se para a certificação AWS Solutions Architect com este pacote completo de simulados.',
+        preco: 199.90,
+        preco_usd: 39.99,
+        is_gratis: false,
+        duracao_dias: 90,
+        ativo: true,
+        is_subscription: false,
+        subscription_duration: 365,
+        subscription_currency: 'BRL',
+        simulados: [
+          { id: 'aws-saa-01', price: 79.90 },
+          { id: 'aws-saa-02', price: 79.90 },
+          { id: 'aws-saa-03', price: 79.90 }
+        ],
+        porcentagem_desconto: 20,
+        categoria: 'aws',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    if (!data) throw new Error('Pacote não foi criado');
-    return data;
-  } catch (error) {
-    console.error('Erro ao criar pacote:', error);
-    throw error;
-  }
-};
-
-// Atualizar pacote existente (apenas admin)
-export const updatePacote = async (id: string, pacoteData: PacoteInput): Promise<Pacote> => {
-  try {
-    const { data, error } = await supabase
-      .from('pacotes')
-      .update({
-        ...pacoteData,
-        preco: pacoteData.preco_usd,
+      },
+      {
+        id: 2,
+        titulo: 'Pacote Microsoft Azure Administrator',
+        descricao: 'Domine as habilidades necessárias para a certificação Azure Administrator com simulados práticos.',
+        preco: 179.90,
+        preco_usd: 35.99,
+        is_gratis: false,
+        duracao_dias: 90,
+        ativo: true,
+        is_subscription: false,
+        subscription_duration: 365,
+        subscription_currency: 'BRL',
+        simulados: [
+          { id: 'azure-admin-01', price: 69.90 },
+          { id: 'azure-admin-02', price: 69.90 },
+          { id: 'azure-admin-03', price: 69.90 }
+        ],
+        porcentagem_desconto: 15,
+        categoria: 'azure',
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
+      }
+    ];
+  }
 
-    if (error) throw error;
-    if (!data) throw new Error('Pacote não foi atualizado');
-    return data;
-  } catch (error) {
-    console.error(`Erro ao atualizar pacote com ID ${id}:`, error);
-    throw error;
+  private getFallbackPacoteById(id: string): Pacote {
+    const fallbackPacote = this.getFallbackPacotes().find(p => p.id.toString() === id);
+    if (!fallbackPacote) {
+      throw new PacoteNotFoundError(id);
+    }
+    return fallbackPacote;
   }
-};
 
-// Excluir pacote (apenas admin)
-export const deletePacote = async (id: string): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('pacotes')
-      .delete()
-      .eq('id', id);
+  private getFallbackPacotesByCategoria(categoria: string): Pacote[] {
+    const pacotes = this.getFallbackPacotes().filter(p => p.categoria === categoria);
+    return pacotes.length > 0 ? pacotes : this.getFallbackPacotes();
+  }
 
-    if (error) throw error;
-  } catch (error) {
-    console.error(`Erro ao excluir pacote com ID ${id}:`, error);
-    throw error;
-  }
-};
+  public async criarPacotesAutomaticos(): Promise<{ message: string; pacotes: Pacote[] }> {
+    try {
+      // Buscar todos os simulados ativos
+      const { data: simulados, error: simuladosError } = await supabase
+        .from('simulados')
+        .select('*')
+        .eq('is_active', true);
 
-// Criar pacotes automaticamente a partir de simulados existentes (apenas admin)
-export const criarPacotesAutomaticos = async (): Promise<{ message: string; pacotes: any[] }> => {
-  try {
-    // TODO: Implementar lógica de criação automática com Supabase
-    console.log('TODO: Implementar criação automática de pacotes com Supabase');
-    throw new Error('Funcionalidade ainda não implementada com Supabase');
-  } catch (error) {
-    console.error('Erro ao criar pacotes automáticos:', error);
-    throw error;
-  }
-};
+      if (simuladosError) {
+        throw new PacoteError('Erro ao buscar simulados', 'FETCH_ERROR', simuladosError);
+      }
 
-// Calcular o preço total de um pacote sem desconto
-export const calcularPrecoTotalSemDesconto = (pacote: Pacote): number => {
-  // Se o pacote tem um preço em USD definido, usá-lo diretamente
-  if (typeof pacote.preco_usd === 'number' && !isNaN(pacote.preco_usd) && pacote.preco_usd > 0) {
-    return pacote.preco_usd;
-  }
-  
-  // Se o pacote tem um preço em BRL definido, usá-lo como fallback
-  if (typeof pacote.preco === 'number' && !isNaN(pacote.preco) && pacote.preco > 0) {
-    return pacote.preco;
-  }
-  
-  // Se não tem preço definido, calcular baseado nos simulados
-  if (Array.isArray(pacote.simulados) && pacote.simulados.length > 0) {
-    return pacote.simulados.reduce((total, simulado) => {
-      const price = typeof simulado.price === 'number' ? simulado.price : 0;
-      return total + price;
-    }, 0);
-  }
-  
-  // Se não tem simulados ou preço, retornar 0
-  return 0;
-};
+      if (!simulados || simulados.length === 0) {
+        throw new PacoteError('Nenhum simulado encontrado', 'NO_SIMULADOS');
+      }
 
-// Calcular o preço total de um pacote com desconto
-export const calcularPrecoTotalComDesconto = (pacote: Pacote): number => {
-  // Se o pacote é gratuito, retornar 0
-  if (pacote.is_gratis) {
-    return 0;
-  }
-  
-  const precoTotal = calcularPrecoTotalSemDesconto(pacote);
-  
-  // Se não tem porcentagem de desconto definida ou é inválida, usar 0%
-  const porcentagemDesconto = typeof pacote.porcentagem_desconto === 'number' && !isNaN(pacote.porcentagem_desconto) 
-    ? pacote.porcentagem_desconto 
-    : 0;
-  
-  const desconto = (precoTotal * porcentagemDesconto) / 100;
-  return precoTotal - desconto;
-};
+      // Agrupar simulados por categoria
+      const simuladosPorCategoria = (simulados as Simulado[]).reduce((acc, simulado) => {
+        const categoria = simulado.category || 'outros';
+        if (!acc[categoria]) {
+          acc[categoria] = [];
+        }
+        acc[categoria].push(simulado);
+        return acc;
+      }, {} as Record<string, Simulado[]>);
 
-// Calcular a economia em valor ao comprar o pacote
-export const calcularEconomia = (pacote: Pacote): number => {
-  // Se o pacote é gratuito, não há economia
-  if (pacote.is_gratis) {
-    return 0;
-  }
-  
-  const precoTotalSemDesconto = calcularPrecoTotalSemDesconto(pacote);
-  const precoTotalComDesconto = calcularPrecoTotalComDesconto(pacote);
-  
-  // Garantir que a economia não seja negativa
-  return Math.max(0, precoTotalSemDesconto - precoTotalComDesconto);
-};
+      const pacotesCriados: Pacote[] = [];
 
-export function calcularPrecoSubscricao(pacote: Pacote): number {
-  if (!pacote.is_subscription || !pacote.subscription_price) {
-    return pacote.preco;
+      // Criar pacotes para cada categoria
+      for (const [categoria, simuladosCategoria] of Object.entries(simuladosPorCategoria)) {
+        if (simuladosCategoria.length < 2) continue; // Pular categorias com menos de 2 simulados
+
+        const pacoteInput: PacoteInput = {
+          titulo: `Pacote ${categoria.toUpperCase()}`,
+          descricao: `Pacote completo de simulados para certificação ${categoria.toUpperCase()}`,
+          preco_usd: simuladosCategoria.reduce((total, sim) => total + (sim.price_usd || 0), 0),
+          is_gratis: false,
+          duracao_dias: 90,
+          ativo: true,
+          is_subscription: false,
+          subscription_duration: 365,
+          subscription_currency: 'BRL',
+          categoria,
+          porcentagem_desconto: 20,
+          simulado_ids: simuladosCategoria.map(s => s.id),
+          tags: [categoria, 'pacote', 'certificação']
+        };
+
+        try {
+          const pacote = await this.createPacote(pacoteInput);
+          pacotesCriados.push(pacote);
+        } catch (error) {
+          console.error(`Erro ao criar pacote para categoria ${categoria}:`, error);
+          // Continuar com a próxima categoria mesmo se houver erro
+        }
+      }
+
+      return {
+        message: `Criados ${pacotesCriados.length} pacotes automaticamente`,
+        pacotes: pacotesCriados
+      };
+    } catch (error) {
+      if (error instanceof PacoteError) {
+        throw error;
+      }
+      throw new PacoteError('Erro ao criar pacotes automáticos', 'CREATE_ERROR', error);
+    }
   }
-  return pacote.subscription_price;
 }
 
-export function verificarAcessoPacote(pacote: Pacote, userId: number): boolean {
-  // Implementar lógica de verificação de acesso baseada na subscrição
-  // Por enquanto, retorna true se o pacote for gratuito
-  return pacote.is_gratis;
-}
+// Export singleton instance
+export const pacoteService = PacoteService.getInstance();
+
+// Export helper functions that use the service instance
+export const getAllPacotes = (activeOnly?: boolean) => pacoteService.getAllPacotes(activeOnly);
+export const getPacoteById = (id: string) => pacoteService.getPacoteById(id);
+export const getPacotesByCategoria = (categoria: string) => pacoteService.getPacotesByCategoria(categoria);
+export const createPacote = (input: PacoteInput) => pacoteService.createPacote(input);
+export const updatePacote = (id: string, input: PacoteInput) => pacoteService.updatePacote(id, input);
+export const deletePacote = (id: string) => pacoteService.deletePacote(id);
+export const calcularPrecoTotalSemDesconto = (pacote: Pacote) => pacoteService.calcularPrecoTotalSemDesconto(pacote);
+export const calcularPrecoTotalComDesconto = (pacote: Pacote) => pacoteService.calcularPrecoTotalComDesconto(pacote);
+export const calcularEconomia = (pacote: Pacote) => pacoteService.calcularEconomia(pacote);
+export const criarPacotesAutomaticos = () => pacoteService.criarPacotesAutomaticos();
