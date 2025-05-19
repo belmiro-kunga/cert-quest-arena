@@ -5,12 +5,12 @@ import { useCart } from '@/contexts/CartContext';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Features from '@/components/Features';
-import Certifications from '@/components/Certifications';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart } from 'lucide-react';
 import TestimonialsSection from '@/components/TestimonialsSection';
+import CertificationSimuladosModal from '@/components/simulado/CertificationSimuladosModal';
 // import { Exam } from '@/types/admin'; // Substituído por definição local temporária
 // TODO: Substitua por fetch real dos exames ou dados mockados válidos
 // Definição temporária de Exam com discountPrice
@@ -29,11 +29,14 @@ export interface Exam {
   duration: number;
   questions_count: number;
   category: string;
-  categoria?: string; // Campo adicional para compatibilidade com o backend
   image_url: string;
-  is_gratis?: boolean;
+  is_gratis: boolean;
   created_at: string;
   updated_at: string;
+  is_active: boolean;
+  total_questions: number;
+  passing_score: number;
+  tags: string[];
 }
 const mockExams: Exam[] = [
   {
@@ -48,8 +51,13 @@ const mockExams: Exam[] = [
     questions_count: 60,
     category: 'Cloud',
     image_url: '',
+    is_gratis: false,
     created_at: '',
-    updated_at: ''
+    updated_at: '',
+    is_active: true,
+    total_questions: 60,
+    passing_score: 80,
+    tags: []
   },
   {
     id: '2',
@@ -63,8 +71,13 @@ const mockExams: Exam[] = [
     questions_count: 60,
     category: 'Cloud',
     image_url: '',
+    is_gratis: false,
     created_at: '',
-    updated_at: ''
+    updated_at: '',
+    is_active: true,
+    total_questions: 60,
+    passing_score: 80,
+    tags: []
   },
   {
     id: '3',
@@ -78,8 +91,13 @@ const mockExams: Exam[] = [
     questions_count: 60,
     category: 'Cloud',
     image_url: '',
+    is_gratis: false,
     created_at: '',
-    updated_at: ''
+    updated_at: '',
+    is_active: true,
+    total_questions: 60,
+    passing_score: 80,
+    tags: []
   },
   {
     id: '4',
@@ -93,8 +111,13 @@ const mockExams: Exam[] = [
     questions_count: 60,
     category: 'Cloud',
     image_url: '',
+    is_gratis: false,
     created_at: '',
-    updated_at: ''
+    updated_at: '',
+    is_active: true,
+    total_questions: 60,
+    passing_score: 80,
+    tags: []
   }
 ];
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -180,39 +203,89 @@ const Index = () => {
       setIsLoading(true);
       try {
         // Importar o serviço de simulados e buscar os dados
-        // O serviço já tem tratamento de erro e retorna dados de fallback em caso de falha
-        const simuladoService = await import('@/services/simuladoService');
-        const activeExams = await simuladoService.getActiveExams();
+        const { simuladoService } = await import('@/services/simuladoService');
+        const activeExams = await simuladoService.getActiveSimulados();
         
-        // Garantir que todos os simulados tenham o campo categoria definido
-        const processedExams = activeExams.map(exam => ({
-          ...exam,
-          // Se categoria não estiver definida, usar category ou um valor padrão
-          categoria: exam.categoria || exam.category || 'geral'
-        }));
+        // Mapear os simulados para o formato Exam
+        const processedExams = activeExams.map(simulado => {
+          // Extrair idioma do título ou descrição
+          const language = simulado.title.toLowerCase().includes('english') ? 'en' :
+                          simulado.title.toLowerCase().includes('español') ? 'es' :
+                          simulado.title.toLowerCase().includes('français') ? 'fr' : 'pt';
+          
+          // Extrair dificuldade da categoria ou tags
+          const difficulty = simulado.tags?.includes('hard') ? 'hard' :
+                            simulado.tags?.includes('medium') ? 'medium' :
+                            simulado.tags?.includes('easy') ? 'easy' : 'medium';
+          
+          return {
+            id: simulado.id,
+            title: simulado.title,
+            description: simulado.description,
+            price: simulado.price,
+            language,
+            difficulty,
+            duration: simulado.duration,
+            questions_count: simulado.total_questions,
+            category: simulado.category,
+            image_url: simulado.image_url || '',
+            is_gratis: simulado.price === 0,
+            created_at: simulado.created_at,
+            updated_at: simulado.updated_at,
+            is_active: simulado.is_active,
+            total_questions: simulado.total_questions,
+            passing_score: simulado.passing_score,
+            tags: simulado.tags || []
+          };
+        });
         
-        console.log('Simulados carregados com categorias:', processedExams);
+        console.log('Simulados carregados:', processedExams);
         setExams(processedExams);
       } catch (error) {
         console.error('Erro ao buscar simulados do banco de dados:', error);
         // Mesmo em caso de erro no processamento, não deixamos a lista vazia
-        // Importamos diretamente os dados de fallback
-        import('@/services/simuladoService').then(mod => {
-          // Acessar os dados de fallback diretamente
-          if (mod.fallbackExams) {
-            const processedFallbackExams = mod.fallbackExams.map(exam => ({
-              ...exam,
-              categoria: exam.categoria || exam.category || 'geral'
-            }));
-            console.log('Usando dados de fallback para simulados na página inicial');
-            setExams(processedFallbackExams);
-          } else {
-            setExams([]);
-          }
-        }).catch(() => setExams([])).finally(() => setIsLoading(false));
-        return; // Importante para evitar que o setIsLoading(false) seja chamado duas vezes
+        const { simuladoService } = await import('@/services/simuladoService');
+        const fallbackExams = await simuladoService.getAllSimulados();
+        if (fallbackExams.length > 0) {
+          const processedFallbackExams = fallbackExams.map(simulado => {
+            // Extrair idioma do título ou descrição
+            const language = simulado.title.toLowerCase().includes('english') ? 'en' :
+                            simulado.title.toLowerCase().includes('español') ? 'es' :
+                            simulado.title.toLowerCase().includes('français') ? 'fr' : 'pt';
+            
+            // Extrair dificuldade da categoria ou tags
+            const difficulty = simulado.tags?.includes('hard') ? 'hard' :
+                              simulado.tags?.includes('medium') ? 'medium' :
+                              simulado.tags?.includes('easy') ? 'easy' : 'medium';
+            
+            return {
+              id: simulado.id,
+              title: simulado.title,
+              description: simulado.description,
+              price: simulado.price,
+              language,
+              difficulty,
+              duration: simulado.duration,
+              questions_count: simulado.total_questions,
+              category: simulado.category,
+              image_url: simulado.image_url || '',
+              is_gratis: simulado.price === 0,
+              created_at: simulado.created_at,
+              updated_at: simulado.updated_at,
+              is_active: simulado.is_active,
+              total_questions: simulado.total_questions,
+              passing_score: simulado.passing_score,
+              tags: simulado.tags || []
+            };
+          });
+          console.log('Usando dados de fallback para simulados na página inicial');
+          setExams(processedFallbackExams);
+        } else {
+          setExams([]);
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchExams();
   }, []);
@@ -262,6 +335,48 @@ const Index = () => {
     // Lógica simplificada para extrair tópicos da descrição
     const topics = description.split(',').map(topic => topic.trim());
     return topics.length > 1 ? topics : ['Cloud', 'DevOps', 'Security', 'Networking'];
+  };
+
+  // Função para verificar se um exame corresponde a uma categoria
+  const matchesCategory = (exam: Exam, filterCategory: string): boolean => {
+    if (!filterCategory) return true;
+    
+    const filterTerms = filterCategory.toLowerCase().split(',').map(term => term.trim());
+    
+    // Verificar se algum dos termos do filtro está presente na categoria ou título
+    return filterTerms.some(term => {
+      const examCategory = exam.category.toLowerCase();
+      const examTitle = exam.title.toLowerCase();
+      
+      // Mapeamento de termos relacionados para melhorar a correspondência
+      const categoryMappings: Record<string, string[]> = {
+        'aws': ['aws', 'amazon', 'cloud'],
+        'azure': ['azure', 'microsoft', 'cloud'],
+        'gcp': ['gcp', 'google', 'cloud'],
+        'security': ['security', 'security+', 'security plus', 'cybersecurity'],
+        'networking': ['networking', 'network+', 'network plus', 'ccna'],
+        'linux': ['linux', 'lpic', 'linux+', 'linux plus'],
+        'devops': ['devops', 'dev ops', 'development operations'],
+        'database': ['database', 'sql', 'mysql', 'postgresql', 'oracle'],
+        'cloud': ['cloud', 'aws', 'azure', 'gcp', 'google cloud', 'amazon web services'],
+        'certification': ['certification', 'cert', 'certified', 'exam'],
+        'practice': ['practice', 'practice exam', 'simulado', 'simulation'],
+        'free': ['free', 'gratis', 'trial', 'demo'],
+        'paid': ['paid', 'premium', 'pro', 'professional']
+      };
+      
+      // Verificar correspondência direta
+      if (examCategory.includes(term) || examTitle.includes(term)) {
+        return true;
+      }
+      
+      // Verificar correspondência através do mapeamento
+      const relatedTerms = categoryMappings[term] || [];
+      return relatedTerms.some(relatedTerm => 
+        examCategory.includes(relatedTerm) || 
+        examTitle.includes(relatedTerm)
+      );
+    });
   };
 
   console.log("Index component ready to render UI");
@@ -578,8 +693,8 @@ const Index = () => {
                   // Filtra os simulados com base nos filtros aplicados
                   .filter(exam => {
                     // Verificar se deve mostrar apenas simulados grátis ou apenas pagos
-                    if (filterFreeOnly && exam.is_gratis !== true) return false;
-                    if (!filterFreeOnly && exam.is_gratis === true) return false; // Mostra apenas pagos quando não está filtrando por grátis
+                    if (filterFreeOnly && !exam.is_gratis) return false;
+                    if (!filterFreeOnly && exam.is_gratis) return false;
                     
                     // Filtro por nome
                     if (filterName !== '' && !exam.title.toLowerCase().includes(filterName.toLowerCase())) return false;
@@ -591,38 +706,7 @@ const Index = () => {
                     if (filterLanguage !== '' && exam.language !== filterLanguage) return false;
                     
                     // Filtro por categoria
-                    if (filterCategory !== '') {
-                      const examCategory = (exam.category || '').toLowerCase();
-                      const examCategoria = (exam.categoria || '').toLowerCase();
-                      const examTitle = exam.title.toLowerCase();
-                      
-                      console.log(`Verificando categoria para ${exam.title}: category=${examCategory}, categoria=${examCategoria}, filtro=${filterCategory}`);
-                      
-                      // Mapeamento de termos relacionados para melhorar a correspondência
-                      const categoryMappings: Record<string, string[]> = {
-                        'aws': ['aws', 'amazon', 'amazon web services'],
-                        'azure': ['azure', 'microsoft azure', 'microsoft', 'az-'],
-                        'gcp': ['gcp', 'google cloud', 'google'],
-                        'comptia': ['comptia', 'comp tia', 'a+', 'network+', 'security+'],
-                        'cisco': ['cisco', 'ccna', 'ccnp']
-                      };
-                      
-                      // Verificar se o filtro tem mapeamentos especiais
-                      const filterTerms = categoryMappings[filterCategory] || [filterCategory];
-                      
-                      // Verificar se a categoria do simulado contém algum dos termos mapeados
-                      const categoryMatch = filterTerms.some(term => 
-                        examCategory.includes(term) || 
-                        examCategoria.includes(term) || 
-                        examTitle.includes(term)
-                      );
-                      
-                      console.log(`Resultado da verificação: ${categoryMatch}`);
-                      
-                      if (!categoryMatch) {
-                        return false;
-                      }
-                    }
+                    if (filterCategory !== '' && !matchesCategory(exam, filterCategory)) return false;
                     
                     return true;
                   })
@@ -647,28 +731,21 @@ const Index = () => {
       </span>
       
       {/* Badge de categoria */}
-      {(exam.category || exam.categoria) && (
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold shadow-sm border select-none
-          ${exam.category?.toLowerCase() === 'aws' || exam.categoria?.toLowerCase() === 'aws' 
-            ? 'bg-orange-100 text-orange-700 border-orange-200' : ''}
-          ${exam.category?.toLowerCase() === 'azure' || exam.categoria?.toLowerCase() === 'azure' 
-            ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}
-          ${exam.category?.toLowerCase() === 'gcp' || exam.categoria?.toLowerCase() === 'gcp' 
-            ? 'bg-red-100 text-red-700 border-red-200' : ''}
-          ${exam.category?.toLowerCase() === 'comptia' || exam.categoria?.toLowerCase() === 'comptia' 
-            ? 'bg-green-100 text-green-700 border-green-200' : ''}
-          ${exam.category?.toLowerCase() === 'cisco' || exam.categoria?.toLowerCase() === 'cisco' 
-            ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : ''}
-          ${!['aws', 'azure', 'gcp', 'comptia', 'cisco'].includes(exam.category?.toLowerCase() || exam.categoria?.toLowerCase() || '') 
-            ? 'bg-gray-100 text-gray-700 border-gray-200' : ''}
+      {exam.category && (
+        <span className={`bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs font-semibold shadow-sm border border-blue-200 select-none
+          ${exam.category?.toLowerCase() === 'aws' ? 'bg-orange-100 text-orange-700 border-orange-200' : ''}
+          ${exam.category?.toLowerCase() === 'azure' ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}
+          ${exam.category?.toLowerCase() === 'gcp' ? 'bg-red-100 text-red-700 border-red-200' : ''}
+          ${exam.category?.toLowerCase() === 'comptia' ? 'bg-green-100 text-green-700 border-green-200' : ''}
+          ${exam.category?.toLowerCase() === 'cisco' ? 'bg-blue-100 text-blue-700 border-blue-200' : ''}
+          ${!['aws', 'azure', 'gcp', 'comptia', 'cisco'].includes(exam.category?.toLowerCase() || '') ? 'bg-gray-100 text-gray-700 border-gray-200' : ''}
         `}>
-          {exam.category?.toLowerCase() === 'aws' || exam.categoria?.toLowerCase() === 'aws' ? 'AWS' : ''}
-          {exam.category?.toLowerCase() === 'azure' || exam.categoria?.toLowerCase() === 'azure' ? 'Microsoft Azure' : ''}
-          {exam.category?.toLowerCase() === 'gcp' || exam.categoria?.toLowerCase() === 'gcp' ? 'Google Cloud' : ''}
-          {exam.category?.toLowerCase() === 'comptia' || exam.categoria?.toLowerCase() === 'comptia' ? 'CompTIA' : ''}
-          {exam.category?.toLowerCase() === 'cisco' || exam.categoria?.toLowerCase() === 'cisco' ? 'Cisco' : ''}
-          {!['aws', 'azure', 'gcp', 'comptia', 'cisco'].includes(exam.category?.toLowerCase() || exam.categoria?.toLowerCase() || '') 
-            ? (exam.category || exam.categoria || 'Geral') : ''}
+          {exam.category?.toLowerCase() === 'aws' ? 'AWS' : ''}
+          {exam.category?.toLowerCase() === 'azure' ? 'Microsoft Azure' : ''}
+          {exam.category?.toLowerCase() === 'gcp' ? 'Google Cloud' : ''}
+          {exam.category?.toLowerCase() === 'comptia' ? 'CompTIA' : ''}
+          {exam.category?.toLowerCase() === 'cisco' ? 'Cisco' : ''}
+          {!['aws', 'azure', 'gcp', 'comptia', 'cisco'].includes(exam.category?.toLowerCase() || '') ? exam.category || 'Geral' : ''}
         </span>
       )}
     </div>

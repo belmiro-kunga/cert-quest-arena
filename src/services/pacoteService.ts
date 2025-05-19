@@ -96,11 +96,23 @@ export const getAllPacotes = async (): Promise<Pacote[]> => {
       .select('*')
       .eq('ativo', true);
 
-    if (error) throw error;
-    return data || fallbackPacotes;
+    if (error) {
+      console.error('Erro ao buscar pacotes do Supabase:', error);
+      console.log('Usando dados de fallback para pacotes devido a erro do Supabase');
+      return fallbackPacotes;
+    }
+    
+    // Se não houver dados ou se for um array vazio, usar fallback
+    if (!data || data.length === 0) {
+      console.log('Nenhum pacote encontrado no Supabase, usando dados de fallback');
+      return fallbackPacotes;
+    }
+    
+    return data;
   } catch (error) {
+    // Capturar qualquer erro, incluindo erros de conexão
     console.error('Erro ao buscar pacotes:', error);
-    console.log('Usando dados de fallback para pacotes devido a erro');
+    console.log('Usando dados de fallback para pacotes devido a erro de conexão');
     return fallbackPacotes;
   }
 };
