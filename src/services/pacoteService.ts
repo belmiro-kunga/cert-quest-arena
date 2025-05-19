@@ -1,4 +1,4 @@
-import { api } from './api';
+import { supabase } from '@/lib/supabase';
 import { Exam } from '@/types/admin';
 
 // Interface para os pacotes de simulados
@@ -91,23 +91,16 @@ const fallbackPacotes: Pacote[] = [
 // Obter todos os pacotes ativos
 export const getAllPacotes = async (): Promise<Pacote[]> => {
   try {
-    const response = await api.get('/pacotes');
-    // Garantir que response.data é um array
-    if (Array.isArray(response.data)) {
-      return response.data;
-    } else if (response.data && typeof response.data === 'object') {
-      // Se for um objeto com uma propriedade que contém o array
-      const possibleArrays = Object.values(response.data).filter(Array.isArray);
-      if (possibleArrays.length > 0) {
-        return possibleArrays[0];
-      }
-    }
-    console.warn('API retornou dados em formato inesperado:', response.data);
-    return fallbackPacotes;
+    const { data, error } = await supabase
+      .from('pacotes')
+      .select('*')
+      .eq('ativo', true);
+
+    if (error) throw error;
+    return data || fallbackPacotes;
   } catch (error) {
     console.error('Erro ao buscar pacotes:', error);
-    // Retornar dados de fallback em vez de lançar erro
-    console.log('Usando dados de fallback para pacotes devido a erro de rede');
+    console.log('Usando dados de fallback para pacotes devido a erro');
     return fallbackPacotes;
   }
 };
@@ -115,32 +108,48 @@ export const getAllPacotes = async (): Promise<Pacote[]> => {
 // Obter pacote por ID
 export const getPacoteById = async (id: string): Promise<Pacote> => {
   try {
-    const response = await api.get(`/pacotes/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao buscar pacote ${id}:`, error);
-    // Retornar um pacote de fallback baseado no ID
+    const { data, error } = await supabase
+      .from('pacotes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    if (data) return data;
+
+    // Se não encontrar no Supabase, usar fallback
     const fallbackPacote = fallbackPacotes.find(p => p.id.toString() === id);
     if (fallbackPacote) {
-      console.log(`Usando dados de fallback para o pacote ${id} devido a erro de rede`);
+      console.log(`Usando dados de fallback para o pacote ${id} devido a erro`);
       return fallbackPacote;
     }
-    // Se não encontrar um pacote de fallback com o ID especificado, retornar o primeiro
-    console.log(`Pacote ${id} não encontrado nos dados de fallback, retornando o primeiro pacote disponível`);
     return fallbackPacotes[0];
+  } catch (error) {
+    console.error(`Erro ao buscar pacote ${id}:`, error);
+    const fallbackPacote = fallbackPacotes.find(p => p.id.toString() === id);
+    return fallbackPacote || fallbackPacotes[0];
   }
 };
 
 // Obter pacotes por categoria
 export const getPacotesByCategoria = async (categoria: string): Promise<Pacote[]> => {
   try {
-    const response = await api.get(`/pacotes/categoria/${categoria}`);
-    return response.data;
+    const { data, error } = await supabase
+      .from('pacotes')
+      .select('*')
+      .eq('categoria', categoria)
+      .eq('ativo', true);
+
+    if (error) throw error;
+    if (data && data.length > 0) return data;
+
+    // Se não encontrar no Supabase, usar fallback
+    const pacotesFiltrados = fallbackPacotes.filter(p => p.categoria === categoria);
+    console.log(`Usando dados de fallback para pacotes da categoria ${categoria} devido a erro`);
+    return pacotesFiltrados.length > 0 ? pacotesFiltrados : fallbackPacotes;
   } catch (error) {
     console.error(`Erro ao buscar pacotes da categoria ${categoria}:`, error);
-    // Filtrar os pacotes de fallback pela categoria
     const pacotesFiltrados = fallbackPacotes.filter(p => p.categoria === categoria);
-    console.log(`Usando dados de fallback para pacotes da categoria ${categoria} devido a erro de rede`);
     return pacotesFiltrados.length > 0 ? pacotesFiltrados : fallbackPacotes;
   }
 };
@@ -148,16 +157,20 @@ export const getPacotesByCategoria = async (categoria: string): Promise<Pacote[]
 // Criar novo pacote (apenas admin)
 export const createPacote = async (pacoteData: PacoteInput): Promise<Pacote> => {
   try {
-    // Garantir que os IDs dos simulados sejam números
-    const formattedData = {
-      ...pacoteData,
-      // Usar preco_usd como valor padrão para preco também para manter compatibilidade
-      preco: pacoteData.preco_usd,
-      simulado_ids: pacoteData.simulado_ids?.map(id => parseInt(id, 10))
-    };
-    
-    const response = await api.post('/pacotes', formattedData);
-    return response.data;
+    const { data, error } = await supabase
+      .from('pacotes')
+      .insert([{
+        ...pacoteData,
+        preco: pacoteData.preco_usd,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Pacote não foi criado');
+    return data;
   } catch (error) {
     console.error('Erro ao criar pacote:', error);
     throw error;
@@ -167,16 +180,20 @@ export const createPacote = async (pacoteData: PacoteInput): Promise<Pacote> => 
 // Atualizar pacote existente (apenas admin)
 export const updatePacote = async (id: string, pacoteData: PacoteInput): Promise<Pacote> => {
   try {
-    // Garantir que os IDs dos simulados sejam números
-    const formattedData = {
-      ...pacoteData,
-      // Usar preco_usd como valor padrão para preco também para manter compatibilidade
-      preco: pacoteData.preco_usd,
-      simulado_ids: pacoteData.simulado_ids?.map(id => parseInt(id, 10))
-    };
-    
-    const response = await api.put(`/pacotes/${id}`, formattedData);
-    return response.data;
+    const { data, error } = await supabase
+      .from('pacotes')
+      .update({
+        ...pacoteData,
+        preco: pacoteData.preco_usd,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Pacote não foi atualizado');
+    return data;
   } catch (error) {
     console.error(`Erro ao atualizar pacote com ID ${id}:`, error);
     throw error;
@@ -186,7 +203,12 @@ export const updatePacote = async (id: string, pacoteData: PacoteInput): Promise
 // Excluir pacote (apenas admin)
 export const deletePacote = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/pacotes/${id}`);
+    const { error } = await supabase
+      .from('pacotes')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
   } catch (error) {
     console.error(`Erro ao excluir pacote com ID ${id}:`, error);
     throw error;
@@ -196,8 +218,9 @@ export const deletePacote = async (id: string): Promise<void> => {
 // Criar pacotes automaticamente a partir de simulados existentes (apenas admin)
 export const criarPacotesAutomaticos = async (): Promise<{ message: string; pacotes: any[] }> => {
   try {
-    const response = await api.post('/pacotes/criar-automaticos');
-    return response.data;
+    // TODO: Implementar lógica de criação automática com Supabase
+    console.log('TODO: Implementar criação automática de pacotes com Supabase');
+    throw new Error('Funcionalidade ainda não implementada com Supabase');
   } catch (error) {
     console.error('Erro ao criar pacotes automáticos:', error);
     throw error;

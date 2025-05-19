@@ -13,7 +13,6 @@ import { Github, ShieldCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import AdminLayout from '@/components/layouts/AdminLayout';
-import { API_URL } from '@/config';
 
 interface AuthProvider {
   clientId: string;
@@ -77,7 +76,7 @@ const AuthSettingsPage = () => {
       setError('');
       
       try {
-        const response = await axios.get(`${API_URL}/admin/settings/auth`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/settings/auth`);
         setSettings(response.data);
       } catch (err: any) {
         console.error('Erro ao carregar configurações:', err);
@@ -117,7 +116,7 @@ const AuthSettingsPage = () => {
     
     try {
       await axios.put(
-        `${API_URL}/admin/settings/auth/${provider}`,
+        `${import.meta.env.VITE_API_URL}/admin/settings/auth/${provider}`,
         settings[provider]
       );
       setSuccess(`Configurações de ${provider === 'google' ? 'Google' : 'GitHub'} salvas com sucesso!`);
@@ -136,7 +135,7 @@ const AuthSettingsPage = () => {
     
     try {
       await axios.put(
-        `${API_URL}/admin/settings/auth/recaptcha`,
+        `${import.meta.env.VITE_API_URL}/admin/settings/auth/recaptcha`,
         settings.recaptcha
       );
       setSuccess('Configurações do reCAPTCHA salvas com sucesso!');

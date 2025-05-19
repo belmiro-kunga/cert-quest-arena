@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, BookOpen, Award, ArrowRight, Gift, Filter } from 'lucide-react';
-import { getActiveExams, Exam } from '@/services/simuladoService';
+import { simuladoService } from '@/services/simuladoService';
+import type { Simulado } from '@/types/simuladoService';
 import { useToast } from '@/components/ui/use-toast';
 
 const idiomasDisponiveis = [
@@ -15,7 +16,7 @@ const idiomasDisponiveis = [
 ];
 
 const SimuladosList: React.FC = () => {
-  const [simulados, setSimulados] = useState<Exam[]>([]);
+  const [simulados, setSimulados] = useState<Simulado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const location = useLocation();
@@ -38,7 +39,7 @@ const SimuladosList: React.FC = () => {
         console.log('Carregando simulados ativos...');
         console.log('Filtros atuais:', { isFreeFilter, categoryFilter, preferredLanguage });
         setIsLoading(true);
-        const data = await getActiveExams();
+        const data = await simuladoService.getActiveSimulados();
         
         // Processar os simulados para garantir que tenham campos de categoria consistentes
         const processedData = data.map(simulado => ({
@@ -125,7 +126,7 @@ const SimuladosList: React.FC = () => {
   };
 
   // Função para obter a categoria do simulado (suporta tanto 'category' quanto 'categoria')
-  const getSimuladoCategory = (simulado: Exam): string => {
+  const getSimuladoCategory = (simulado: Simulado): string => {
     // Verificar se o simulado tem o campo 'categoria' (do backend)
     if ((simulado as any).categoria) {
       return (simulado as any).categoria;
@@ -135,7 +136,7 @@ const SimuladosList: React.FC = () => {
   };
 
   // Função para verificar se um simulado corresponde a uma categoria
-  const matchesCategory = (simulado: Exam, categoryFilter: string): boolean => {
+  const matchesCategory = (simulado: Simulado, categoryFilter: string): boolean => {
     if (!categoryFilter) return true;
     
     // Obter a categoria do simulado (pode ser de 'category' ou 'categoria')

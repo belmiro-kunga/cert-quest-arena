@@ -3,7 +3,8 @@ import { Alert, AlertTitle, Box, Button, Collapse, IconButton, Snackbar } from '
 import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import InfoIcon from '@mui/icons-material/Info';
-import { isAPIAvailable, toggleAPIUrl } from '@/config';
+// TODO: Replace with Supabase implementation
+// import { isAPIAvailable, toggleAPIUrl } from '@/config';
 import SystemStatusModal from './SystemStatusModal';
 
 /**
@@ -18,7 +19,8 @@ const APIStatusNotification: React.FC = () => {
   // Verificar o status da API quando o componente for montado
   useEffect(() => {
     const checkAPIStatus = async () => {
-      const status = await isAPIAvailable();
+      // const status = await isAPIAvailable();
+      const status = true; // Temporary until Supabase implementation
       setApiStatus(status);
       setOpen(!status); // Abrir a notificação se a API não estiver disponível
     };
@@ -41,7 +43,8 @@ const APIStatusNotification: React.FC = () => {
 
   const handleRefresh = async () => {
     // Verificar o status da API novamente
-    const status = await isAPIAvailable();
+    // const status = await isAPIAvailable();
+    const status = true; // Temporary until Supabase implementation
     setApiStatus(status);
     
     if (status) {
@@ -55,9 +58,10 @@ const APIStatusNotification: React.FC = () => {
     }
   };
 
+  // TODO: Replace with Supabase implementation
   const handleToggleAPI = () => {
-    // Alternar entre as URLs da API
-    toggleAPIUrl();
+    // toggleAPIUrl();
+    console.log('Toggle API URL - To be implemented with Supabase');
   };
 
   const handleOpenStatusModal = () => {

@@ -7,8 +7,6 @@ import { Edit, Plus, Trash } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { BaseQuestion } from '@/types/admin';
-import type { Questao, Alternativa } from '@/types/simulado';
-import { getQuestionsByExamId, deleteQuestion } from '@/services/questaoService';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+// TODO: Replace with Supabase implementation
+// import { getQuestionsByExamId, deleteQuestion } from '@/services/questaoService';
+import type { Questao, Alternativa } from '@/types/simulado';
 
 interface QuestaoListProps {
   simuladoId: string;
@@ -41,7 +42,9 @@ const QuestaoList: React.FC<QuestaoListProps> = ({ simuladoId, onAddQuestion, on
       
       try {
         setIsLoading(true);
-        const loadedQuestions = await getQuestionsByExamId(simuladoId);
+        // TODO: Replace with Supabase implementation
+        // const loadedQuestions = await getQuestionsByExamId(simuladoId);
+        const loadedQuestions = []; // Temporary empty array until Supabase implementation
         setQuestions(loadedQuestions);
       } catch (error) {
         console.error('Erro ao carregar questões:', error);
@@ -69,8 +72,9 @@ const QuestaoList: React.FC<QuestaoListProps> = ({ simuladoId, onAddQuestion, on
     if (!questionToDelete) return;
     
     try {
-      setIsLoading(true);
-      await deleteQuestion(questionToDelete);
+      // TODO: Replace with Supabase implementation
+      // await deleteQuestion(questionToDelete);
+      console.log('Delete question:', questionToDelete);
       
       // Atualizar a lista de questões
       setQuestions(prevQuestions => 
@@ -91,8 +95,6 @@ const QuestaoList: React.FC<QuestaoListProps> = ({ simuladoId, onAddQuestion, on
         description: "Erro ao excluir questão.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 

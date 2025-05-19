@@ -18,8 +18,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import WarningIcon from '@mui/icons-material/Warning';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { checkAllEndpoints } from '@/services/healthService';
-import { toggleAPIUrl } from '@/config';
+import { checkAllEndpoints } from '@/types/healthService';
+import { supabase } from '@/lib/supabase';
+// TODO: Replace with Supabase implementation
+// import { toggleAPIUrl } from '@/config';
 
 interface SystemStatusProps {
   open: boolean;
@@ -36,6 +38,7 @@ const SystemStatusModal: React.FC<SystemStatusProps> = ({ open, onClose }) => {
   const [endpoints, setEndpoints] = useState<EndpointStatus[]>([
     { name: 'API Principal', status: 'checking', description: 'Servidor principal da aplicação' },
     { name: 'Simulados', status: 'checking', description: 'Serviço de simulados e exames' },
+    { name: 'Supabase', status: 'checking', description: 'Banco de dados e autenticação' }
   ]);
   const [isChecking, setIsChecking] = useState(false);
 
@@ -49,6 +52,11 @@ const SystemStatusModal: React.FC<SystemStatusProps> = ({ open, onClose }) => {
     })));
     
     try {
+      // Verificar status do Supabase
+      const { data: supabaseStatus, error: supabaseError } = await supabase.from('health_check').select('*').limit(1);
+      const isSupabaseOnline = !supabaseError && supabaseStatus !== null;
+
+      // Verificar outros endpoints
       const status = await checkAllEndpoints();
       
       setEndpoints([
@@ -61,6 +69,11 @@ const SystemStatusModal: React.FC<SystemStatusProps> = ({ open, onClose }) => {
           name: 'Simulados', 
           status: status.simulados ? 'online' : 'offline', 
           description: 'Serviço de simulados e exames' 
+        },
+        {
+          name: 'Supabase',
+          status: isSupabaseOnline ? 'online' : 'offline',
+          description: 'Banco de dados e autenticação'
         }
       ]);
     } catch (error) {
@@ -84,7 +97,8 @@ const SystemStatusModal: React.FC<SystemStatusProps> = ({ open, onClose }) => {
   }, [open]);
 
   const handleToggleAPI = () => {
-    toggleAPIUrl();
+    // TODO: Implementar lógica de alternância de ambiente com Supabase
+    console.log('TODO: Implementar alternância de ambiente com Supabase');
     onClose();
   };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getActiveExams } from '@/services/simuladoService';
-import { getSimuladoById, Exam } from '@/services/simuladoService';
+import { simuladoService } from '@/services/simuladoService';
+import type { Simulado, SimuladoWithQuestions, SimuladoBase } from '@/types/simuladoService';
+import type { Database } from '@/types/supabase';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -14,10 +15,10 @@ const SimuladoDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [simulado, setSimulado] = useState<Exam | null>(null);
+  const [simulado, setSimulado] = useState<Simulado | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState<string>("");
-const [availableLevels, setAvailableLevels] = useState<string[]>([]);
+  const [availableLevels, setAvailableLevels] = useState<string[]>([]);
 
   useEffect(() => {
     const loadSimulado = async () => {
@@ -26,26 +27,44 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
       try {
         setIsLoading(true);
         console.log(`Carregando detalhes do simulado ${id}...`);
-        const data = await getSimuladoById(parseInt(id));
+        const data = await simuladoService.getSimuladoById(id);
         console.log('Dados do simulado recebidos:', data);
-        console.log('Número de questões:', data.questionsCount);
         
-        // Garantir que o número de questões seja exibido corretamente
-        if (data.questionsCount === 0 && typeof data.questionsCount === 'number') {
-          console.log('Corrigindo número de questões para valor real...');
-          // Se o número de questões for 0, verificar se há um valor real
-          if (data.questionsCount !== undefined) {
-            console.log('Usando o valor recebido da API:', data.questionsCount);
+        if (data) {
+          // Convert database row to Simulado type
+          const baseData: SimuladoBase = {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            duration: data.duration,
+            total_questions: data.total_questions,
+            passing_score: data.passing_score,
+            is_active: data.is_active,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+            price: data.price,
+            category: data.category,
+            tags: data.tags || [],
+            image_url: data.image_url
+          };
+
+          const simuladoData: Simulado = {
+            ...baseData,
+            questions_count: data.questions?.length || 0,
+            language: 'pt', // Default language
+            difficulty: 'medium' // Default difficulty
+          };
+          setSimulado(simuladoData);
+          
+          // Descobrir níveis disponíveis para este título
+          if (data.title) {
+            const allExams = await simuladoService.getActiveSimulados();
+            // Use type assertion since we know these are Simulado objects
+            const levels = (allExams as Simulado[])
+              .filter((s) => s.title === data.title)
+              .map((s) => s.difficulty || 'medium');
+            setAvailableLevels(Array.from(new Set(levels)));
           }
-        }
-        
-        setSimulado(data);
-        // Descobrir níveis disponíveis para este título
-        if (data && data.title) {
-          // Buscar todos os simulados ativos e filtrar por título
-          const allExams = await getActiveExams();
-          const levels = allExams.filter((s) => s.title === data.title).map((s) => s.difficulty);
-          setAvailableLevels(Array.from(new Set(levels)));
         }
       } catch (error) {
         console.error(`Erro ao carregar simulado ${id}:`, error);
@@ -81,8 +100,10 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
   };
 
   const handleStartSimulado = () => {
+    if (!simulado) return;
+    
     // Verificar se o simulado tem questões
-    if (simulado?.questionsCount === 0) {
+    if (simulado.questions_count === 0) {
       toast({
         title: 'Simulado sem questões',
         description: 'Este simulado não possui questões ainda.',
@@ -150,7 +171,7 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
                 <CardHeader>
                   <div className="flex justify-between items-start flex-wrap gap-2">
                     <CardTitle className="text-2xl">{simulado.title}</CardTitle>
-                    {renderDifficultyBadge(simulado.difficulty)}
+                    {renderDifficultyBadge(simulado.difficulty || 'medium')}
                   </div>
                   <CardDescription className="text-base">
                     {simulado.description}
@@ -158,57 +179,36 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {Array.isArray(simulado.topicos) && simulado.topicos.length > 0 && (
+                    {Array.isArray(simulado.tags) && simulado.tags.length > 0 && (
                       <div>
                         <h3 className="text-lg font-semibold mb-2">Tópicos Abordados</h3>
                         <ul className="list-disc list-inside space-y-1 text-gray-600">
-                          {simulado.topicos.map((topic, idx) => (
-                            <li key={idx}>{topic}</li>
+                          {simulado.tags.map((tag, idx) => (
+                            <li key={idx}>{tag}</li>
                           ))}
                         </ul>
                       </div>
                     )}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{simulado.duration} minutos</p>
-                          <p className="text-sm text-muted-foreground">Duração</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <BookOpen className="mr-2 h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{simulado.questionsCount} questões</p>
-                          <p className="text-sm text-muted-foreground">Total</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Award className="mr-2 h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{simulado.passingScore}%</p>
-                          <p className="text-sm text-muted-foreground">Nota mínima</p>
-                        </div>
+                    <div className="flex items-center">
+                      <Clock className="mr-2 h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{simulado.duration} minutos</p>
+                        <p className="text-sm text-muted-foreground">Duração</p>
                       </div>
                     </div>
-
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Sobre este simulado</h3>
-                      <p className="text-muted-foreground">
-                        Este simulado foi projetado para testar seus conhecimentos e prepará-lo para o exame real.
-                        Responda todas as questões dentro do tempo limite para obter sua pontuação.
-                      </p>
+                    <div className="flex items-center">
+                      <BookOpen className="mr-2 h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{simulado.questions_count} questões</p>
+                        <p className="text-sm text-muted-foreground">Total</p>
+                      </div>
                     </div>
-
-                    <div>
-                      <h3 className="text-lg font-medium mb-2">Instruções</h3>
-                      <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                        <li>Você terá {simulado.duration} minutos para completar o simulado.</li>
-                        <li>O simulado contém {simulado.questionsCount} questões de múltipla escolha.</li>
-                        <li>Você precisa acertar pelo menos {simulado.passingScore}% das questões para ser aprovado.</li>
-                        <li>Você pode revisar suas respostas antes de enviar.</li>
-                        <li>Uma vez iniciado, o tempo não pode ser pausado.</li>
-                      </ul>
+                    <div className="flex items-center">
+                      <Award className="mr-2 h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{simulado.passing_score}%</p>
+                        <p className="text-sm text-muted-foreground">Nota mínima</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -254,11 +254,11 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Questões:</span>
-                      <span className="font-medium">{simulado.questionsCount}</span>
+                      <span className="font-medium">{simulado.questions_count}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Nota para aprovação:</span>
-                      <span className="font-medium">{simulado.passingScore}%</span>
+                      <span className="font-medium">{simulado.passing_score}%</span>
                     </div>
                   </div>
                 </CardContent>
@@ -266,7 +266,7 @@ const [availableLevels, setAvailableLevels] = useState<string[]>([]);
                   <Button 
                     className="w-full" 
                     onClick={handleStartSimulado}
-                    disabled={simulado.questionsCount === 0}
+                    disabled={simulado.questions_count === 0}
                   >
                     <Play className="mr-2 h-4 w-4" />
                     Iniciar Simulado

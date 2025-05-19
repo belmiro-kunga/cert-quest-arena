@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { api } from '@/services/api';
+import { supabase } from '@/lib/supabase';
 import { FcGoogle } from 'react-icons/fc';
 import { Github } from 'lucide-react';
 
@@ -49,9 +49,45 @@ export function AuthSettings() {
   const loadConfig = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/admin/settings/auth');
-      setConfig(response.data);
+      
+      // Buscar configurações do Google
+      const { data: googleData, error: googleError } = await supabase
+        .from('auth_settings')
+        .select('*')
+        .eq('provider', 'google')
+        .single();
+
+      if (googleError && googleError.code !== 'PGRST116') { // PGRST116 é o código para "no rows returned"
+        throw googleError;
+      }
+
+      // Buscar configurações do GitHub
+      const { data: githubData, error: githubError } = await supabase
+        .from('auth_settings')
+        .select('*')
+        .eq('provider', 'github')
+        .single();
+
+      if (githubError && githubError.code !== 'PGRST116') {
+        throw githubError;
+      }
+
+      setConfig({
+        google: {
+          clientId: googleData?.client_id || '',
+          clientSecret: googleData?.client_secret || '',
+          callbackUrl: googleData?.callback_url || `${window.location.origin}/auth/google/callback`,
+          enabled: googleData?.enabled || false
+        },
+        github: {
+          clientId: githubData?.client_id || '',
+          clientSecret: githubData?.client_secret || '',
+          callbackUrl: githubData?.callback_url || `${window.location.origin}/auth/github/callback`,
+          enabled: githubData?.enabled || false
+        }
+      });
     } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar as configurações de autenticação',
@@ -65,16 +101,26 @@ export function AuthSettings() {
   const handleSave = async (provider: 'google' | 'github') => {
     try {
       setIsLoading(true);
-      await api.post('/admin/settings/auth', {
-        provider,
-        config: config[provider]
-      });
+      
+      const { error } = await supabase
+        .from('auth_settings')
+        .upsert({
+          provider,
+          client_id: config[provider].clientId,
+          client_secret: config[provider].clientSecret,
+          callback_url: config[provider].callbackUrl,
+          enabled: config[provider].enabled,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
 
       toast({
         title: 'Sucesso',
         description: `Configurações do ${provider === 'google' ? 'Google' : 'GitHub'} salvas com sucesso`,
       });
     } catch (error) {
+      console.error('Erro ao salvar configurações:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível salvar as configurações',
@@ -88,25 +134,35 @@ export function AuthSettings() {
   const handleToggleProvider = async (provider: 'google' | 'github') => {
     try {
       setIsLoading(true);
-      const newConfig = {
+      const newEnabled = !config[provider].enabled;
+
+      const { error } = await supabase
+        .from('auth_settings')
+        .upsert({
+          provider,
+          client_id: config[provider].clientId,
+          client_secret: config[provider].clientSecret,
+          callback_url: config[provider].callbackUrl,
+          enabled: newEnabled,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      setConfig({
         ...config,
         [provider]: {
           ...config[provider],
-          enabled: !config[provider].enabled
+          enabled: newEnabled
         }
-      };
-
-      await api.post('/admin/settings/auth', {
-        provider,
-        config: newConfig[provider]
       });
 
-      setConfig(newConfig);
       toast({
         title: 'Sucesso',
-        description: `${provider === 'google' ? 'Google' : 'GitHub'} ${newConfig[provider].enabled ? 'ativado' : 'desativado'} com sucesso`,
+        description: `${provider === 'google' ? 'Google' : 'GitHub'} ${newEnabled ? 'ativado' : 'desativado'} com sucesso`,
       });
     } catch (error) {
+      console.error('Erro ao alterar status do provedor:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível alterar o status do provedor',

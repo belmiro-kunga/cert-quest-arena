@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { api } from '@/services/api';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -66,8 +66,9 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/recaptcha/config`
         );
-        if (response.data && response.data.enabled) {
-          setRecaptchaConfig(response.data);
+        const config = response.data as ReCaptchaConfig;
+        if (config && config.enabled) {
+          setRecaptchaConfig(config);
         }
       } catch (error) {
         console.error('Erro ao buscar configurações do reCAPTCHA:', error);
@@ -142,12 +143,34 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
     setCaptchaValue(value);
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${api.defaults.baseURL}/auth/google`;
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao fazer login com Google:', error);
+      setError('Erro ao fazer login com Google');
+    }
   };
 
-  const handleGithubLogin = () => {
-    window.location.href = `${api.defaults.baseURL}/auth/github`;
+  const handleGithubLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao fazer login com GitHub:', error);
+      setError('Erro ao fazer login com GitHub');
+    }
   };
 
   // Função para cancelar a verificação de dois fatores
@@ -276,27 +299,27 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-4">
         <Button
           type="button"
           variant="outline"
+          className="w-full"
           onClick={handleGoogleLogin}
           disabled={isLoading}
-          className="w-full"
         >
-          <FcGoogle className="mr-2 h-4 w-4" />
-          Google
+          <FcGoogle className="mr-2 h-5 w-5" />
+          {t('Continuar com Google')}
         </Button>
 
         <Button
           type="button"
           variant="outline"
+          className="w-full"
           onClick={handleGithubLogin}
           disabled={isLoading}
-          className="w-full"
         >
-          <Github className="mr-2 h-4 w-4" />
-          GitHub
+          <Github className="mr-2 h-5 w-5" />
+          {t('Continuar com GitHub')}
         </Button>
       </div>
     </form>

@@ -1,5 +1,5 @@
-import { api } from '@/services/api';
-import { AxiosError } from 'axios';
+import { supabase } from '@/lib/supabase';
+import { PostgrestError } from '@supabase/supabase-js';
 
 export interface Flashcard {
   id: string;
@@ -8,8 +8,8 @@ export interface Flashcard {
   category: string;
   difficulty: 'easy' | 'medium' | 'hard';
   tags: string[];
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FlashcardDeck {
@@ -20,198 +20,272 @@ export interface FlashcardDeck {
   difficulty: 'easy' | 'medium' | 'hard';
   tags: string[];
   flashcards: Flashcard[];
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FlashcardProgress {
   id: string;
-  userId: string;
-  flashcardId: string;
+  user_id: string;
+  flashcard_id: string;
   status: 'new' | 'learning' | 'reviewing' | 'mastered';
-  lastReviewed: string;
-  nextReview: string;
-  reviewCount: number;
-  correctCount: number;
-  incorrectCount: number;
+  last_reviewed: string;
+  next_review: string;
+  review_count: number;
+  correct_count: number;
+  incorrect_count: number;
 }
 
 export const getFlashcards = async (): Promise<Flashcard[]> => {
   try {
-    const response = await api.get('/flashcards');
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao buscar flashcards:', error.response?.data);
-  } else {
-      console.error('Erro ao buscar flashcards:', error);
-    }
+    console.error('Erro ao buscar flashcards:', error);
     return [];
   }
 };
 
 export const getFlashcardById = async (id: string): Promise<Flashcard> => {
   try {
-    const response = await api.get(`/flashcards/${id}`);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Flashcard não encontrado');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao buscar flashcard:', error.response?.data);
-    } else {
-      console.error('Erro ao buscar flashcard:', error);
-    }
+    console.error('Erro ao buscar flashcard:', error);
     throw error;
   }
 };
 
-export const createFlashcard = async (flashcard: Omit<Flashcard, 'id' | 'createdAt' | 'updatedAt'>): Promise<Flashcard> => {
+export const createFlashcard = async (flashcard: Omit<Flashcard, 'id' | 'created_at' | 'updated_at'>): Promise<Flashcard> => {
   try {
-    const response = await api.post('/flashcards', flashcard);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcards')
+      .insert({
+        ...flashcard,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Erro ao criar flashcard');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao criar flashcard:', error.response?.data);
-    } else {
-      console.error('Erro ao criar flashcard:', error);
-    }
+    console.error('Erro ao criar flashcard:', error);
     throw error;
   }
 };
 
 export const updateFlashcard = async (id: string, flashcard: Partial<Flashcard>): Promise<Flashcard> => {
   try {
-    const response = await api.put(`/flashcards/${id}`, flashcard);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcards')
+      .update({
+        ...flashcard,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Flashcard não encontrado');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao atualizar flashcard:', error.response?.data);
-    } else {
-      console.error('Erro ao atualizar flashcard:', error);
-    }
+    console.error('Erro ao atualizar flashcard:', error);
     throw error;
   }
 };
 
 export const deleteFlashcard = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/flashcards/${id}`);
+    const { error } = await supabase
+      .from('flashcards')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao deletar flashcard:', error.response?.data);
-    } else {
-      console.error('Erro ao deletar flashcard:', error);
-    }
+    console.error('Erro ao deletar flashcard:', error);
     throw error;
   }
 };
 
 export const getDecks = async (): Promise<FlashcardDeck[]> => {
   try {
-    const response = await api.get('/flashcard-decks');
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcard_decks')
+      .select(`
+        *,
+        flashcards:flashcards(*)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao buscar decks de flashcards:', error.response?.data);
-    } else {
-      console.error('Erro ao buscar decks de flashcards:', error);
-    }
+    console.error('Erro ao buscar decks de flashcards:', error);
     return [];
   }
 };
 
 export const getDeckById = async (id: string): Promise<FlashcardDeck> => {
   try {
-    const response = await api.get(`/flashcard-decks/${id}`);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcard_decks')
+      .select(`
+        *,
+        flashcards:flashcards(*)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Deck não encontrado');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao buscar deck de flashcards:', error.response?.data);
-    } else {
-      console.error('Erro ao buscar deck de flashcards:', error);
-    }
+    console.error('Erro ao buscar deck de flashcards:', error);
     throw error;
   }
 };
 
-export const createDeck = async (deck: Omit<FlashcardDeck, 'id' | 'createdAt' | 'updatedAt'>): Promise<FlashcardDeck> => {
+export const createDeck = async (deck: Omit<FlashcardDeck, 'id' | 'created_at' | 'updated_at'>): Promise<FlashcardDeck> => {
   try {
-    const response = await api.post('/flashcard-decks', deck);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcard_decks')
+      .insert({
+        ...deck,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Erro ao criar deck');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao criar deck de flashcards:', error.response?.data);
-    } else {
-      console.error('Erro ao criar deck de flashcards:', error);
-    }
+    console.error('Erro ao criar deck de flashcards:', error);
     throw error;
   }
 };
 
 export const updateDeck = async (id: string, deck: Partial<FlashcardDeck>): Promise<FlashcardDeck> => {
   try {
-    const response = await api.put(`/flashcard-decks/${id}`, deck);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcard_decks')
+      .update({
+        ...deck,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Deck não encontrado');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao atualizar deck de flashcards:', error.response?.data);
-    } else {
-      console.error('Erro ao atualizar deck de flashcards:', error);
-    }
+    console.error('Erro ao atualizar deck de flashcards:', error);
     throw error;
   }
 };
 
 export const deleteDeck = async (id: string): Promise<void> => {
   try {
-    await api.delete(`/flashcard-decks/${id}`);
+    const { error } = await supabase
+      .from('flashcard_decks')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao deletar deck de flashcards:', error.response?.data);
-    } else {
-      console.error('Erro ao deletar deck de flashcards:', error);
-    }
+    console.error('Erro ao deletar deck de flashcards:', error);
     throw error;
   }
 };
 
 export const getUserProgress = async (userId: string): Promise<FlashcardProgress[]> => {
   try {
-    const response = await api.get(`/flashcard-progress/user/${userId}`);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcard_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .order('next_review', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao buscar progresso do usuário:', error.response?.data);
-    } else {
-      console.error('Erro ao buscar progresso do usuário:', error);
-    }
+    console.error('Erro ao buscar progresso do usuário:', error);
     return [];
   }
 };
 
 export const updateProgress = async (progress: Partial<FlashcardProgress> & { id: string }): Promise<FlashcardProgress> => {
   try {
-    const response = await api.put(`/flashcard-progress/${progress.id}`, progress);
-    return response.data;
+    const { data, error } = await supabase
+      .from('flashcard_progress')
+      .update({
+        ...progress,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', progress.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Progresso não encontrado');
+    
+    return data;
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao atualizar progresso:', error.response?.data);
-    } else {
-      console.error('Erro ao atualizar progresso:', error);
-    }
+    console.error('Erro ao atualizar progresso:', error);
     throw error;
   }
 };
 
 export const getDueCards = async (userId: string): Promise<Flashcard[]> => {
   try {
-    const response = await api.get(`/flashcard-progress/user/${userId}/due`);
-    return response.data;
+    const now = new Date().toISOString();
+    
+    // Buscar IDs dos flashcards devidos
+    const { data: progressData, error: progressError } = await supabase
+      .from('flashcard_progress')
+      .select('flashcard_id')
+      .eq('user_id', userId)
+      .lte('next_review', now);
+
+    if (progressError) throw progressError;
+    if (!progressData?.length) return [];
+
+    // Buscar os flashcards correspondentes
+    const { data: flashcardData, error: flashcardError } = await supabase
+      .from('flashcards')
+      .select('*')
+      .in('id', progressData.map(p => p.flashcard_id));
+
+    if (flashcardError) throw flashcardError;
+    return flashcardData || [];
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error('Erro ao buscar flashcards devidos:', error.response?.data);
-    } else {
-      console.error('Erro ao buscar flashcards devidos:', error);
-    }
+    console.error('Erro ao buscar flashcards devidos:', error);
     return [];
   }
 };

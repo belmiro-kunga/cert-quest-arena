@@ -1,4 +1,5 @@
-import { api } from './api';
+import { supabase } from '@/lib/supabase';
+import { logger } from '@/utils/logger';
 import { getDefaultLanguage } from '@/utils/language';
 
 export interface PolicySettings {
@@ -42,24 +43,29 @@ export interface CookiePolicySettings extends Omit<PolicySettings, 'customizatio
 export type BannerPosition = 'top' | 'bottom';
 
 export interface SystemSettings {
-  platformName: string;
-  logoUrl?: string;
-  faviconUrl?: string;
+  id: string;
+  siteName: string;
+  siteDescription: string;
+  logoUrl: string;
+  faviconUrl: string;
   primaryColor: string;
   secondaryColor: string;
   language: string;
   timezone: string;
-  currency: string;
-  smtpHost?: string;
-  smtpPort?: number;
-  smtpUsername?: string;
-  smtpPassword?: string;
-  smtpSecure: boolean;
-  smtpFromEmail?: string;
-  smtpFromName?: string;
-  emailNotificationsEnabled: boolean;
-  emailSubscriptionsEnabled: boolean;
+  dateFormat: string;
+  timeFormat: string;
+  maintenanceMode: boolean;
+  registrationEnabled: boolean;
+  emailVerificationRequired: boolean;
+  maxLoginAttempts: number;
+  passwordMinLength: number;
+  passwordRequireSpecial: boolean;
+  passwordRequireNumber: boolean;
+  passwordRequireUppercase: boolean;
+  sessionTimeout: number;
   spamProtectionEnabled: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface EmailTemplate {
@@ -67,118 +73,309 @@ export interface EmailTemplate {
   name: string;
   subject: string;
   body: string;
-  isActive: boolean;
+  variables: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface EmailSubscription {
   id: string;
-  email: string;
-  name?: string;
-  isActive: boolean;
+  name: string;
+  description: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-const defaultSettings: SystemSettings = {
-  platformName: 'CertQuest Arena',
-  primaryColor: '#2563eb',
-  secondaryColor: '#1e40af',
-  language: 'pt-BR',
-  timezone: 'America/Sao_Paulo',
-  currency: 'BRL',
-  smtpSecure: true,
-  emailNotificationsEnabled: true,
-  emailSubscriptionsEnabled: true,
-  spamProtectionEnabled: true,
-};
+// Tipos locais para as tabelas que ainda não existem no Supabase
+interface Settings {
+  id: string;
+  key: string;
+  value: any;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: Record<string, any>;
+}
+
+type SettingsInsert = Omit<Settings, 'id' | 'created_at' | 'updated_at'>;
+type SettingsUpdate = Partial<SettingsInsert>;
 
 export const settingsService = {
-  async getSettings(): Promise<SystemSettings> {
+  async getAllSettings(): Promise<Settings[]> {
     try {
-      const response = await api.get('/system-settings');
-      return response.data;
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .order('key', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Erro ao buscar configurações:', error);
-      return defaultSettings;
+      logger.error('Erro ao buscar configurações:', error);
+      return [];
     }
   },
 
-  async updateSettings(settings: Partial<SystemSettings>): Promise<SystemSettings> {
+  async getSetting(key: string): Promise<Settings | null> {
     try {
-      const response = await api.put('/system-settings', settings);
-      return response.data;
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('key', key)
+        .single();
+
+      if (error) throw error;
+      return data;
     } catch (error) {
-      console.error('Erro ao atualizar configurações:', error);
+      logger.error('Erro ao buscar configuração:', error);
+      return null;
+    }
+  },
+
+  async updateSetting(key: string, value: any): Promise<Settings | null> {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq('key', key)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Erro ao atualizar configuração:', error);
+      return null;
+    }
+  },
+
+  async createSetting(setting: SettingsInsert): Promise<Settings | null> {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .insert(setting)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Erro ao criar configuração:', error);
+      return null;
+    }
+  },
+
+  async deleteSetting(key: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .delete()
+        .eq('key', key);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      logger.error('Erro ao deletar configuração:', error);
+      return false;
+    }
+  },
+
+  async getSettingsByPrefix(prefix: string): Promise<Settings[]> {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .ilike('key', `${prefix}%`)
+        .order('key', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      logger.error('Erro ao buscar configurações por prefixo:', error);
+      return [];
+    }
+  },
+
+  async updateMultipleSettings(settings: Record<string, any>): Promise<boolean> {
+    try {
+      const updates = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value,
+        updated_at: new Date().toISOString()
+      }));
+
+      const { error } = await supabase
+        .from('settings')
+        .upsert(updates);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      logger.error('Erro ao atualizar múltiplas configurações:', error);
+      return false;
+    }
+  },
+
+  async getSystemSettings(): Promise<SystemSettings> {
+    try {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      return data || {
+        id: 'default',
+        siteName: 'Cert Quest Arena',
+        siteDescription: 'Plataforma de simulados para certificações',
+        logoUrl: '/logo.png',
+        faviconUrl: '/favicon.ico',
+        primaryColor: '#4F46E5',
+        secondaryColor: '#10B981',
+        language: getDefaultLanguage(),
+        timezone: 'America/Sao_Paulo',
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: '24h',
+        maintenanceMode: false,
+        registrationEnabled: true,
+        emailVerificationRequired: true,
+        maxLoginAttempts: 5,
+        passwordMinLength: 8,
+        passwordRequireSpecial: true,
+        passwordRequireNumber: true,
+        passwordRequireUppercase: true,
+        sessionTimeout: 30,
+        spamProtectionEnabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    } catch (error) {
+      logger.error('Erro ao buscar configurações do sistema:', error);
+      throw error;
+    }
+  },
+
+  async updateSystemSettings(settings: Partial<SystemSettings>): Promise<SystemSettings> {
+    try {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .update({
+          ...settings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', 'default')
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      logger.error('Erro ao atualizar configurações do sistema:', error);
       throw error;
     }
   },
 
   async getEmailTemplates(): Promise<EmailTemplate[]> {
     try {
-      const response = await api.get('/system-settings/email-templates');
-      return response.data;
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Erro ao buscar templates de email:', error);
+      logger.error('Erro ao buscar templates de email:', error);
       return [];
     }
   },
 
-  async updateEmailTemplate(template: EmailTemplate): Promise<EmailTemplate> {
+  async updateEmailTemplate(template: EmailTemplate): Promise<EmailTemplate | null> {
     try {
-      const response = await api.put(`/system-settings/email-templates/${template.id}`, template);
-      return response.data;
+      const { data, error } = await supabase
+        .from('email_templates')
+        .update({
+          ...template,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', template.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     } catch (error) {
-      console.error('Erro ao atualizar template de email:', error);
-      throw error;
+      logger.error('Erro ao atualizar template de email:', error);
+      return null;
     }
   },
 
   async getEmailSubscriptions(): Promise<EmailSubscription[]> {
     try {
-      const response = await api.get('/system-settings/email-subscriptions');
-      return response.data;
+      const { data, error } = await supabase
+        .from('email_subscriptions')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Erro ao buscar assinaturas de email:', error);
+      logger.error('Erro ao buscar assinaturas de email:', error);
       return [];
     }
   },
 
-  async updateEmailSubscription(subscription: EmailSubscription): Promise<EmailSubscription> {
+  async updateEmailSubscription(subscription: EmailSubscription): Promise<EmailSubscription | null> {
     try {
-      const response = await api.put(`/system-settings/email-subscriptions/${subscription.id}`, subscription);
-      return response.data;
+      const { data, error } = await supabase
+        .from('email_subscriptions')
+        .update({
+          ...subscription,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', subscription.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     } catch (error) {
-      console.error('Erro ao atualizar assinatura de email:', error);
-      throw error;
+      logger.error('Erro ao atualizar assinatura de email:', error);
+      return null;
     }
   },
 
   async uploadLogo(file: File): Promise<string> {
     try {
-      const formData = new FormData();
-      formData.append('logo', file);
-      const response = await api.post('/system-settings/upload-logo', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data.url;
+      const { data, error } = await supabase.storage
+        .from('system-settings')
+        .upload('logo', file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+      return data.path;
     } catch (error) {
-      console.error('Erro ao fazer upload do logo:', error);
+      logger.error('Erro ao fazer upload do logo:', error);
       throw error;
     }
   },
 
   async uploadFavicon(file: File): Promise<string> {
     try {
-      const formData = new FormData();
-      formData.append('favicon', file);
-      const response = await api.post('/system-settings/upload-favicon', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data.url;
+      const { data, error } = await supabase.storage
+        .from('system-settings')
+        .upload('favicon', file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+      return data.path;
     } catch (error) {
-      console.error('Erro ao fazer upload do favicon:', error);
+      logger.error('Erro ao fazer upload do favicon:', error);
       throw error;
     }
   },

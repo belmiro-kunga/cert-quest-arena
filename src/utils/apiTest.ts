@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_URL } from '@/config';
+// import { API_URL } from '@/config';
 
 /**
  * Função para testar a conexão com a API
@@ -7,7 +7,7 @@ import { API_URL } from '@/config';
  */
 export const testApiConnection = async (): Promise<boolean> => {
   try {
-    const response = await axios.get(`${API_URL}/health`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/health`);
     return response.status === 200;
   } catch (error) {
     console.error('Erro ao testar conexão com a API:', error);
@@ -24,7 +24,7 @@ export const testApiConnection = async (): Promise<boolean> => {
  */
 export const testRegister = async (email: string, password: string, name: string): Promise<any> => {
   try {
-    const response = await axios.post(`${API_URL}/auth/register`, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, {
       email,
       password,
       name

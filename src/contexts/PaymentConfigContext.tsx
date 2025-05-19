@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import axios from 'axios';
-import { API_URL } from '@/config';
+// import { API_URL } from '@/config';
 
 interface PaymentMethodConfig {
   id: string;
@@ -76,7 +76,7 @@ export const PaymentConfigProvider: React.FC<{ children: React.ReactNode }> = ({
   ]);
 
   const api = axios.create({
-    baseURL: API_URL,
+    baseURL: import.meta.env.VITE_API_URL,
     headers: {
       'Content-Type': 'application/json'
     }
@@ -96,14 +96,10 @@ export const PaymentConfigProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
     try {
       const response = await api.get('/api/admin/payment-config');
-      setPaymentConfigs(response.data);
+      setPaymentConfigs(response.data as PaymentMethodConfig[]);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || err.message);
-      } else {
-        setError('Erro ao carregar configurações de pagamento');
-      }
-      // Se houver erro, mantém as configurações padrão
+      const error = err as { response?: { data?: { error?: string } }, message?: string };
+      setError(error.response?.data?.error || error.message || 'Erro ao carregar configurações de pagamento');
       console.error('Erro ao carregar configurações:', err);
     } finally {
       setIsLoading(false);
@@ -119,11 +115,8 @@ export const PaymentConfigProvider: React.FC<{ children: React.ReactNode }> = ({
         configs.map(c => c.id === config.id ? config : c)
       );
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || err.message);
-      } else {
-        setError('Erro ao atualizar configuração de pagamento');
-      }
+      const error = err as { response?: { data?: { error?: string } }, message?: string };
+      setError(error.response?.data?.error || error.message || 'Erro ao atualizar configuração de pagamento');
       throw err;
     } finally {
       setIsLoading(false);
@@ -137,11 +130,8 @@ export const PaymentConfigProvider: React.FC<{ children: React.ReactNode }> = ({
       await api.put('/api/admin/payment-config', { configs });
       setPaymentConfigs(configs);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || err.message);
-      } else {
-        setError('Erro ao atualizar configurações de pagamento');
-      }
+      const error = err as { response?: { data?: { error?: string } }, message?: string };
+      setError(error.response?.data?.error || error.message || 'Erro ao atualizar configurações de pagamento');
       throw err;
     } finally {
       setIsLoading(false);

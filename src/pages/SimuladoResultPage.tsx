@@ -5,7 +5,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SimuladoReviewCard from '@/components/SimuladoReviewCard';
 import { getSimuladoById, Exam } from '@/services/simuladoService';
-import { getQuestoesBySimuladoId } from '@/services/questaoService';
+// TODO: Replace with Supabase implementation
+// import { getQuestoesBySimuladoId } from '@/services/questaoService';
 import type { Questao } from '@/types/simulado';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';

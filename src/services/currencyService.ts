@@ -1,4 +1,4 @@
-import { api } from './api';
+import { supabase } from '@/lib/supabase';
 
 export interface Currency {
   id: number;
@@ -26,8 +26,13 @@ export interface UpdateCurrencyData {
 export const currencyService = {
   async getCurrencies(): Promise<Currency[]> {
     try {
-      const response = await api.get('/currencies');
-      return response.data;
+      const { data, error } = await supabase
+        .from('currencies')
+        .select('*')
+        .order('code');
+
+      if (error) throw error;
+      return data || [];
     } catch (error) {
       console.error('Erro ao buscar moedas:', error);
       return [];
@@ -36,8 +41,16 @@ export const currencyService = {
 
   async getCurrency(id: number): Promise<Currency> {
     try {
-      const response = await api.get(`/currencies/${id}`);
-      return response.data;
+      const { data, error } = await supabase
+        .from('currencies')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('Moeda não encontrada');
+      
+      return data;
     } catch (error) {
       console.error('Erro ao buscar moeda:', error);
       throw error;
@@ -46,8 +59,21 @@ export const currencyService = {
 
   async createCurrency(currency: CreateCurrencyData): Promise<Currency> {
     try {
-      const response = await api.post('/currencies', currency);
-      return response.data;
+      const { data, error } = await supabase
+        .from('currencies')
+        .insert({
+          ...currency,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('Erro ao criar moeda');
+      
+      return data;
     } catch (error) {
       console.error('Erro ao criar moeda:', error);
       throw error;
@@ -56,8 +82,20 @@ export const currencyService = {
 
   async updateCurrency(id: number, currency: UpdateCurrencyData): Promise<Currency> {
     try {
-      const response = await api.put(`/currencies/${id}`, currency);
-      return response.data;
+      const { data, error } = await supabase
+        .from('currencies')
+        .update({
+          ...currency,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('Moeda não encontrada');
+      
+      return data;
     } catch (error) {
       console.error('Erro ao atualizar moeda:', error);
       throw error;
@@ -66,7 +104,12 @@ export const currencyService = {
 
   async deleteCurrency(id: number): Promise<void> {
     try {
-      await api.delete(`/currencies/${id}`);
+      const { error } = await supabase
+        .from('currencies')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
     } catch (error) {
       console.error('Erro ao deletar moeda:', error);
       throw error;
@@ -75,8 +118,20 @@ export const currencyService = {
 
   async toggleCurrencyStatus(id: number, is_active: boolean): Promise<Currency> {
     try {
-      const response = await api.put(`/currencies/${id}/toggle-status`, { is_active });
-      return response.data;
+      const { data, error } = await supabase
+        .from('currencies')
+        .update({
+          is_active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error('Moeda não encontrada');
+      
+      return data;
     } catch (error) {
       console.error('Erro ao alterar status da moeda:', error);
       throw error;

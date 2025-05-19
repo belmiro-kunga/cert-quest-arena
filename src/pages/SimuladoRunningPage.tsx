@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getSimuladoById, Exam } from '@/services/simuladoService';
-import { getQuestoesBySimuladoId } from '@/services/questaoService';
+import { simuladoService } from '@/services/simuladoService';
+import type { Simulado, SimuladoWithQuestions, SimuladoBase } from '@/types/simuladoService';
 import type { Questao } from '@/types/simulado';
+// TODO: Replace with Supabase implementation
+// import { getQuestoesBySimuladoId } from '@/services/questaoService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -26,7 +28,7 @@ const SimuladoRunningPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [simulado, setSimulado] = useState<Exam | null>(null);
+  const [simulado, setSimulado] = useState<Simulado | null>(null);
   const [questoes, setQuestoes] = useState<Questao[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string | string[]>>({});
@@ -44,14 +46,53 @@ const SimuladoRunningPage: React.FC = () => {
         setIsLoading(true);
         
         // Carregar simulado
-        const simuladoData = await getSimuladoById(parseInt(id));
-        setSimulado(simuladoData);
+        const simuladoData = await simuladoService.getSimuladoById(id);
+        if (!simuladoData) {
+          throw new Error('Simulado não encontrado');
+        }
+
+        // Convert SimuladoWithQuestions to Simulado
+        const baseData: SimuladoBase = {
+          id: simuladoData.id,
+          title: simuladoData.title,
+          description: simuladoData.description,
+          duration: simuladoData.duration,
+          total_questions: simuladoData.total_questions,
+          passing_score: simuladoData.passing_score,
+          is_active: simuladoData.is_active,
+          created_at: simuladoData.created_at,
+          updated_at: simuladoData.updated_at,
+          price: simuladoData.price,
+          category: simuladoData.category,
+          tags: simuladoData.tags || [],
+          image_url: simuladoData.image_url
+        };
+
+        const simuladoConverted: Simulado = {
+          ...baseData,
+          questions_count: simuladoData.questions?.length || 0,
+          language: 'pt', // Default language
+          difficulty: 'medium' // Default difficulty
+        };
+        setSimulado(simuladoConverted);
         
         // Inicializar o tempo restante
         setTimeLeft(simuladoData.duration * 60); // Converter minutos para segundos
         
-        // Carregar questões
-        const questoesData = await getQuestoesBySimuladoId(parseInt(id), simuladoData.language);
+        // Convert questions to Questao type
+        const questoesData: Questao[] = (simuladoData.questions || []).map(q => ({
+          id: parseInt(q.id),
+          simulado_id: parseInt(q.simulado_id),
+          enunciado: q.question_text,
+          alternativas: q.options.map((opt, idx) => ({
+            id: `opt_${idx}`,
+            texto: opt,
+            correta: opt === q.correct_answer
+          })),
+          resposta_correta: q.correct_answer,
+          explicacao: q.explanation,
+          tipo: 'single_choice' // Default type
+        }));
         setQuestoes(questoesData);
         
         if (questoesData.length === 0) {
@@ -278,7 +319,7 @@ const SimuladoRunningPage: React.FC = () => {
     const score = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
     
     // Verificar se passou no simulado
-    const passedExam = score >= (simulado?.passingScore || 70);
+    const passedExam = score >= (simulado?.passing_score || 70);
     
     // Criar objeto de resultado
     const result = {

@@ -10,7 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, BookOpen, Award, ArrowRight } from 'lucide-react';
-import { getActiveExams, Exam } from '@/services/simuladoService';
+import { simuladoService } from '@/services/simuladoService.js';
+import type { Simulado } from '@/types/simuladoService';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface CertificationSimuladosModalProps {
@@ -24,7 +25,7 @@ const CertificationSimuladosModal: React.FC<CertificationSimuladosModalProps> = 
   onClose,
   category
 }) => {
-  const [simulados, setSimulados] = useState<Exam[]>([]);
+  const [simulados, setSimulados] = useState<Simulado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
@@ -64,11 +65,11 @@ const CertificationSimuladosModal: React.FC<CertificationSimuladosModalProps> = 
   };
   
   // Função para verificar se um simulado corresponde a uma categoria
-  const matchesCategory = (simulado: Exam, categoryFilter: string): boolean => {
+  const matchesCategory = (simulado: Simulado, categoryFilter: string): boolean => {
     if (!categoryFilter) return true;
     
     // Obter a categoria do simulado
-    const simuladoCategory = ((simulado as any).categoria || simulado.category || '').toLowerCase();
+    const simuladoCategory = simulado.category.toLowerCase();
     const filter = categoryFilter.toLowerCase();
     
     // Mapeamento de termos relacionados para melhorar a correspondência
@@ -97,13 +98,13 @@ const CertificationSimuladosModal: React.FC<CertificationSimuladosModalProps> = 
       
       try {
         setIsLoading(true);
-        const data = await getActiveExams();
+        const data = await simuladoService.getActiveSimulados();
         
         // Processar os simulados para garantir que tenham campos de categoria consistentes
         const processedData = data.map(simulado => ({
           ...simulado,
           // Garantir que o campo categoria esteja definido
-          categoria: (simulado as any).categoria || simulado.category || ''
+          category: simulado.category || ''
         }));
         
         // Filtrar por categoria e idioma preferido
@@ -173,11 +174,11 @@ const CertificationSimuladosModal: React.FC<CertificationSimuladosModalProps> = 
                     </div>
                     <div className="flex items-center gap-1">
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>{simulado.questions_count} questões</span>
+                      <span>{simulado.questions_count || simulado.total_questions || 0} questões</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Award className="h-3.5 w-3.5" />
-                      <span>{simulado.difficulty}</span>
+                      <span>{simulado.difficulty || 'medium'}</span>
                     </div>
                   </div>
                 </div>
