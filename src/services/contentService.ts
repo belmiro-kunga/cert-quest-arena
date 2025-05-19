@@ -1,8 +1,6 @@
-
 import axios from 'axios';
 import { ContentItem, ContentCategory, ContentTag } from '@/types/admin';
-
-const API_URL = 'http://localhost:3001';
+import { API_URL } from '@/config';
 
 // Buscar todos os itens de conteúdo
 export const fetchContentItems = async (type?: string): Promise<ContentItem[]> => {

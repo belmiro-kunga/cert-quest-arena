@@ -4,11 +4,11 @@
 
 import axios from 'axios';
 import { BaseQuestion, MultipleChoiceQuestion, SingleChoiceQuestion } from '@/types/admin';
+import { API_URL } from '@/config';
+import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/supabase';
 
 export type { BaseQuestion };
-
-// Defina a URL base da API
-const API_URL = 'http://localhost:3001/api';
 
 // Interface para o tipo QuestaoBackend (backend)
 export interface QuestaoBackend {
@@ -221,5 +221,139 @@ export const deleteQuestion = async (questionId: string): Promise<void> => {
   } catch (error) {
     console.error(`Erro ao excluir questão ${questionId}:`, error);
     throw error;
+  }
+};
+
+type Questao = Database['public']['Tables']['questions']['Row'];
+type QuestaoInsert = Database['public']['Tables']['questions']['Insert'];
+type QuestaoUpdate = Database['public']['Tables']['questions']['Update'];
+
+export const questaoService = {
+  async getQuestoesBySimulado(simuladoId: string): Promise<Questao[]> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('simulado_id', simuladoId)
+        .order('created_at');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar questões:', error);
+      return [];
+    }
+  },
+
+  async getQuestaoById(id: string): Promise<Questao | null> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erro ao buscar questão:', error);
+      return null;
+    }
+  },
+
+  async createQuestao(questao: QuestaoInsert): Promise<Questao | null> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .insert(questao)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erro ao criar questão:', error);
+      return null;
+    }
+  },
+
+  async updateQuestao(id: string, questao: QuestaoUpdate): Promise<Questao | null> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .update(questao)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erro ao atualizar questão:', error);
+      return null;
+    }
+  },
+
+  async deleteQuestao(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('questions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Erro ao deletar questão:', error);
+      return false;
+    }
+  },
+
+  async getQuestoesByCategory(category: string): Promise<Questao[]> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('category', category)
+        .order('created_at');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar questões por categoria:', error);
+      return [];
+    }
+  },
+
+  async getQuestoesByDifficulty(difficulty: 'easy' | 'medium' | 'hard'): Promise<Questao[]> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('difficulty', difficulty)
+        .order('created_at');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar questões por dificuldade:', error);
+      return [];
+    }
+  },
+
+  async searchQuestoes(query: string): Promise<Questao[]> {
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .or(`question_text.ilike.%${query}%,explanation.ilike.%${query}%`)
+        .order('created_at');
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar questões:', error);
+      return [];
+    }
   }
 };

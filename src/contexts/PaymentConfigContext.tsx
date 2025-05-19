@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import axios from 'axios';
+import { API_URL } from '@/config';
 
 interface PaymentMethodConfig {
   id: string;
@@ -75,7 +76,7 @@ export const PaymentConfigProvider: React.FC<{ children: React.ReactNode }> = ({
   ]);
 
   const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+    baseURL: API_URL,
     headers: {
       'Content-Type': 'application/json'
     }

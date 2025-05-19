@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { API_URL } from '@/config';
+import { supabaseService, supabase } from '@/lib/supabase';
+import type { User, Session, AuthError } from '@supabase/supabase-js';
 
 export interface AffiliateInfo {
   status: 'pending' | 'approved' | 'rejected' | null;
@@ -9,135 +9,145 @@ export interface AffiliateInfo {
   applicationDate?: string;
 }
 
-export interface TwoFactorAuth {
-  enabled: boolean;
-  secret?: string;
-  backupCodes?: string[];
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'user' | 'admin';
-  photoURL?: string;
-  affiliate?: AffiliateInfo;
-  twoFactorAuth?: TwoFactorAuth;
-  createdAt?: string;
-  updatedAt?: string;
+export interface AuthResponse {
+  user: User | null;
+  session: Session | null;
+  error?: AuthError;
 }
 
 export const authService = {
-  async signUp(email: string, password: string, name: string): Promise<User> {
+  async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
-      // Registra o usuário na API local
-      const response = await axios.post(`${API_URL}/auth/register`, {
-        nome: name,
-        email: email,
-        senha: password
-      });
-
-      // Armazenar o token no localStorage
-      localStorage.setItem('token', response.data.token);
-
-      return response.data.user;
-    } catch (error: any) {
-      console.error('Erro no registro:', error);
-      throw new Error(error.response?.data?.error || 'Erro ao registrar usuário');
-    }
-  },
-
-  async signIn(email: string, password: string): Promise<User> {
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await supabase.auth.signInWithPassword({
         email,
         password
       });
+      return {
+        user: response.data.user,
+        session: response.data.session,
+        error: response.error
+      };
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      return { user: null, session: null, error: error as AuthError };
+    }
+  },
 
-      // Armazenar o token no localStorage
-      localStorage.setItem('token', response.data.token);
-
-      return response.data.user;
-    } catch (error: any) {
-      console.error('Erro no login:', error);
-      throw new Error(error.response?.data?.error || 'Credenciais inválidas');
+  async signUp(email: string, password: string, name: string): Promise<AuthResponse> {
+    try {
+      const response = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } }
+      });
+      return {
+        user: response.data.user,
+        session: response.data.session,
+        error: response.error
+      };
+    } catch (error) {
+      console.error('Erro ao criar conta:', error);
+      return { user: null, session: null, error: error as AuthError };
     }
   },
 
   async signOut(): Promise<void> {
     try {
-      // Remover o token do localStorage
-      localStorage.removeItem('token');
-      
-      // Opcional: notificar o servidor sobre o logout
-      const token = localStorage.getItem('token');
-      if (token) {
-        await axios.post(`${API_URL}/auth/logout`, {}, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-      }
-    } catch (error: any) {
-      console.error('Erro no logout:', error);
-      // Mesmo com erro, remover o token local
-      localStorage.removeItem('token');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      throw error;
     }
   },
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        return null;
-      }
-
-      const response = await axios.get(`${API_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      return response.data.user;
-    } catch (error: any) {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return user;
+    } catch (error) {
       console.error('Erro ao buscar usuário atual:', error);
-      // Se o token for inválido, remover do localStorage
-      if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        return null;
-      }
       return null;
     }
   },
 
-  async resetPassword(email: string): Promise<void> {
+  async getSession(): Promise<Session | null> {
     try {
-      await axios.post(`${API_URL}/auth/reset-password`, { email });
-    } catch (error: any) {
-      console.error('Erro na redefinição de senha:', error);
-      throw new Error(error.response?.data?.error || 'Erro ao solicitar redefinição de senha');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      return session;
+    } catch (error) {
+      console.error('Erro ao buscar sessão:', error);
+      return null;
     }
   },
 
-  async updatePassword(password: string, token?: string): Promise<void> {
+  async updateProfile(userData: Partial<User>): Promise<void> {
     try {
-      const authToken = token || localStorage.getItem('token');
-      if (!authToken) {
-        throw new Error('Usuário não autenticado');
+      const { error } = await supabase
+        .from('users')
+        .update(userData)
+        .eq('id', userData.id!)
+        .select()
+        .single();
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      throw error;
+    }
+  },
+
+  async requestPasswordReset(email: string): Promise<void> {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao solicitar reset de senha:', error);
+      throw error;
+    }
+  },
+
+  async updatePassword(newPassword: string): Promise<void> {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao atualizar senha:', error);
+      throw error;
+    }
+  },
+
+  async getAffiliateInfo(userId: string): Promise<AffiliateInfo> {
+    try {
+      const { data, error } = await supabase
+        .from('affiliates')
+        .select('status, earnings, referrals, link, application_date')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) throw error;
+      
+      if (!data) {
+        return {
+          status: null,
+          earnings: 0,
+          referrals: 0,
+          link: `${window.location.origin}/ref/${userId}`
+        };
       }
 
-      await axios.post(
-        `${API_URL}/auth/update-password`,
-        { password },
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`
-          }
-        }
-      );
-    } catch (error: any) {
-      console.error('Erro ao atualizar senha:', error);
-      throw new Error(error.response?.data?.error || 'Erro ao atualizar senha');
+      return {
+        status: data.status,
+        earnings: data.earnings,
+        referrals: data.referrals,
+        link: data.link,
+        applicationDate: data.application_date
+      };
+    } catch (error) {
+      console.error('Erro ao buscar informações de afiliado:', error);
+      throw error;
     }
-  },
+  }
 }; 

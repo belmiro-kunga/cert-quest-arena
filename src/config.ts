@@ -2,10 +2,10 @@
 // Em projetos Vite, usamos import.meta.env em vez de process.env
 
 // URL principal da API
-const PRIMARY_API_URL = 'http://localhost:80/api';
+const PRIMARY_API_URL = import.meta.env.VITE_API_URL || 'https://api.certquestarena.com/api';
 
 // URL alternativa da API (pode ser a mesma se não houver um servidor de backup)
-const FALLBACK_API_URL = 'http://localhost:80/api';
+const FALLBACK_API_URL = import.meta.env.VITE_FALLBACK_API_URL || 'https://api-backup.certquestarena.com/api';
 
 // Verificar se devemos usar a URL alternativa
 const useAlternativeAPI = localStorage.getItem('useAlternativeAPI') === 'true';
@@ -33,7 +33,7 @@ export const isAPIAvailable = async (): Promise<boolean> => {
       headers: { 'Content-Type': 'application/json' },
       mode: 'cors',
       cache: 'no-cache',
-      credentials: 'same-origin',
+      credentials: 'include', // Alterado para include para suportar cookies cross-origin
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
       signal: controller.signal
