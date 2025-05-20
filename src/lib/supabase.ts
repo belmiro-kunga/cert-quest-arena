@@ -76,7 +76,7 @@ const supabaseConfig = {
 
 // Client singleton
 class SupabaseClientManager {
-  private static instance: SupabaseClientManager;
+  private static instance: SupabaseClientManager | null = null;
   private client: SupabaseClient<Database> | null = null;
   private isInitialized = false;
 
@@ -147,14 +147,22 @@ class SupabaseClientManager {
   }
 }
 
-// Create and export singleton instance
-const manager = SupabaseClientManager.getInstance();
+// Create singleton instance only once
+let managerInstance: SupabaseClientManager | null = null;
+
+// Function to get or create the manager instance
+function getManager(): SupabaseClientManager {
+  if (!managerInstance) {
+    managerInstance = SupabaseClientManager.getInstance();
+  }
+  return managerInstance;
+}
 
 // Export initialized client
-export const supabase = manager.getClient();
+export const supabase = getManager().getClient();
 
 // Export manager for advanced usage
-export { manager };
+export const manager = getManager();
 
 // Export types
 export type { Database } from '@/types/supabase';
