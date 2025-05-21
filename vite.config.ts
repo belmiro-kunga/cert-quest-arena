@@ -8,7 +8,7 @@ export default defineConfig({
   base: '/',
   server: {
     host: true,
-    port: 3000,
+    port: 3002,
     strictPort: true,
     hmr: {
       host: 'localhost'
@@ -44,6 +44,24 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/svg+xml",
             purpose: "any maskable"
+          }
+        ]
+      },
+      workbox: {
+        globPatterns: [
+          '**/*.{js,css,html,ico,png,svg,json}'
+        ],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.origin === self.location.origin,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 dias
+              }
+            }
           }
         ]
       }

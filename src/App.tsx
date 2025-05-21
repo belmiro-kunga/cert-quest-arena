@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CurrencyProvider } from './contexts/CurrencyContext';
@@ -9,6 +9,7 @@ import { PaymentConfigProvider } from './contexts/PaymentConfigContext';
 import { TooltipProvider } from './components/ui/tooltip';
 import { Toaster } from './components/ui/toaster';
 import PrivateRoute from './components/PrivateRoute';
+import PWAPrompt from './components/PWAPrompt';
 
 // Pages
 import Index from './pages/Index';
@@ -39,6 +40,56 @@ import TestPWAPage from './pages/TestPWAPage';
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    // Verifica se o navegador suporta PWA
+    const supportsPWA = 'serviceWorker' in navigator && 
+                       'beforeinstallprompt' in window;
+
+    if (!supportsPWA) {
+      return;
+    }
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Verifica se já está instalado
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallPrompt(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstall = () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult: any) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('Usuário aceitou a instalação');
+        // Limpa o deferredPrompt após a instalação
+        setDeferredPrompt(null);
+      } else {
+        console.log('Usuário recusou a instalação');
+      }
+      setShowInstallPrompt(false);
+    });
+  };
+
+  const handleCancel = () => {
+    setShowInstallPrompt(false);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -49,6 +100,9 @@ const App = () => {
                 <PaymentConfigProvider>
                   <TooltipProvider>
                     <Toaster />
+                    {showInstallPrompt && (
+                      <PWAPrompt onInstall={handleInstall} onCancel={handleCancel} />
+                    )}
                     <Routes>
                       {/* Public Routes */}
                       <Route path="/" element={<Index />} />
