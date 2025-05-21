@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { authService, User as AuthUser } from '@/services/authService';
+import { authService, AuthResponse, User as SupabaseUser } from '@/services/authService';
 
 interface AffiliateInfo {
   status: 'pending' | 'approved' | 'rejected' | null;
@@ -83,7 +83,7 @@ const ADMIN_USER: User = {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
-  signIn: async () => ({}),
+  signIn: async () => { return { requiresTwoFactor: false }; },
   verifyTwoFactorCode: async () => false,
   signUp: async () => {},
   signOut: () => {},
@@ -96,9 +96,9 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const [pendingTwoFactorAuth, setPendingTwoFactorAuth] = useState<{email: string, password: string, rememberMe: boolean} | null>(null);
   const [tempTwoFactorSecret, setTempTwoFactorSecret] = useState<string>('');
 
@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
+        const parsedUser = JSON.parse(storedUser) as User;
         setUser(parsedUser);
       } catch (error) {
         console.error('Erro ao carregar usuário do localStorage:', error);
@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const sessionUser = sessionStorage.getItem('user');
     if (sessionUser) {
       try {
-        const parsedUser = JSON.parse(sessionUser);
+        const parsedUser = JSON.parse(sessionUser) as User;
         setUser(parsedUser);
       } catch (error) {
         console.error('Erro ao carregar usuário do sessionStorage:', error);
@@ -130,11 +130,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
+  const signIn = async (email: string, password: string, rememberMe = false): Promise<{requiresTwoFactor: boolean} | void> => {
     setLoading(true);
     try {
-      // Usar o serviço de autenticação para fazer login
-      const newUser = await authService.signIn(email, password);
+      const response = await authService.signIn(email, password);
+      const newUser = response.user as User;
       
       // Verificar se o usuário tem 2FA ativado
       if (newUser.twoFactorAuth?.enabled) {
@@ -203,8 +203,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
-      // Usar o serviço de autenticação para registrar o usuário
-      const newUser = await authService.signUp(email, password, name);
+      const response = await authService.signUp(email, password, name);
+      const newUser = response.user as User;
       
       // Converter para o formato User do contexto
       const contextUser: User = {

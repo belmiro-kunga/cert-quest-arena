@@ -17,6 +17,19 @@ export const NATIVE_API_CONFIG = {
   }
 };
 
+export type PWAFeatures = {
+  share: boolean;
+  camera: boolean;
+  vibrate: boolean;
+  notifications: boolean;
+  settings: boolean;
+  storage: boolean;
+  push: boolean;
+  sync: boolean;
+  background: boolean;
+  install: boolean;
+};
+
 export const checkNativeAPIAvailability = (api: keyof typeof NATIVE_API_CONFIG) => {
   return NATIVE_API_CONFIG[api].available;
 };

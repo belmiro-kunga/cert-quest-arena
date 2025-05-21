@@ -23,6 +23,7 @@ import AuthSettings from "./admin/settings/AuthSettings";
 import LegalPoliciesPage from "./admin/settings/LegalPoliciesPage";
 import StudentsPage from "./admin/StudentsPage";
 import { Routes, Route } from "react-router-dom";
+import PWAManagement from "./admin/PWAManagement";
 import { Bell, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -168,7 +169,8 @@ const AdminPage = () => {
             <Route path="/settings/currencies" element={<CurrenciesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/auth" element={<AuthSettings />} />
-            <Route path="/settings/legal" element={<LegalPoliciesPage />} />
+            <Route path="/admin/settings/legal" element={<LegalPoliciesPage />} />
+            <Route path="/admin/pwa" element={<PWAManagement />} />
             <Route path="/email-templates" element={<EmailTemplates />} />
             <Route path="/marketplace/sales-metrics" element={<MarketplaceSalesMetrics />} />
             <Route path="/marketplace/sales-policies" element={<MarketplaceSalesPolicies />} />

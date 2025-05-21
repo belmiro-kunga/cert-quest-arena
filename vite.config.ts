@@ -7,10 +7,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   base: '/',
   server: {
-    host: "::",
-    port: 81,
-    fs: {
-      allow: ['..']
+    host: true,
+    port: 3000,
+    strictPort: true,
+    hmr: {
+      host: 'localhost'
     }
   },
   plugins: [
@@ -42,8 +43,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+      "@": path.resolve(__dirname, "./src")
+    }
   },
   build: {
     target: 'esnext',
@@ -59,11 +60,6 @@ export default defineConfig({
         chunkFileNames: `assets/[name].js`,
         assetFileNames: `assets/[name].[ext]`
       }
-    }
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
     }
   }
 });

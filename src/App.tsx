@@ -1,65 +1,53 @@
 import React from 'react';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import APIStatusNotification from "@/components/APIStatusNotification";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { CartProvider } from '@/contexts/CartContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { AdminAuthProvider } from '@/contexts/AdminAuthContext';
-import { PaymentConfigProvider } from '@/contexts/PaymentConfigContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { CurrencyProvider } from './contexts/CurrencyContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { AdminAuthProvider } from './contexts/AdminAuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { PaymentConfigProvider } from './contexts/PaymentConfigContext';
+import { TooltipProvider } from './components/ui/tooltip';
+import { Toaster } from './components/ui/toaster';
+import PrivateRoute from './components/PrivateRoute';
 
 // Pages
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignUpPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import TermsOfServicePage from "./pages/TermsOfServicePage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
-import CookiePolicyPage from "./pages/CookiePolicyPage";
-import LegalPage from "./pages/LegalPage";
-import Dashboard from "./pages/Dashboard";
-import QuizPage from "./pages/QuizPage";
-import ExamPage from "./pages/ExamPage";
-import ResultPage from "./pages/ResultPage";
-import ProfilePage from "./pages/ProfilePage";
-import AdminPage from "./pages/AdminPage";
-import AdminLoginPage from "./pages/AdminLoginPage";
-import CheckoutPage from '@/pages/CheckoutPage';
-import CartPage from '@/pages/CartPage';
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import CartPage from './pages/CartPage';
 import SimuladosPage from './pages/SimuladosPage';
 import SimuladoDetailPage from './pages/SimuladoDetailPage';
-import Pacotes from './pages/Pacotes';
-import PacoteDetalhes from './pages/PacoteDetalhes';
 import SimuladoRunningPage from './pages/SimuladoRunningPage';
 import SimuladoResultPage from './pages/SimuladoResultPage';
-import StudyPage from './pages/StudyPage';
-import AuthSettingsPage from './pages/admin/AuthSettingsPage';
 import TestApiPage from './pages/TestApiPage';
-
-// Components
-import PrivateRoute from './components/PrivateRoute';
-import { CurrencyProvider } from './contexts/CurrencyContext';
+import Pacotes from './pages/Pacotes';
+import PacoteDetalhes from './pages/PacoteDetalhes';
+import StudyPage from './pages/StudyPage';
+import QuizPage from './pages/QuizPage';
+import ResultPage from './pages/ResultPage';
+import Dashboard from './pages/Dashboard';
+import ProfilePage from './pages/ProfilePage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminPage from './pages/AdminPage';
+import ExamPage from './pages/ExamPage';
+import CheckoutPage from './pages/CheckoutPage';
+import ContactPage from './pages/ContactPage';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <APIStatusNotification />
-      <TooltipProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
+      <BrowserRouter>
+        <CurrencyProvider>
           <AuthProvider>
             <AdminAuthProvider>
-              <PaymentConfigProvider>
-                <CartProvider>
-                  <CurrencyProvider>
+              <CartProvider>
+                <PaymentConfigProvider>
+                  <TooltipProvider>
+                    <Toaster />
                     <Routes>
                       {/* Public Routes */}
                       <Route path="/" element={<Index />} />
@@ -69,11 +57,6 @@ const App = () => {
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/simulados" element={<SimuladosPage />} />
                       <Route path="/simulados/:id" element={<SimuladoDetailPage />} />
-                      <Route path="/termos" element={<TermsOfServicePage />} />
-                      <Route path="/privacidade" element={<PrivacyPolicyPage />} />
-                      <Route path="/cookies" element={<CookiePolicyPage />} />
-                      <Route path="/legal" element={<LegalPage />} />
-                      <Route path="/sobre" element={<AboutPage />} />
                       <Route path="/contato" element={<ContactPage />} />
                       <Route path="/simulados/:id/start" element={<SimuladoRunningPage />} />
                       <Route path="/simulados/:id/resultado" element={<SimuladoResultPage />} />
@@ -114,11 +97,9 @@ const App = () => {
                         } 
                       />
 
-
                       {/* Admin Routes */}
                       <Route path="/admin/login" element={<AdminLoginPage />} />
                       <Route path="/admin/*" element={<AdminPage />} />
-                      <Route path="/admin/settings/auth" element={<AuthSettingsPage />} />
 
                       {/* Payment Routes */}
                       <Route path="/exams/:examId" element={<ExamPage />} />
@@ -127,13 +108,13 @@ const App = () => {
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                  </CurrencyProvider>
-                </CartProvider>
-              </PaymentConfigProvider>
+                  </TooltipProvider>
+                </PaymentConfigProvider>
+              </CartProvider>
             </AdminAuthProvider>
           </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+        </CurrencyProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };

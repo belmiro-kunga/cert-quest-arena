@@ -1,5 +1,11 @@
 import { supabaseService, supabase } from '@/lib/supabase';
-import type { User, Session, AuthError } from '@supabase/supabase-js';
+import type { User as SupabaseUser, Session, AuthError } from '@supabase/supabase-js';
+
+export interface TwoFactorAuth {
+  enabled: boolean;
+  secret?: string;
+  backupCodes?: string[];
+}
 
 export interface AffiliateInfo {
   status: 'pending' | 'approved' | 'rejected' | null;
@@ -13,6 +19,16 @@ export interface AuthResponse {
   user: User | null;
   session: Session | null;
   error?: AuthError;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'user' | 'admin';
+  affiliate: AffiliateInfo;
+  photoURL?: string;
+  twoFactorAuth?: TwoFactorAuth;
 }
 
 export const authService = {
@@ -88,7 +104,7 @@ export const authService = {
       const { error } = await supabase
         .from('users')
         .update(userData)
-        .eq('id', userData.id!)
+        .eq('id', userData.id)
         .select()
         .single();
       

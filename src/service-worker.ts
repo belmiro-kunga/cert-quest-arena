@@ -5,6 +5,7 @@ declare const self: ServiceWorkerGlobalScope & {
   skipWaiting: () => Promise<void>;
   clients: ServiceWorkerClients;
   clientsClaim: () => Promise<void>;
+  registration: ServiceWorkerRegistration;
 };
 
 declare const caches: CacheStorage;

@@ -21,6 +21,7 @@ import {
   Package,
   Cog,
   Lock,
+  Phone,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -68,6 +69,11 @@ const sidebarItems = [
     title: 'Pagamentos',
     href: '/admin/payments',
     icon: CreditCard,
+  },
+  {
+    title: 'PWA',
+    href: '/admin/pwa',
+    icon: Phone,
   },
   {
     title: 'Configurações',
