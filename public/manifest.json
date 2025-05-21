@@ -1,22 +1,132 @@
 {
   "name": "Cert Quest Arena",
   "short_name": "CertQuest",
-  "description": "Simulados e estudos para certificações.",
+  "description": "Simulados e estudos para certificações. Prepare-se para suas certificações técnicas com nossos simulados e recursos de estudo.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0f172a",
   "orientation": "portrait",
+  "screenshots": [
+    {
+      "src": "assets/screenshots/screenshot-1.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "description": "Tela inicial do Cert Quest Arena"
+    },
+    {
+      "src": "assets/screenshots/screenshot-2.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "description": "Tela de simulado"
+    }
+  ],
   "icons": [
+    {
+      "src": "assets/icons/icon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "assets/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "splash_screens": [
+    {
+      "src": "assets/splash-screens/splash-1242x2688.png",
+      "sizes": "1242x2688",
+      "platform": "ios",
+      "orientation": "portrait"
+    },
+    {
+      "src": "assets/splash-screens/splash-1125x2436.png",
+      "sizes": "1125x2436",
+      "platform": "ios",
+      "orientation": "portrait"
+    },
+    {
+      "src": "assets/splash-screens/splash-1242x2208.png",
+      "sizes": "1242x2208",
+      "platform": "ios",
+      "orientation": "portrait"
+    },
+    {
+      "src": "assets/splash-screens/splash-750x1334.png",
+      "sizes": "750x1334",
+      "platform": "ios",
+      "orientation": "portrait"
+    },
+    {
+      "src": "assets/splash-screens/splash-640x1136.png",
+      "sizes": "640x1136",
+      "platform": "ios",
+      "orientation": "portrait"
+    },
+    {
+      "src": "assets/splash-screens/splash-1080x1920.png",
+      "sizes": "1080x1920",
+      "platform": "android",
+      "orientation": "portrait"
+    },
+    {
+      "src": "assets/splash-screens/splash-1440x2560.png",
+      "sizes": "1440x2560",
+      "platform": "android",
+      "orientation": "portrait"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Começar Simulado",
+      "short_name": "Simulado",
+      "description": "Iniciar um novo simulado",
+      "url": "/simulado"
+    },
+    {
+      "name": "Meus Estudos",
+      "short_name": "Estudos",
+      "description": "Acessar meus estudos e progresso",
+      "url": "/meus-estudos"
     }
   ]
 }
