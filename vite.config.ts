@@ -17,6 +17,8 @@ export default defineConfig({
   build: {
     target: 'esnext',
     minify: true,
+    outDir: 'dist',
+    assetsDir: 'assets',
     rollupOptions: {
       input: {
         main: './index.html'
