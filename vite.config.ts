@@ -28,14 +28,22 @@ export default defineConfig({
         orientation: "portrait",
         icons: [
           {
-            src: "./assets/icons/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png"
+            src: "./assets/icons/icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any maskable"
           },
           {
-            src: "./assets/icons/icon-512x512.png",
+            src: "./assets/icons/icon.svg",
+            sizes: "192x192",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          },
+          {
+            src: "./assets/icons/icon.svg",
             sizes: "512x512",
-            type: "image/png"
+            type: "image/svg+xml",
+            purpose: "any maskable"
           }
         ]
       }

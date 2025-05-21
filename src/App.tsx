@@ -34,6 +34,7 @@ import AdminPage from './pages/AdminPage';
 import ExamPage from './pages/ExamPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ContactPage from './pages/ContactPage';
+import TestPWAPage from './pages/TestPWAPage';
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,7 @@ const App = () => {
                       {/* Payment Routes */}
                       <Route path="/exams/:examId" element={<ExamPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/test-pwa" element={<TestPWAPage />} />
 
                       {/* 404 Route */}
                       <Route path="*" element={<NotFound />} />
