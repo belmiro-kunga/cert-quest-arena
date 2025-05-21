@@ -10,7 +10,20 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate"
+      }
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
     }
   ]
-} 
+}
