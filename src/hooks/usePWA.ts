@@ -1,55 +1,47 @@
-import { useState, useEffect } from 'react';
+import { usePWAState } from './usePWAState';
+import { usePWAUpdate } from './usePWAUpdate';
 
 export const usePWA = () => {
-  const [isSupported, setIsSupported] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const { isSupported, isInstalled, manifest, loading, setLoading } = usePWAState();
+  const { updateManifest, updateIcon, addSplashScreen } = usePWAUpdate();
 
-  useEffect(() => {
-    // Verifica se o navegador suporta PWA
-    const checkPWA = () => {
-      setIsSupported(
-        'serviceWorker' in navigator && 
-        'PushManager' in window && 
-        'Notification' in window
-      );
-    };
+  const updateIconWithState = async (file: File) => {
+    if (!manifest) return;
 
-    // Evento para quando o usuário instala o PWA
-    window.addEventListener('appinstalled', () => {
-      setIsInstalled(true);
-    });
-
-    // Evento para quando o navegador sugere instalação
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    });
-
-    checkPWA();
-
-    return () => {
-      window.removeEventListener('appinstalled', () => {});
-      window.removeEventListener('beforeinstallprompt', () => {});
-    };
-  }, []);
-
-  const showInstallPrompt = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          setIsInstalled(true);
-        }
-        setDeferredPrompt(null);
+    try {
+      const newIcons = await updateIcon(file);
+      await updateManifest({
+        ...manifest,
+        icons: newIcons
       });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const addSplashScreenWithState = async (file: File, platform: string, orientation: string) => {
+    if (!manifest) return;
+
+    try {
+      const newSplash = await addSplashScreen(file, platform, orientation);
+      const splashScreens = manifest.splash_screens || [];
+      const newManifest = {
+        ...manifest,
+        splash_screens: [...splashScreens, newSplash]
+      };
+      await updateManifest(newManifest);
+    } catch (error) {
+      throw error;
     }
   };
 
   return {
     isSupported,
     isInstalled,
-    showInstallPrompt,
-    deferredPrompt
+    manifest,
+    loading,
+    updateManifest,
+    updateIcon: updateIconWithState,
+    addSplashScreen: addSplashScreenWithState
   };
 };
