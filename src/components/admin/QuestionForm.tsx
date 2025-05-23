@@ -44,6 +44,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
+import { r2Service } from '@/services/r2Service';
+import { Upload, X } from 'lucide-react';
+import { useState } from 'react';
+import { transcriptionService } from '@/services/transcriptionService';
+import { useToast } from '@/components/ui/use-toast';
+import { QuestionAudioPlayer } from '@/components/QuestionAudioPlayer';
 
 const questionTypes: { value: QuestionType; label: string; description: string }[] = [
   {
@@ -98,6 +104,66 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
   question,
   examId,
 }) => {
+  const { toast } = useToast();
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(question?.audioExplanationUrl || '');
+  const [transcription, setTranscription] = useState('');
+  const [summary, setSummary] = useState('');
+
+  const handleAudioUpload = async (file: File) => {
+    try {
+      setUploadingAudio(true);
+      const audioUrl = await r2Service.uploadAudio(file);
+      setAudioUrl(audioUrl);
+      form.setValue('audioExplanationUrl', audioUrl);
+      setAudioFile(file);
+      
+      // Carregar transcrição automaticamente
+      const transcriptionResult = await transcriptionService.transcribeAudio(audioUrl);
+      setTranscription(transcriptionResult.text);
+      setSummary(await transcriptionService.generateSummary(transcriptionResult.text));
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Áudio de explicação carregado e transcrição gerada com sucesso!',
+      });
+    } catch (error) {
+      console.error('Erro ao carregar áudio:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar o áudio de explicação.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
+  const handleAudioRemove = async () => {
+    if (!audioUrl) return;
+
+    try {
+      await r2Service.deleteAudio(audioUrl);
+      setAudioUrl('');
+      form.setValue('audioExplanationUrl', '');
+      setAudioFile(null);
+      setTranscription('');
+      setSummary('');
+      toast({
+        title: 'Sucesso',
+        description: 'Áudio de explicação removido com sucesso!',
+      });
+    } catch (error) {
+      console.error('Erro ao remover áudio:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao remover o áudio de explicação.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getInitialFormValues = () => {
     if (question) {
       return {
@@ -231,6 +297,85 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                 />
                               </FormControl>
                               <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="explanation"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Explicação</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Digite a explicação da questão..."
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Explicação detalhada da questão e resposta correta
+                              </FormDescription>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Campo para upload de áudio */}
+                        <FormField
+                          control={form.control}
+                          name="audioExplanationUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Áudio de Explicação</FormLabel>
+                              <div className="flex items-center gap-2">
+                                <FormControl>
+                                  <input
+                                    type="file"
+                                    accept="audio/*"
+                                    disabled={uploadingAudio}
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) {
+                                        handleAudioUpload(e.target.files[0]);
+                                      }
+                                    }}
+                                    className="hidden"
+                                    id="audio-upload"
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    type="button"
+                                    onClick={() => document.getElementById('audio-upload')?.click()}
+                                    disabled={uploadingAudio}
+                                  >
+                                    {uploadingAudio ? (
+                                      <span>Carregando...</span>
+                                    ) : (
+                                      <>
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        Selecionar Áudio
+                                      </>
+                                    )}
+                                  </Button>
+                                </FormControl>
+                                {field.value && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      form.setValue('audioExplanationUrl', '');
+                                      toast({
+                                        title: 'Removido',
+                                        description: 'Áudio de explicação removido',
+                                      });
+                                    }}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                              <FormDescription>
+                                Adicione um áudio de explicação para esta questão
+                              </FormDescription>
                             </FormItem>
                           )}
                         />

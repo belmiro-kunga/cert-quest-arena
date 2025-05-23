@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { QuestionAudioPlayer } from '@/components/QuestionAudioPlayer';
+import { useToast } from '@/components/ui/use-toast';
+import { r2Service } from '@/services/r2Service';
+import { Question } from '@/types/exam';
 // import { Question } from '@/types/exam'; // Arquivo removido
 // Definição local temporária do tipo Question
 type Question = {
@@ -14,16 +18,59 @@ type Question = {
 };
 
 interface QuestionCardProps {
-  question: Question & { type?: string };
+  question: Question & { type?: string; audioExplanationUrl?: string };
   selectedOption: string | string[];
   onOptionSelect: (optionId: string | string[]) => void;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ 
+export const QuestionCard: React.FC<QuestionCardProps> = ({ 
   question, 
   selectedOption, 
   onOptionSelect 
 }) => {
+  const { toast } = useToast();
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(question.audioExplanationUrl || '');
+  const [transcription, setTranscription] = useState('');
+  const [summary, setSummary] = useState('');
+
+  useEffect(() => {
+    // Verifica se o áudio existe no R2
+    if (question.audioExplanationUrl) {
+      setIsAudioLoading(true);
+      r2Service.checkAudioExists(question.audioExplanationUrl)
+        .then(exists => {
+          if (!exists) {
+            toast({
+              title: 'Áudio não encontrado',
+              description: 'O áudio de explicação não está mais disponível.',
+              variant: 'destructive'
+            });
+            setAudioUrl('');
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao verificar áudio:', error);
+          toast({
+            title: 'Erro',
+            description: 'Erro ao verificar o áudio de explicação.',
+            variant: 'destructive'
+          });
+        })
+        .finally(() => setIsAudioLoading(false));
+    }
+  }, [question.audioExplanationUrl]);
+
+  const handleTranscriptionReady = (transcription: string) => {
+    setTranscription(transcription);
+    // Aqui você pode adicionar mais lógica, como salvar a transcrição no banco de dados
+  };
+
+  const handleSummaryReady = (summary: string) => {
+    setSummary(summary);
+    // Aqui você pode adicionar mais lógica, como salvar o resumo no banco de dados
+  };
+
   // Handler para múltipla escolha
   const handleCheckboxChange = (optionId: string) => {
     if (!Array.isArray(selectedOption)) return;
@@ -138,6 +185,30 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
             })}
           </RadioGroup>
         )}
+        
+        <Card>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">{question.text}</h3>
+                {question.audioExplanationUrl && (
+                  <QuestionAudioPlayer
+                    audioUrl={question.audioExplanationUrl}
+                    onTranscriptionReady={handleTranscriptionReady}
+                    onSummaryReady={handleSummaryReady}
+                  />
+                )}
+                {transcription && (
+                  <div className="mt-2 p-3 bg-muted rounded-md">
+                    <p className="text-sm text-muted-foreground">
+                      Transcrição: {transcription}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   );

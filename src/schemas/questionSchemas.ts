@@ -3,6 +3,7 @@ import * as z from 'zod';
 export const baseQuestionSchema = z.object({
   text: z.string().min(1, 'O enunciado é obrigatório'),
   explanation: z.string().min(1, 'A explicação é obrigatória'),
+  audioExplanationUrl: z.string().optional(),
   category: z.string().min(1, 'A categoria é obrigatória'),
   difficulty: z.enum(['Fácil', 'Médio', 'Difícil', 'Avançado']),
   tags: z.array(z.string()),
