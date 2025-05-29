@@ -1,4 +1,5 @@
-export type QuestionType = 'multiple_choice' | 'single_choice' | 'drag_and_drop' | 'practical_scenario';
+
+export type QuestionType = 'multiple_choice' | 'single_choice' | 'drag_and_drop' | 'practical_scenario' | 'fill_in_blank' | 'command_line' | 'network_topology';
 
 export interface BaseQuestion {
   id?: string;
@@ -59,11 +60,49 @@ export interface PracticalScenarioQuestion extends BaseQuestion {
   };
 }
 
+export interface FillInBlankQuestion extends BaseQuestion {
+  type: 'fill_in_blank';
+  blanks: {
+    id: string;
+    correctAnswers: string[];
+    caseSensitive: boolean;
+  }[];
+}
+
+export interface CommandLineQuestion extends BaseQuestion {
+  type: 'command_line';
+  commands: {
+    command: string;
+    expectedOutput: string;
+  }[];
+}
+
+export interface NetworkTopologyQuestion extends BaseQuestion {
+  type: 'network_topology';
+  devices: {
+    id: string;
+    name: string;
+    type: string;
+  }[];
+  connections: {
+    from: string;
+    to: string;
+    type: 'ethernet' | 'serial' | 'fiber' | 'wireless';
+  }[];
+  tasks: {
+    description: string;
+    validator: string;
+  }[];
+}
+
 export type Question =
   | MultipleChoiceQuestion
   | SingleChoiceQuestion
   | DragAndDropQuestion
-  | PracticalScenarioQuestion;
+  | PracticalScenarioQuestion
+  | FillInBlankQuestion
+  | CommandLineQuestion
+  | NetworkTopologyQuestion;
 
 export interface Exam {
   id?: string;

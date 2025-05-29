@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -6,19 +7,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { QuestionAudioPlayer } from '@/components/QuestionAudioPlayer';
 import { useToast } from '@/components/ui/use-toast';
 import { r2Service } from '@/services/r2Service';
-import { Question } from '@/types/exam';
-// import { Question } from '@/types/exam'; // Arquivo removido
-// Definição local temporária do tipo Question
-type Question = {
+import { Question as ExamQuestion } from '@/types/exam';
+
+// Local question type for this component
+interface LocalQuestion {
   id: number;
   text: string;
   explanation?: string;
   options: { id: string; text: string }[];
   correctOptionId: string;
-};
+  type?: string;
+  audioExplanationUrl?: string;
+}
 
 interface QuestionCardProps {
-  question: Question & { type?: string; audioExplanationUrl?: string };
+  question: LocalQuestion;
   selectedOption: string | string[];
   onOptionSelect: (optionId: string | string[]) => void;
 }
@@ -186,29 +189,29 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           </RadioGroup>
         )}
         
-        <Card>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">{question.text}</h3>
-                {question.audioExplanationUrl && (
+        {question.audioExplanationUrl && (
+          <Card className="mt-4">
+            <CardContent className="pt-4">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Explicação em Áudio</h3>
                   <QuestionAudioPlayer
                     audioUrl={question.audioExplanationUrl}
                     onTranscriptionReady={handleTranscriptionReady}
                     onSummaryReady={handleSummaryReady}
                   />
-                )}
-                {transcription && (
-                  <div className="mt-2 p-3 bg-muted rounded-md">
-                    <p className="text-sm text-muted-foreground">
-                      Transcrição: {transcription}
-                    </p>
-                  </div>
-                )}
+                  {transcription && (
+                    <div className="mt-2 p-3 bg-muted rounded-md">
+                      <p className="text-sm text-muted-foreground">
+                        Transcrição: {transcription}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </CardContent>
     </Card>
   );
