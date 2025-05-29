@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus } from 'lucide-react';
 import {
   AlertDialog,
@@ -18,8 +19,7 @@ import SimuladoList from './SimuladoList';
 import SimuladoForm from './SimuladoForm';
 import QuestaoList from './QuestaoList';
 import QuestionForm from './QuestionForm';
-import { simuladoService } from '@/services/simuladoService.js';
-import type { Simulado } from '@/types/simuladoService';
+import { simuladoService, type Simulado } from '@/services/simuladoService';
 import { BaseQuestion } from '@/types/admin';
 
 const SimuladoAdmin: React.FC = () => {
@@ -81,32 +81,45 @@ const SimuladoAdmin: React.FC = () => {
   }, []);
 
   // Função para lidar com a criação/atualização de um simulado
-  const handleFormSubmit = async (data: Simulado) => {
+  const handleFormSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
       
-      // Garantir que is_gratis seja um booleano e que a categoria esteja definida
-      const dadosAjustados = {
-        ...data,
-        is_active: !!data.is_active,
-        category: data.category || 'aws' // Garantir que a categoria esteja definida
+      // Mapear os dados do formulário para o tipo Simulado
+      const simuladoData: Simulado = {
+        id: editingSimulado?.id || '',
+        titulo: data.titulo || data.title,
+        descricao: data.descricao || data.description,
+        categoria: data.categoria || 'aws',
+        language: data.language || 'pt',
+        preco_usd: data.preco_usd || 0,
+        is_gratis: data.is_gratis || true,
+        duracao_minutos: data.duracao_minutos || 60,
+        nivel_dificuldade: data.nivel_dificuldade || 'Médio',
+        ativo: data.ativo !== undefined ? data.ativo : true,
+        numero_questoes: data.numero_questoes || 10,
+        pontuacao_minima: data.pontuacao_minima || 70,
+        data_criacao: editingSimulado?.data_criacao || new Date().toISOString(),
+        data_atualizacao: new Date().toISOString(),
+        subscription_tier: data.subscription_tier || 'free',
+        subscription_currency: data.subscription_currency || 'USD'
       };
       
-      console.log('Dados para salvar simulado:', dadosAjustados);
+      console.log('Dados para salvar simulado:', simuladoData);
       
       if (editingSimulado && editingSimulado.id) {
         // Atualizar simulado existente
-        await simuladoService.updateSimulado(editingSimulado.id, dadosAjustados);
+        await simuladoService.updateSimulado(editingSimulado.id, simuladoData);
         toast({
           title: 'Simulado atualizado',
-          description: `O simulado foi atualizado com sucesso. Tipo: ${dadosAjustados.is_active ? 'Ativo' : 'Inativo'}`,
+          description: `O simulado foi atualizado com sucesso. Tipo: ${simuladoData.ativo ? 'Ativo' : 'Inativo'}`,
         });
       } else {
         // Criar novo simulado
-        await simuladoService.createSimulado(dadosAjustados);
+        await simuladoService.createSimulado(simuladoData);
         toast({
           title: 'Simulado criado',
-          description: `O novo simulado foi criado com sucesso. Tipo: ${dadosAjustados.is_active ? 'Ativo' : 'Inativo'}`,
+          description: `O novo simulado foi criado com sucesso. Tipo: ${simuladoData.ativo ? 'Ativo' : 'Inativo'}`,
         });
       }
       

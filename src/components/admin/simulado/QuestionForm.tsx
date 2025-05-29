@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,9 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Questao, Alternativa } from '@/types/simulado';
+import type { BaseQuestion } from '@/types/admin';
 
-const questionTypes: { value: Questao['tipo']; label: string; description: string }[] = [
+const questionTypes: { value: BaseQuestion['type']; label: string; description: string }[] = [
   {
     value: 'multiple_choice',
     label: 'Múltipla Escolha',
@@ -72,7 +73,7 @@ const formSchema = z.object({
   text: z.string().min(1, 'O texto da questão é obrigatório'),
   type: z.enum(['multiple_choice', 'single_choice', 'drag_and_drop', 'practical_scenario', 'fill_in_blank', 'command_line', 'network_topology']),
   explanation: z.string().optional(),
-  url_referencia: z.string().url('Insira uma URL válida').optional(),
+  url_referencia: z.string().url('Insira uma URL válida').optional().or(z.literal('')),
   category: z.string().optional(),
   difficulty: z.enum(['Fácil', 'Médio', 'Difícil']),
   points: z.number().min(1).default(1),
@@ -119,6 +120,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       difficulty: question?.difficulty || 'Médio',
       points: question?.points || 1,
       tags: question?.tags || [],
+      url_referencia: question?.url_referencia || '',
     }
   });
 

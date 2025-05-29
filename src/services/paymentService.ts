@@ -1,4 +1,3 @@
-
 export interface PaymentStatistics {
   totalRevenue: number;
   monthlyRevenue: number;
@@ -63,6 +62,54 @@ export interface RefundPolicy {
   refundFeeDeduction: number;
   blacklistOnRefund: boolean;
 }
+
+export interface TransactionDetails {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: string;
+  userId: string;
+  userEmail: string;
+  description: string;
+  paymentDate: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const processPayment = async (paymentData: {
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  userId: string;
+  description: string;
+}): Promise<TransactionDetails> => {
+  // Mock implementation - replace with actual API call
+  return {
+    id: Date.now().toString(),
+    amount: paymentData.amount,
+    currency: paymentData.currency,
+    status: 'completed',
+    paymentMethod: paymentData.paymentMethod,
+    userId: paymentData.userId,
+    userEmail: 'user@example.com',
+    description: paymentData.description,
+    paymentDate: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+};
+
+export const getPaymentHistory = async (userId: string): Promise<TransactionDetails[]> => {
+  // Mock implementation - replace with actual API call
+  return [];
+};
+
+export const refundPayment = async (transactionId: string): Promise<boolean> => {
+  // Mock implementation - replace with actual API call
+  console.log('Refunding payment:', transactionId);
+  return true;
+};
 
 const paymentService = {
   async getPaymentStatistics(): Promise<PaymentStatistics> {

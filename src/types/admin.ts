@@ -1,3 +1,4 @@
+
 export interface Student {
   id: string;
   name: string;
@@ -354,17 +355,6 @@ export interface Transaction {
   userEmail: string;
   description: string;
   paymentDate: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Exam {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: 'Fácil' | 'Médio' | 'Difícil';
-  category: string;
-  is_gratis: boolean;
   created_at: string;
   updated_at: string;
 }
