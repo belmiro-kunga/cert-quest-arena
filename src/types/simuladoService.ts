@@ -21,6 +21,7 @@ export interface Simulado extends SimuladoBase {
   difficulty: 'easy' | 'medium' | 'hard';
   is_gratis?: boolean;
   preco_usd?: number;
+  preco_eur?: number;
 }
 
 export interface SimuladoWithQuestions extends SimuladoBase {
@@ -76,7 +77,8 @@ export function convertSimuladoFromDB(dbSimulado: SimuladoFromDB): Simulado {
     updated_at: dbSimulado.data_atualizacao || dbSimulado.updated_at || dbSimulado.data_criacao,
     questions_count: dbSimulado.total_questoes,
     tags: [],
-    preco_usd: dbSimulado.preco_usd
+    preco_usd: dbSimulado.preco_usd,
+    image_url: undefined
   };
 }
 

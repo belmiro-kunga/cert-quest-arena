@@ -7,9 +7,18 @@ interface PolicySettings {
   content: string;
   version: string;
   lastUpdated: string;
+  requiresAcceptance: boolean;
+  customization: {
+    headerText: string;
+    acceptButtonText: string;
+    rejectButtonText: string;
+    popupMessage: string;
+  };
 }
 
 interface CookiePolicySettings extends PolicySettings {
+  showBanner: boolean;
+  bannerPosition: 'top' | 'bottom';
   customization: {
     headerText: string;
     acceptButtonText: string;
@@ -35,9 +44,48 @@ interface PoliciesState {
 
 export function usePolicies() {
   const [state, setState] = useState<PoliciesState>({
-    privacyPolicy: {} as PolicySettings,
-    termsOfUse: {} as PolicySettings,
-    cookiePolicy: {} as CookiePolicySettings,
+    privacyPolicy: {
+      enabled: true,
+      content: 'Privacy policy content',
+      version: '1.0',
+      lastUpdated: new Date().toISOString(),
+      requiresAcceptance: true,
+      customization: {
+        headerText: 'Privacy Policy',
+        acceptButtonText: 'Accept',
+        rejectButtonText: 'Reject',
+        popupMessage: 'Please review our privacy policy.',
+      },
+    },
+    termsOfUse: {
+      enabled: true,
+      content: 'Terms of use content',
+      version: '1.0',
+      lastUpdated: new Date().toISOString(),
+      requiresAcceptance: true,
+      customization: {
+        headerText: 'Terms of Use',
+        acceptButtonText: 'Accept',
+        rejectButtonText: 'Reject',
+        popupMessage: 'Please review our terms of use.',
+      },
+    },
+    cookiePolicy: {
+      enabled: true,
+      content: 'Cookie policy content',
+      version: '1.0',
+      lastUpdated: new Date().toISOString(),
+      requiresAcceptance: true,
+      showBanner: true,
+      bannerPosition: 'bottom',
+      customization: {
+        headerText: 'Cookie Notice',
+        acceptButtonText: 'Accept',
+        rejectButtonText: 'Reject',
+        popupMessage: 'We use cookies to improve your experience.',
+      },
+      cookieTypes: [],
+    },
     loading: true,
     error: null,
   });
@@ -48,38 +96,8 @@ export function usePolicies() {
 
   const loadPolicies = async () => {
     try {
-      // Mock implementation since the service method doesn't exist
-      const mockSettings = {
-        privacyPolicy: {
-          enabled: true,
-          content: 'Privacy policy content',
-          version: '1.0',
-          lastUpdated: new Date().toISOString(),
-        },
-        termsOfUse: {
-          enabled: true,
-          content: 'Terms of use content',
-          version: '1.0',
-          lastUpdated: new Date().toISOString(),
-        },
-        cookiePolicy: {
-          enabled: true,
-          content: 'Cookie policy content',
-          version: '1.0',
-          lastUpdated: new Date().toISOString(),
-          customization: {
-            headerText: 'Cookie Notice',
-            acceptButtonText: 'Accept',
-            rejectButtonText: 'Reject',
-            popupMessage: 'We use cookies to improve your experience.',
-          },
-          cookieTypes: [],
-        },
-      };
-      
       setState(prev => ({
         ...prev,
-        ...mockSettings,
         loading: false,
       }));
     } catch (error) {

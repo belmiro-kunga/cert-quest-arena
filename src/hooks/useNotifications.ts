@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { NotificationService } from '../services/notificationService';
+import { notificationService } from '../services/notificationService';
 
 export const useNotifications = () => {
   const [hasPermission, setHasPermission] = useState(false);
@@ -17,7 +17,7 @@ export const useNotifications = () => {
 
   const requestPermission = async () => {
     try {
-      const granted = await NotificationService.getInstance().requestPermission();
+      const granted = await notificationService.requestPermission();
       setHasPermission(granted);
       setIsSubscribed(granted);
     } catch (error) {
@@ -32,7 +32,7 @@ export const useNotifications = () => {
     tag?: string;
     data?: any;
   }) => {
-    NotificationService.getInstance().showNotification(options);
+    notificationService.showNotification(options);
     setLastNotification(options);
   };
 

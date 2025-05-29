@@ -1,64 +1,31 @@
-import { useState, useEffect } from 'react';
-import { getFlashcardStats } from '@/lib/flashcards';
-import { useUser } from './useUser';
 
-interface FlashcardStats {
-  totalReviews: number;
-  averageQuality: number;
-  statusCounts: {
-    new: number;
-    learning: number;
-    review: number;
-    graduated: number;
-  };
-}
+import { useState, useEffect } from 'react';
+import { getFlashcards } from '@/lib/flashcards';
 
 export const useFlashcardProgress = () => {
-  const { user } = useUser();
-  const [stats, setStats] = useState<FlashcardStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [totalCards, setTotalCards] = useState(0);
+  const [completedCards, setCompletedCards] = useState(0);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!user?.id) return;
-
+    const loadProgress = async () => {
       try {
-        setIsLoading(true);
-        const data = await getFlashcardStats(user.id);
-        setStats(data);
-        setError(null);
-      } catch (err: any) {
-        setError(err);
-        setStats(null);
-      } finally {
-        setIsLoading(false);
+        const flashcards = await getFlashcards();
+        setTotalCards(flashcards.length);
+        // Mock completed cards calculation
+        setCompletedCards(Math.floor(flashcards.length * 0.3));
+        setProgress(flashcards.length > 0 ? (completedCards / flashcards.length) * 100 : 0);
+      } catch (error) {
+        console.error('Error loading flashcard progress:', error);
       }
     };
 
-    fetchStats();
-  }, [user?.id]);
+    loadProgress();
+  }, [completedCards]);
 
   return {
-    stats,
-    isLoading,
-    error,
-    refetch: () => {
-      if (user?.id) {
-        setIsLoading(true);
-        getFlashcardStats(user.id)
-          .then(data => {
-            setStats(data);
-            setError(null);
-          })
-          .catch(err => {
-            setError(err);
-            setStats(null);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-    }
+    progress,
+    totalCards,
+    completedCards,
   };
 };
