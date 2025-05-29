@@ -64,6 +64,7 @@
     "i18next-http-backend": "^3.0.2",
     "idb": "^7.1.1",
     "input-otp": "^1.4.2",
+    "lovable-tagger": "^1.1.8",
     "lucide-react": "^0.358.0",
     "next-themes": "^0.2.1",
     "nodemailer": "^7.0.3",

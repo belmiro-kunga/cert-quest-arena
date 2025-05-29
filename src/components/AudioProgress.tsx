@@ -1,6 +1,7 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
-import { formatDuration } from '@/lib/utils';
+import { formatDuration, cn } from '@/lib/utils';
 
 interface AudioProgressProps {
   audioUrl: string;
@@ -33,6 +34,7 @@ export const AudioProgress: React.FC<AudioProgressProps> = ({ audioUrl, classNam
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
+      <audio ref={audioRef} src={audioUrl} preload="metadata" />
       <Progress
         value={duration > 0 ? (currentTime / duration) * 100 : 0}
         className="flex-1"
