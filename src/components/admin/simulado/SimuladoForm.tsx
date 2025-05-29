@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +32,7 @@ const simuladoFormSchema = z.object({
   preco_usd: z.number().min(0, 'Preço deve ser maior ou igual a 0').default(0),
   is_gratis: z.boolean().default(true),
   duracao_minutos: z.number().min(1, 'Duração deve ser maior que 0').default(60),
-  nivel_dificuldade: z.enum(['Fácil', 'Médio', 'Difícil']).default('Médio'),
+  nivel_dificuldade: z.string().default('Médio'),
   ativo: z.boolean().default(true),
   numero_questoes: z.number().min(1, 'Número de questões deve ser maior que 0').default(10),
   pontuacao_minima: z.number().min(0).max(100, 'Pontuação deve estar entre 0 e 100').default(70),

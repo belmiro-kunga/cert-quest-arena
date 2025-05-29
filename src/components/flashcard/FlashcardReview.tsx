@@ -1,18 +1,15 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Flashcard } from '@/types/admin';
 import { getDueFlashcards, reviewFlashcard } from '@/lib/flashcards';
-import { useUser } from '@/lib/hooks/useUser';
-import { useAchievements } from '@/lib/hooks/useAchievements';
 
 export const FlashcardReview: React.FC = () => {
   const { toast } = useToast();
-  const { user } = useUser();
-  const { handleFlashcardReview, updateStudyStreak } = useAchievements();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -20,16 +17,12 @@ export const FlashcardReview: React.FC = () => {
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchFlashcards();
-      updateStudyStreak();
-    }
-  }, [user?.id, updateStudyStreak]);
+    fetchFlashcards();
+  }, []);
 
   const fetchFlashcards = async () => {
     try {
-      if (!user?.id) return;
-      const data = await getDueFlashcards(user.id);
+      const data = await getDueFlashcards();
       setFlashcards(data || []);
     } catch (error: any) {
       console.error('Erro ao buscar flashcards:', error);
@@ -49,9 +42,9 @@ export const FlashcardReview: React.FC = () => {
 
   const handleQualityResponse = async (quality: number) => {
     try {
-      if (!user?.id || !flashcards[currentIndex]) return;
+      if (!flashcards[currentIndex]) return;
 
-      await reviewFlashcard(user.id, flashcards[currentIndex].id, quality);
+      await reviewFlashcard(flashcards[currentIndex].id, quality);
 
       // Atualiza conquistas
       const isPerfect = quality === 5;
@@ -60,7 +53,6 @@ export const FlashcardReview: React.FC = () => {
       } else {
         setConsecutiveCorrect(0);
       }
-      await handleFlashcardReview(isPerfect);
 
       // Move para o próximo cartão
       if (currentIndex < flashcards.length - 1) {
@@ -110,12 +102,14 @@ export const FlashcardReview: React.FC = () => {
           <Badge variant="outline">
             {currentIndex + 1} de {flashcards.length}
           </Badge>
-          <Badge variant="secondary">
-            {currentFlashcard.category}
-          </Badge>
+          {currentFlashcard.category && (
+            <Badge variant="secondary">
+              {currentFlashcard.category}
+            </Badge>
+          )}
         </div>
         <div className="flex gap-1">
-          {currentFlashcard.tags.map((tag, index) => (
+          {currentFlashcard.tags?.map((tag, index) => (
             <Badge key={index} variant="outline">
               {tag}
             </Badge>

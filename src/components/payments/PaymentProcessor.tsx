@@ -1,58 +1,44 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { usePaymentNotifications } from '@/components/notifications/PaymentNotification';
-import { processPayment, TransactionDetails } from '@/services/paymentService';
+import { useToast } from '@/hooks/use-toast';
+import { processPayment } from '@/services/paymentService';
 
 export function PaymentProcessor() {
   const [processing, setProcessing] = useState(false);
-  const { notifyPayment } = usePaymentNotifications();
+  const { toast } = useToast();
 
   const handlePayment = async () => {
     setProcessing(true);
 
     // Exemplo de dados do pagamento
-    const paymentDetails: TransactionDetails = {
+    const paymentData = {
       amount: 199.99,
       currency: 'BRL',
-      customerName: 'João Silva',
-      customerEmail: 'joao.silva@example.com',
       paymentMethod: 'credit_card',
-      metadata: {
-        courseId: 'cert-123',
-        courseName: 'Certificação AWS Cloud Practitioner'
-      }
+      userId: 'user-123',
+      description: 'Certificação AWS Cloud Practitioner'
     };
 
     try {
-      // Processar o pagamento usando o gateway padrão
-      const result = await processPayment('default-gateway', paymentDetails);
+      // Processar o pagamento
+      const result = await processPayment(paymentData);
 
       // Notificar o usuário do resultado
-      notifyPayment({
-        id: result.transactionId || 'unknown',
-        amount: paymentDetails.amount,
-        currency: paymentDetails.currency,
-        customerName: paymentDetails.customerName,
-        customerEmail: paymentDetails.customerEmail,
-        status: result.status,
-        timestamp: result.timestamp,
-        paymentMethod: paymentDetails.paymentMethod
+      toast({
+        title: 'Pagamento processado',
+        description: `Pagamento de ${result.amount} ${result.currency} foi processado com sucesso.`,
       });
 
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
-      notifyPayment({
-        id: 'error',
-        amount: paymentDetails.amount,
-        currency: paymentDetails.currency,
-        customerName: paymentDetails.customerName,
-        customerEmail: paymentDetails.customerEmail,
-        status: 'failed',
-        timestamp: new Date(),
-        paymentMethod: paymentDetails.paymentMethod
+      toast({
+        title: 'Erro no pagamento',
+        description: 'Ocorreu um erro ao processar o pagamento.',
+        variant: 'destructive',
       });
     } finally {
       setProcessing(false);

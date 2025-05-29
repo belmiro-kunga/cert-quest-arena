@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,10 +80,7 @@ export const Flashcards: React.FC = () => {
           interval: 0,
           repetitions: 0,
           easeFactor: 2.5,
-          nextReview: new Date().toISOString(),
-          difficulty: 'medium',
-          question: formData.front,
-          answer: formData.back
+          nextReview: new Date()
         });
       }
       setShowForm(false);
