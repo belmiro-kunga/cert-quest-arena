@@ -1,7 +1,16 @@
+
 export interface Achievement {
   id: string;
-  name: string;
+  title: string;
   description: string;
+  type: 'certification' | 'streak' | 'mastery' | 'special';
+  xp: number;
+  icon: string;
+  level?: 'bronze' | 'silver' | 'gold' | 'platinum';
+  requirement?: number;
+  progress?: number;
+  unlocked?: boolean;
+  name: string;
   points: number;
   category: string;
   is_active: boolean;
@@ -30,8 +39,12 @@ export const updateAchievement = async (id: string, achievement: Partial<Achieve
   // Mock implementation - replace with actual API call
   return {
     id,
+    title: achievement.title || '',
     name: achievement.name || '',
     description: achievement.description || '',
+    type: achievement.type || 'certification',
+    xp: achievement.xp || 0,
+    icon: achievement.icon || '',
     points: achievement.points || 0,
     category: achievement.category || '',
     is_active: achievement.is_active || true,

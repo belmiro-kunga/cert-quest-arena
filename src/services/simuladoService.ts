@@ -1,3 +1,4 @@
+
 export interface Exam {
   id: string;
   title: string;
@@ -5,7 +6,7 @@ export interface Exam {
   price: number;
   duration: number;
   questionsCount: number;
-  difficulty: string;
+  difficulty: 'Fácil' | 'Médio' | 'Difícil';
   passingScore: number;
   active: boolean;
   isFree: boolean;

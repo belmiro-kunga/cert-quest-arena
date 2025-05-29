@@ -1,10 +1,19 @@
+
 export interface Flashcard {
   id: string;
+  front: string;
+  back: string;
+  category?: string;
+  tags?: string[];
+  status: 'new' | 'learning' | 'review' | 'graduated' | 'mastered';
+  lastReviewedAt: string | null;
+  interval: number;
+  repetitions: number;
+  easeFactor: number;
+  nextReview: Date | string;
   question: string;
   answer: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  category: string;
-  tags: string[];
   created_at: string;
   updated_at: string;
 }
@@ -29,11 +38,19 @@ export const updateFlashcard = async (id: string, flashcard: Partial<Flashcard>)
   // Mock implementation - replace with actual API call
   return {
     id,
-    question: flashcard.question || '',
-    answer: flashcard.answer || '',
+    front: flashcard.front || '',
+    back: flashcard.back || '',
+    question: flashcard.question || flashcard.front || '',
+    answer: flashcard.answer || flashcard.back || '',
     difficulty: flashcard.difficulty || 'easy',
     category: flashcard.category || '',
     tags: flashcard.tags || [],
+    status: flashcard.status || 'new',
+    lastReviewedAt: flashcard.lastReviewedAt || null,
+    interval: flashcard.interval || 0,
+    repetitions: flashcard.repetitions || 0,
+    easeFactor: flashcard.easeFactor || 2.5,
+    nextReview: flashcard.nextReview || new Date().toISOString(),
     created_at: flashcard.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString()
   };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -61,7 +62,7 @@ export const Exams: React.FC<ExamsProps> = ({
           price: serviceExam.price,
           duration: serviceExam.duration,
           questions_count: serviceExam.questionsCount,
-          difficulty: serviceExam.difficulty,
+          difficulty: serviceExam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
           created_at: serviceExam.createdAt || new Date().toISOString(),
           updated_at: serviceExam.createdAt || new Date().toISOString(),
           category: '',  // Campo obrigatório em AdminExam
@@ -106,7 +107,7 @@ export const Exams: React.FC<ExamsProps> = ({
         price: data.price || 0,
         duration: data.duration || 0,
         questionsCount: data.questions_count || 0,
-        difficulty: data.difficulty || '',
+        difficulty: (data.difficulty as 'Fácil' | 'Médio' | 'Difícil') || 'Médio',
         passingScore: 70, // Valor padrão
         active: true,
         isFree: data.price === 0
@@ -123,7 +124,7 @@ export const Exams: React.FC<ExamsProps> = ({
         price: createdServiceExam.price,
         duration: createdServiceExam.duration,
         questions_count: createdServiceExam.questionsCount,
-        difficulty: createdServiceExam.difficulty,
+        difficulty: createdServiceExam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
         created_at: createdServiceExam.createdAt || new Date().toISOString(),
         updated_at: createdServiceExam.createdAt || new Date().toISOString(),
         category: '',  // Campo obrigatório em AdminExam
@@ -171,7 +172,7 @@ export const Exams: React.FC<ExamsProps> = ({
         price: updatedAdminExam.price,
         duration: updatedAdminExam.duration,
         questionsCount: updatedAdminExam.questions_count,
-        difficulty: updatedAdminExam.difficulty,
+        difficulty: updatedAdminExam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
         passingScore: 70, // Valor padrão
         active: true,
         isFree: updatedAdminExam.price === 0
@@ -188,7 +189,7 @@ export const Exams: React.FC<ExamsProps> = ({
         price: resultServiceExam.price,
         duration: resultServiceExam.duration,
         questions_count: resultServiceExam.questionsCount,
-        difficulty: resultServiceExam.difficulty,
+        difficulty: resultServiceExam.difficulty as 'Fácil' | 'Médio' | 'Difícil',
         created_at: resultServiceExam.createdAt || updatedAdminExam.created_at,
         updated_at: new Date().toISOString(),
         category: updatedAdminExam.category,

@@ -1,18 +1,8 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import {
-  baseQuestionSchema,
-  multipleChoiceSchema,
-  singleChoiceSchema,
-  dragAndDropSchema,
-  practicalScenarioSchema,
-  fillInBlankSchema,
-  commandLineSchema,
-  networkTopologySchema,
-  questionSchema
-} from '@/schemas/questionSchemas';
 import {
   Dialog,
   DialogContent,
@@ -89,6 +79,24 @@ const questionTypes: { value: QuestionType; label: string; description: string }
   }
 ];
 
+// Simplified schema for the form
+const questionFormSchema = z.object({
+  type: z.enum(['multiple_choice', 'single_choice', 'drag_and_drop', 'practical_scenario', 'fill_in_blank', 'command_line', 'network_topology']),
+  text: z.string().min(1, 'O texto da questão é obrigatório'),
+  explanation: z.string().optional(),
+  category: z.string().optional(),
+  difficulty: z.enum(['Fácil', 'Médio', 'Difícil']),
+  tags: z.array(z.string()).optional(),
+  points: z.number().min(1).default(1),
+  url_referencia: z.string().optional(),
+  audioExplanationUrl: z.string().optional(),
+  options: z.array(z.string()).optional(),
+  correctOptions: z.array(z.string()).optional(),
+  correctOption: z.string().optional(),
+});
+
+type QuestionFormData = z.infer<typeof questionFormSchema>;
+
 interface QuestionFormProps {
   open: boolean;
   onClose: () => void;
@@ -164,11 +172,27 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
     }
   };
 
-  const getInitialFormValues = () => {
+  const getInitialFormValues = (): QuestionFormData => {
     if (question) {
       return {
-        ...question,
-        correctOptions: question.type === 'multiple_choice' ? (Array.isArray(question.correctOptions) ? question.correctOptions : []) : [],
+        type: question.type,
+        text: question.text,
+        explanation: question.explanation,
+        category: question.category,
+        difficulty: question.difficulty,
+        tags: question.tags || [],
+        points: question.points,
+        url_referencia: question.url_referencia,
+        audioExplanationUrl: question.audioExplanationUrl,
+        options: question.type === 'multiple_choice' || question.type === 'single_choice' 
+          ? (question as any).options || [] 
+          : [],
+        correctOptions: question.type === 'multiple_choice' 
+          ? (question as any).correctOptions || [] 
+          : [],
+        correctOption: question.type === 'single_choice' 
+          ? (question as any).correctOption || '' 
+          : '',
       };
     }
     // Valores padrão para uma nova questão
@@ -180,55 +204,66 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
       difficulty: 'Médio',
       tags: [],
       points: 1,
-      examId,
-      options: [], // Inicializar options para nova questão
-      correctOptions: [], // Inicializar correctOptions como array vazio
+      options: [],
+      correctOptions: [],
     };
   };
 
-  const form = useForm<Question>({
-    resolver: zodResolver(questionSchema),
+  const form = useForm<QuestionFormData>({
+    resolver: zodResolver(questionFormSchema),
     defaultValues: getInitialFormValues(),
   });
 
   const questionType = form.watch('type');
 
-  // Efeito para limpar/preparar campos ao mudar o tipo da questão
-  React.useEffect(() => {
-    // Se mudar para multiple_choice, garantir que correctOptions seja um array
-    if (questionType === 'multiple_choice') {
-      if (!Array.isArray(form.getValues('correctOptions'))) {
-        form.setValue('correctOptions', [], { shouldValidate: true, shouldDirty: true });
-      }
-    } else {
-      // Para outros tipos, podemos limpar correctOptions se não for relevante
-      // form.setValue('correctOptions', undefined); // Ou deixar como está, Zod deve lidar com isso
-    }
-  }, [questionType, form]);
-
-  const handleSubmit = (data: Question) => {
-    // Validação adicional para questões de múltipla escolha
-    if (data.type === 'multiple_choice') {
-      const correctOptions = data.correctOptions || []; // Certificar que é um array
-      if (correctOptions.length < 2) {
-        toast({
-          title: "Erro de validação",
-          description: "Questões de múltipla escolha devem ter pelo menos 2 opções corretas.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
+  const handleSubmit = (data: QuestionFormData) => {
+    // Convert form data to Question type
+    let questionData: Question;
     
-    onSubmit(data);
-    form.reset(); // Resetar o formulário após o envio bem-sucedido
+    const baseQuestion = {
+      id: question?.id || '',
+      examId: examId,
+      text: data.text,
+      explanation: data.explanation || '',
+      category: data.category || '',
+      difficulty: data.difficulty,
+      tags: data.tags || [],
+      points: data.points,
+      url_referencia: data.url_referencia,
+      audioExplanationUrl: data.audioExplanationUrl,
+    };
+
+    if (data.type === 'multiple_choice') {
+      questionData = {
+        ...baseQuestion,
+        type: 'multiple_choice',
+        options: data.options || [],
+        correctOptions: data.correctOptions || [],
+      } as Question;
+    } else if (data.type === 'single_choice') {
+      questionData = {
+        ...baseQuestion,
+        type: 'single_choice',
+        options: data.options || [],
+        correctOption: data.correctOption || '',
+      } as Question;
+    } else {
+      // For other question types, create basic structure
+      questionData = {
+        ...baseQuestion,
+        type: data.type,
+      } as Question;
+    }
+
+    onSubmit(questionData);
+    form.reset();
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       if (!isOpen) {
-        form.reset(getInitialFormValues()); // Resetar ao fechar o dialog
+        form.reset(getInitialFormValues());
         onClose();
       }
     }}>
@@ -243,27 +278,14 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <Tabs 
-              value={questionType} // Controlar o valor do Tabs
+              value={questionType}
               onValueChange={(value) => {
                 const newType = value as QuestionType;
                 form.setValue('type', newType, { shouldValidate: true });
-                if (newType === 'multiple_choice') {
-                  // Se já não for um array (por exemplo, vindo de outro tipo), inicializa.
-                  if (!Array.isArray(form.getValues('correctOptions'))) {
-                     form.setValue('correctOptions', [], { shouldValidate: true, shouldDirty: true });
-                  }
-                  // Sempre garantir que options também seja um array para MCQs
-                  if (!Array.isArray(form.getValues('options'))){
-                    form.setValue('options', [], {shouldValidate: false});
-                  }
-                } else {
-                  // Opcional: limpar correctOptions se mudar para um tipo que não o usa
-                  // form.setValue('correctOptions', undefined, { shouldValidate: false }); 
-                }
               }}
             >
               <TabsList className="grid grid-cols-4 gap-4">
-                {questionTypes.map((type) => (
+                {questionTypes.slice(0, 4).map((type) => (
                   <TabsTrigger
                     key={type.value}
                     value={type.value}
@@ -274,7 +296,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                 ))}
               </TabsList>
 
-              {questionTypes.map((typeInfo) => (
+              {questionTypes.slice(0, 4).map((typeInfo) => (
                 <TabsContent key={typeInfo.value} value={typeInfo.value} forceMount>
                   <Card>
                     <CardContent className="pt-6">
@@ -316,92 +338,10 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                               <FormDescription>
                                 Explicação detalhada da questão e resposta correta
                               </FormDescription>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
-
-                        {/* Campo para upload de áudio */}
-                        <FormField
-                          control={form.control}
-                          name="audioExplanationUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Áudio de Explicação</FormLabel>
-                              <div className="flex items-center gap-2">
-                                <FormControl>
-                                  <input
-                                    type="file"
-                                    accept="audio/*"
-                                    disabled={uploadingAudio}
-                                    onChange={(e) => {
-                                      if (e.target.files?.[0]) {
-                                        handleAudioUpload(e.target.files[0]);
-                                      }
-                                    }}
-                                    className="hidden"
-                                    id="audio-upload"
-                                  />
-                                  <Button
-                                    variant="outline"
-                                    type="button"
-                                    onClick={() => document.getElementById('audio-upload')?.click()}
-                                    disabled={uploadingAudio}
-                                  >
-                                    {uploadingAudio ? (
-                                      <span>Carregando...</span>
-                                    ) : (
-                                      <>
-                                        <Upload className="h-4 w-4 mr-2" />
-                                        Selecionar Áudio
-                                      </>
-                                    )}
-                                  </Button>
-                                </FormControl>
-                                {field.value && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                      form.setValue('audioExplanationUrl', '');
-                                      toast({
-                                        title: 'Removido',
-                                        description: 'Áudio de explicação removido',
-                                      });
-                                    }}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                              <FormDescription>
-                                Adicione um áudio de explicação para esta questão
-                              </FormDescription>
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Campos específicos para cada tipo de questão */}
-                        {questionType === 'multiple_choice' && (
-                          <MultipleChoiceFields form={form} />
-                        )}
-                        {questionType === 'single_choice' && (
-                          <SingleChoiceFields form={form} />
-                        )}
-                        {questionType === 'drag_and_drop' && (
-                          <DragAndDropFields form={form} />
-                        )}
-                        {questionType === 'practical_scenario' && (
-                          <PracticalScenarioFields form={form} />
-                        )}
-                        {questionType === 'fill_in_blank' && (
-                          <FillInBlankFields form={form} />
-                        )}
-                        {questionType === 'command_line' && (
-                          <CommandLineFields form={form} />
-                        )}
-                        {questionType === 'network_topology' && (
-                          <NetworkTopologyFields form={form} />
-                        )}
 
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
@@ -424,10 +364,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Dificuldade</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Selecione a dificuldade" />
@@ -437,7 +374,6 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                                     <SelectItem value="Fácil">Fácil</SelectItem>
                                     <SelectItem value="Médio">Médio</SelectItem>
                                     <SelectItem value="Difícil">Difícil</SelectItem>
-                                    <SelectItem value="Avançado">Avançado</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -448,86 +384,19 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
 
                         <FormField
                           control={form.control}
-                          name="explanation"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Explicação</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Explique a resposta correta..."
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Esta explicação será mostrada ao aluno após responder a questão
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
                           name="points"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Pontuação</FormLabel>
+                              <FormLabel>Pontos</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
                                   min="1"
                                   {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                                 />
                               </FormControl>
-                              <FormDescription>
-                                Quantidade de pontos que esta questão vale
-                              </FormDescription>
                               <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Campo URL de Referência */}
-                        <FormField
-                          control={form.control}
-                          name="url_referencia"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>URL de Referência</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="url"
-                                  placeholder="https://exemplo.com/material-ou-documentacao"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Link para material de apoio ou documentação oficial. Caso não queira disponibilizar referência, deixe em branco ou desative abaixo.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Toggle para ativar/desativar botão de referência */}
-                        <FormField
-                          control={form.control}
-                          name="referencia_ativa"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center gap-2 mt-2">
-                              <FormLabel>Ativar botão de referência</FormLabel>
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={e => field.onChange(e.target.checked)}
-                                  className="ml-2 w-4 h-4"
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Se desativado, o botão de referência não aparecerá para o aluno, mesmo que o link esteja preenchido.
-                              </FormDescription>
                             </FormItem>
                           )}
                         />
@@ -539,10 +408,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
             </Tabs>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => {
-                form.reset(getInitialFormValues()); // Resetar ao cancelar
-                onClose();
-              }}>
+              <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
               <Button type="submit">
@@ -555,12 +421,3 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
     </Dialog>
   );
 };
-
-// Importação dos componentes específicos
-import { MultipleChoiceFields } from './question-fields/MultipleChoiceFields';
-import { SingleChoiceFields } from './question-fields/SingleChoiceFields';
-import { DragAndDropFields } from './question-fields/DragAndDropFields';
-import { PracticalScenarioFields } from './question-fields/PracticalScenarioFields';
-import { FillInBlankFields } from './question-fields/FillInBlankFields';
-import { CommandLineFields } from './question-fields/CommandLineFields';
-import { NetworkTopologyFields } from './question-fields/NetworkTopologyFields';
