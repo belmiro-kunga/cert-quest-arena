@@ -330,3 +330,76 @@ export interface SystemConfig {
   created_at: string;
   updated_at: string;
 }
+
+export interface PaymentStatistics {
+  totalRevenue: number;
+  monthlyRevenue: number;
+  totalTransactions: number;
+  pendingTransactions: number;
+  refundedTransactions: number;
+  successfulPayments: number;
+  failedPayments: number;
+  averageOrderValue: number;
+  revenueByDay: Array<{ date: string; revenue: number }>;
+  paymentMethodDistribution: Array<{ method: string; count: number; percentage: number }>;
+}
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: string;
+  userId: string;
+  userEmail: string;
+  description: string;
+  paymentDate: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Exam {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'Fácil' | 'Médio' | 'Difícil';
+  category: string;
+  is_gratis: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  enabled: boolean;
+  processingFee: number;
+  config: {
+    apiKey?: string;
+    merchantId?: string;
+    stripeApiKey?: string;
+    paypalEmail?: string;
+    googlePayMerchantId?: string;
+    [key: string]: any;
+  };
+}
+
+export interface RefundPolicy {
+  refundPeriod: number;
+  refundPolicy: string;
+  automaticRefunds: boolean;
+  refundNotifications: boolean;
+  additionalNotes: string;
+  partialRefunds: boolean;
+  refundReasons: string[];
+  processingTime: number;
+  refundMethod: 'original' | 'transfer';
+  minAmount: number;
+  maxAmount: number;
+  refundFees: boolean;
+  adminApprovalRequired: boolean;
+  partialRefundsAllowed: boolean;
+  refundProcessingTime: number;
+  refundFeeDeduction: number;
+  blacklistOnRefund: boolean;
+}

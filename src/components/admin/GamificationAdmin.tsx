@@ -84,7 +84,11 @@ export const GamificationAdmin: React.FC = () => {
         category: formData.category,
         points: formData.points,
         is_active: formData.is_active,
-        requirements: formData.requirements
+        requirements: formData.requirements,
+        title: formData.title || formData.name,
+        type: formData.type || 'certification',
+        xp: formData.xp || formData.points || 0,
+        icon: formData.icon || 'trophy'
       };
 
       if (selectedAchievement) {
