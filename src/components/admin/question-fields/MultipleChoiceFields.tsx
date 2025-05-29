@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
@@ -104,7 +105,7 @@ export const MultipleChoiceFields: React.FC<MultipleChoiceFieldsProps> = ({ form
         </Button>
       </div>
       
-      <Alert variant="info" className="bg-blue-50 border-blue-200 mb-4">
+      <Alert className="bg-blue-50 border-blue-200 mb-4">
         <AlertCircle className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-700">
           Selecione pelo menos {MIN_CORRECT_OPTIONS} opções corretas para questões de múltipla escolha.

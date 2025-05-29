@@ -23,6 +23,13 @@ export interface Achievement {
   requirement?: number;
   progress?: number;
   unlocked?: boolean;
+  name: string;
+  points: number;
+  category: string;
+  is_active: boolean;
+  requirements: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type ExamLanguage = 'pt' | 'en' | 'fr' | 'es';

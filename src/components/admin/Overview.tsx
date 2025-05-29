@@ -30,7 +30,7 @@ export const Overview = () => {
             ? serviceExam.difficulty as 'Fácil' | 'Médio' | 'Difícil'
             : 'Médio',
           category: serviceExam.category || '',
-          is_gratis: serviceExam.is_gratis,
+          is_gratis: serviceExam.is_gratis || false,
           created_at: serviceExam.created_at || new Date().toISOString(),
           updated_at: serviceExam.updated_at || new Date().toISOString()
         }));
@@ -55,7 +55,7 @@ export const Overview = () => {
           id: user.id,
           name: user.name || user.email || 'Usuário sem nome',
           email: user.email,
-          provider: user.provider as 'email' | 'google' | 'github' | undefined,
+          provider: (user.provider as 'email' | 'google' | 'github') || 'email',
           plan_type: 'free', // Default plan type
           attempts_left: 3, // Default attempts
           progress: 0, // Default progress
@@ -263,51 +263,6 @@ export const Overview = () => {
       </div>
     </div>
   );
-
-  // Helper functions
-  function normalizeCategory(category: string): string {
-    const categoryLower = (category || '').toLowerCase().trim();
-    
-    if (categoryLower === '' || categoryLower === 'undefined' || categoryLower === 'null') {
-      return 'Sem categoria';
-    }
-    
-    if (categoryLower.includes('aws') || categoryLower.includes('amazon')) {
-      return 'AWS';
-    }
-    
-    if (categoryLower.includes('azure') || categoryLower.includes('microsoft') || categoryLower.includes('ms-')) {
-      return 'Microsoft Azure';
-    }
-    
-    if (categoryLower.includes('gcp') || categoryLower.includes('google') || categoryLower.includes('cloud platform')) {
-      return 'Google Cloud';
-    }
-    
-    if (categoryLower.includes('comptia') || categoryLower.includes('comp tia')) {
-      return 'CompTIA';
-    }
-    
-    if (categoryLower.includes('cisco') || categoryLower.includes('ccna') || categoryLower.includes('ccnp')) {
-      return 'Cisco';
-    }
-    
-    return category || 'Sem categoria';
-  }
-
-  function getCategoryColor(category: string): string {
-    const colorMap: Record<string, string> = {
-      'aws': 'bg-orange-500',
-      'microsoft azure': 'bg-blue-500',
-      'google cloud': 'bg-red-500',
-      'comptia': 'bg-green-500',
-      'cisco': 'bg-indigo-500',
-      'sem categoria': 'bg-gray-500'
-    };
-    
-    const categoryKey = category.toLowerCase();
-    return colorMap[categoryKey] || 'bg-gray-500';
-  }
 };
 
 export default Overview;

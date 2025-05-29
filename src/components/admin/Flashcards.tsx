@@ -61,11 +61,6 @@ export const Flashcards: React.FC = () => {
         repetitions: serviceFlashcard.repetitions,
         easeFactor: serviceFlashcard.easeFactor,
         nextReview: serviceFlashcard.nextReview,
-        question: serviceFlashcard.question,
-        answer: serviceFlashcard.answer,
-        difficulty: serviceFlashcard.difficulty,
-        created_at: serviceFlashcard.created_at,
-        updated_at: serviceFlashcard.updated_at
       }));
       setFlashcards(adminFlashcards);
     } catch (error) {
@@ -87,18 +82,12 @@ export const Flashcards: React.FC = () => {
         await updateFlashcard(selectedFlashcard.id, {
           front: formData.front,
           back: formData.back,
-          question: formData.front,
-          answer: formData.back,
-          difficulty: 'easy',
           lastReviewedAt: formData.lastReviewedAt
         });
       } else {
         await createFlashcard({
           front: formData.front,
           back: formData.back,
-          question: formData.front,
-          answer: formData.back,
-          difficulty: 'easy',
           category: '',
           tags: [],
           status: 'new',
@@ -111,7 +100,7 @@ export const Flashcards: React.FC = () => {
       }
       setShowForm(false);
       setSelectedFlashcard(null);
-      loadFlashcards(); // Refresh the list
+      loadFlashcards();
     } catch (error) {
       console.error('Error saving flashcard:', error);
     }
@@ -243,27 +232,4 @@ export const Flashcards: React.FC = () => {
       </AlertDialog>
     </div>
   );
-
-  async function handleDelete() {
-    try {
-      if (flashcardToDelete) {
-        await deleteFlashcard(flashcardToDelete.id);
-        setFlashcards(prev => prev.filter(flashcard => flashcard.id !== flashcardToDelete.id));
-      }
-      setDeleteDialogOpen(false);
-      setFlashcardToDelete(null);
-    } catch (error) {
-      console.error('Error deleting flashcard:', error);
-    }
-  }
-
-  function handleEdit(flashcard: Flashcard) {
-    setSelectedFlashcard(flashcard);
-    setShowForm(true);
-  }
-
-  function confirmDelete(flashcard: Flashcard) {
-    setFlashcardToDelete(flashcard);
-    setDeleteDialogOpen(true);
-  }
 };

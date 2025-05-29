@@ -39,7 +39,7 @@ type BillingSettingsFormValues = z.infer<typeof billingSettingsSchema>;
 
 const defaultValues: Partial<BillingSettingsFormValues> = {
   companyName: '',
-  taxId: '',
+  nif: '',
   address: '',
   city: '',
   state: '',
