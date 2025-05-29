@@ -76,6 +76,7 @@ export interface BaseQuestion {
   explanation: string;
   url_referencia?: string; // URL para documentação ou material de referência externo
   explanationLinks?: ExplanationLink[];
+  audioExplanationUrl?: string; // Add this field
   category: string;
   difficulty: 'Fácil' | 'Médio' | 'Difícil';
   tags: string[];
