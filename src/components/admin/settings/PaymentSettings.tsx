@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CreditCard, RefreshCw, Settings } from 'lucide-react';
 
 // Local Components
-import { RefundPolicy } from './RefundPolicy';
 import PaymentDashboard from '../PaymentDashboard';
 import PaymentTransactionsTable from '../PaymentTransactionsTable';
 
@@ -25,20 +24,6 @@ import { toast } from '@/components/ui/use-toast';
 // Serviços
 import paymentService, { PaymentMethod, RefundPolicy as RefundPolicyType, Transaction } from '@/services/paymentService';
 
-const paymentMethodSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  enabled: z.boolean(),
-  processingFee: z.number().min(0).max(100),
-  config: z.object({
-    apiKey: z.string().optional(),
-    merchantId: z.string().optional(),
-    stripeApiKey: z.string().optional(),
-    paypalEmail: z.string().optional(),
-    googlePayMerchantId: z.string().optional(),
-  }).optional()
-});
-
 const refundPolicySchema = z.object({
   refundPeriod: z.number().min(0).max(365),
   refundPolicy: z.string().min(10),
@@ -51,7 +36,26 @@ const refundPolicySchema = z.object({
   minAmount: z.number().min(0),
   maxAmount: z.number().min(0),
   refundFees: z.boolean(),
-  additionalNotes: z.string()
+  additionalNotes: z.string(),
+  adminApprovalRequired: z.boolean(),
+  partialRefundsAllowed: z.boolean(),
+  refundProcessingTime: z.number().min(1).max(30),
+  refundFeeDeduction: z.number().min(0),
+  blacklistOnRefund: z.boolean()
+});
+
+const paymentMethodSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  processingFee: z.number().min(0).max(100),
+  config: z.object({
+    apiKey: z.string().optional(),
+    merchantId: z.string().optional(),
+    stripeApiKey: z.string().optional(),
+    paypalEmail: z.string().optional(),
+    googlePayMerchantId: z.string().optional(),
+  })
 });
 
 const paymentMethodsSchema = z.object({
@@ -106,7 +110,12 @@ const PaymentSettings: React.FC = () => {
         minAmount: 0,
         maxAmount: 0,
         refundFees: false,
-        additionalNotes: ''
+        additionalNotes: '',
+        adminApprovalRequired: false,
+        partialRefundsAllowed: false,
+        refundProcessingTime: 3,
+        refundFeeDeduction: 0,
+        blacklistOnRefund: false
       },
       paymentMethods: {
         enabled: true,
@@ -129,13 +138,31 @@ const PaymentSettings: React.FC = () => {
       try {
         // Carregar métodos de pagamento
         const methods = await paymentService.getPaymentMethods();
-        setPaymentMethods(methods);
-        form.setValue('paymentMethods.methods', methods);
+        const completeMethodsPromise = methods.map(method => ({
+          ...method,
+          config: method.config || {
+            apiKey: '',
+            merchantId: '',
+            stripeApiKey: '',
+            paypalEmail: '',
+            googlePayMerchantId: ''
+          }
+        }));
+        setPaymentMethods(completeMethodsPromise);
+        form.setValue('paymentMethods.methods', completeMethodsPromise);
 
         // Carregar política de reembolso
         const policy = await paymentService.getRefundPolicy();
-        setRefundPolicy(policy);
-        form.setValue('refundPolicy', policy);
+        const completePolicy: RefundPolicyType = {
+          ...policy,
+          adminApprovalRequired: policy.adminApprovalRequired ?? false,
+          partialRefundsAllowed: policy.partialRefundsAllowed ?? false,
+          refundProcessingTime: policy.refundProcessingTime ?? 3,
+          refundFeeDeduction: policy.refundFeeDeduction ?? 0,
+          blacklistOnRefund: policy.blacklistOnRefund ?? false
+        };
+        setRefundPolicy(completePolicy);
+        form.setValue('refundPolicy', completePolicy);
       } catch (error) {
         console.error("Erro ao carregar configurações de pagamento:", error);
         toast({
@@ -415,6 +442,101 @@ const PaymentSettings: React.FC = () => {
                         <FormDescription>
                           Informações adicionais sobre a política de reembolso
                         </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="refundPolicy.adminApprovalRequired"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Aprovação do Administrador Necessária</FormLabel>
+                          <FormDescription>
+                            Requer aprovação do administrador para processar reembolsos
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="refundPolicy.partialRefundsAllowed"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Reembolsos Parciais Permitidos</FormLabel>
+                          <FormDescription>
+                            Permitir reembolsos parciais de pedidos
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="refundPolicy.refundProcessingTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tempo de Processamento do Reembolso (dias)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                        </FormControl>
+                        <FormDescription>
+                          Tempo médio para processar um reembolso
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="refundPolicy.refundFeeDeduction"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dedução da Taxa de Reembolso</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                        </FormControl>
+                        <FormDescription>
+                          Valor da taxa de reembolso a ser deduzida
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="refundPolicy.blacklistOnRefund"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Lista Negra no Reembolso</FormLabel>
+                          <FormDescription>
+                            Adicionar usuário à lista negra após reembolso
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />

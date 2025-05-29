@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +30,9 @@ export const Overview: React.FC = () => {
         id: exam.id,
         title: exam.title,
         description: exam.description,
+        price: 0, // Default price
+        duration: 60, // Default duration in minutes
+        questions_count: 50, // Default question count
         difficulty: (exam.difficulty === 'easy' ? 'Fácil' : 
                     exam.difficulty === 'medium' ? 'Médio' : 'Difícil') as 'Fácil' | 'Médio' | 'Difícil',
         category: exam.category,

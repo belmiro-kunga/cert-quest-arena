@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -36,8 +37,18 @@ const userSchema = z.object({
 
 type UserFormValues = z.infer<typeof userSchema>;
 
+interface UserType {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  active: boolean;
+  avatar: string;
+}
+
 // Dados de exemplo
-const MOCK_USERS = [
+const MOCK_USERS: UserType[] = [
   {
     id: '1',
     name: 'João Silva',
@@ -81,8 +92,8 @@ const DEPARTMENTS = [
 ];
 
 export function UserManagement() {
-  const [users, setUsers] = useState(MOCK_USERS);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [users, setUsers] = useState<UserType[]>(MOCK_USERS);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -101,10 +112,17 @@ export function UserManagement() {
   function onSubmit(data: UserFormValues) {
     if (selectedUser) {
       // Atualizar usuário existente
+      const updatedUser: UserType = {
+        id: selectedUser.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        department: data.department || '',
+        active: data.active,
+        avatar: selectedUser.avatar,
+      };
       setUsers(users.map(user => 
-        user.id === selectedUser.id 
-          ? { ...user, ...data }
-          : user
+        user.id === selectedUser.id ? updatedUser : user
       ));
       toast({
         title: 'Usuário atualizado',
@@ -112,9 +130,13 @@ export function UserManagement() {
       });
     } else {
       // Criar novo usuário
-      const newUser = {
+      const newUser: UserType = {
         id: (users.length + 1).toString(),
-        ...data,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        department: data.department || '',
+        active: data.active,
         avatar: '',
       };
       setUsers([...users, newUser]);
@@ -128,15 +150,15 @@ export function UserManagement() {
     setSelectedUser(null);
   }
 
-  function handleEdit(user: any) {
+  function handleEdit(user: UserType) {
     setSelectedUser(user);
     form.reset({
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.role as 'admin' | 'instructor' | 'student',
       department: user.department,
       active: user.active,
-      phone: user.phone || '',
+      phone: '',
     });
     setIsDialogOpen(true);
   }
