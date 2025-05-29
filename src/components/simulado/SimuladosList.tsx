@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, BookOpen, Award, ArrowRight, Gift, Filter } from 'lucide-react';
 import { simuladoService } from '@/services/simuladoService';
-import type { Simulado } from '@/types/simuladoService';
+import { Simulado, convertSimuladoFromDB, SimuladoFromDB } from '@/types/simuladoService';
 import { useToast } from '@/components/ui/use-toast';
 
 const idiomasDisponiveis = [
@@ -41,34 +41,14 @@ const SimuladosList: React.FC = () => {
         setIsLoading(true);
         const data = await simuladoService.getActiveSimulados();
         
-        // Processar os simulados para garantir que tenham campos de categoria consistentes
-        const processedData = data.map(simulado => ({
-          ...simulado,
-          // Garantir que o campo categoria esteja definido
-          categoria: (simulado as any).categoria || simulado.category || ''
-        }));
-        
-        console.log('Simulados ativos recebidos:', processedData);
-        
-        // Verificar quais simulados correspondem aos filtros atuais
-        const filteredSimulados = processedData.filter(s => {
-          // Filtrar por idioma
-          const languageMatch = s.language === preferredLanguage;
-          
-          // Filtrar por gratuito
-          const freeMatch = !isFreeFilter || s.is_gratis;
-          
-          // Filtrar por categoria
-          const categoryMatch = !categoryFilter || matchesCategory(s, categoryFilter);
-          
-          console.log(`Simulado ${s.title}: idioma=${languageMatch}, gratuito=${freeMatch}, categoria=${categoryMatch}`);
-          
-          return languageMatch && freeMatch && categoryMatch;
+        // Convert database format to Simulado format
+        const convertedSimulados = data.map((dbSimulado: any) => {
+          return convertSimuladoFromDB(dbSimulado as SimuladoFromDB);
         });
         
-        console.log(`Encontrados ${filteredSimulados.length} simulados que correspondem aos filtros`);
+        console.log('Simulados ativos recebidos:', convertedSimulados);
         
-        setSimulados(processedData);
+        setSimulados(convertedSimulados);
       } catch (error) {
         console.error('Erro ao carregar simulados:', error);
         toast({
@@ -87,10 +67,9 @@ const SimuladosList: React.FC = () => {
   // Função para renderizar o badge de dificuldade
   const renderDifficultyBadge = (difficulty: string) => {
     const colorMap: Record<string, string> = {
-      'Fácil': 'bg-green-500',
-      'Médio': 'bg-yellow-500',
-      'Difícil': 'bg-orange-500',
-      'Avançado': 'bg-red-500'
+      'easy': 'bg-green-500',
+      'medium': 'bg-yellow-500',
+      'hard': 'bg-orange-500'
     };
     
     const bgColor = colorMap[difficulty] || 'bg-blue-500';
@@ -375,7 +354,7 @@ const SimuladosList: React.FC = () => {
                           Grátis
                         </Badge>
                       )}
-                      {renderCategoryBadge(getSimuladoCategory(simulado))}
+                      {renderCategoryBadge(simulado.category)}
                     </div>
                   </div>
                   {renderDifficultyBadge(simulado.difficulty)}

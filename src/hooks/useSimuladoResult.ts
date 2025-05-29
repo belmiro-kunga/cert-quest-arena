@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { simuladoService } from '@/services/simuladoService';
-import type { Simulado, SimuladoWithQuestions, SimuladoBase } from '@/types/simuladoService';
+import { Simulado, convertSimuladoFromDB, SimuladoFromDB } from '@/types/simuladoService';
 import type { Questao, SimuladoResult } from '@/types/simulado';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -35,29 +36,8 @@ export function useSimuladoResult(id?: string) {
           throw new Error('Simulado não encontrado');
         }
 
-        // Convert SimuladoWithQuestions to Simulado
-        const baseData: SimuladoBase = {
-          id: simuladoData.id,
-          title: simuladoData.title,
-          description: simuladoData.description,
-          duration: simuladoData.duration,
-          total_questions: simuladoData.total_questions,
-          passing_score: simuladoData.passing_score,
-          is_active: simuladoData.is_active,
-          created_at: simuladoData.created_at,
-          updated_at: simuladoData.updated_at,
-          price: simuladoData.price,
-          category: simuladoData.category,
-          tags: simuladoData.tags || [],
-          image_url: simuladoData.image_url
-        };
-
-        const simuladoConverted: Simulado = {
-          ...baseData,
-          questions_count: simuladoData.questions?.length || 0,
-          language: 'pt', // Default language
-          difficulty: 'medium' // Default difficulty
-        };
+        // Convert database format to Simulado format
+        const simuladoConverted = convertSimuladoFromDB(simuladoData as any as SimuladoFromDB);
         setSimulado(simuladoConverted);
 
         // Convert questions to Questao type

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import {
   Card,
@@ -142,8 +143,8 @@ export const ExamResult: React.FC<ExamResultProps> = ({
 
   // Atualiza conquistas quando o componente é montado
   useEffect(() => {
-    // Cast to string to match expected type
-    handleExamCompletion(percentageScore.toString());
+    // Convert to number to match expected type
+    handleExamCompletion(percentageScore);
   }, [handleExamCompletion, percentageScore]);
 
   // Agrupa questões por categoria

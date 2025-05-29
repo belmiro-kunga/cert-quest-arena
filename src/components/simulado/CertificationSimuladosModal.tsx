@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, BookOpen, Award, ArrowRight } from 'lucide-react';
 import { simuladoService } from '@/services/simuladoService.js';
-import type { Simulado } from '@/types/simuladoService';
+import { Simulado, convertSimuladoFromDB, SimuladoFromDB } from '@/types/simuladoService';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface CertificationSimuladosModalProps {
@@ -100,16 +101,14 @@ const CertificationSimuladosModal: React.FC<CertificationSimuladosModalProps> = 
         setIsLoading(true);
         const data = await simuladoService.getActiveSimulados();
         
-        // Processar os simulados para garantir que tenham campos de categoria consistentes
-        const processedData = data.map(simulado => ({
-          ...simulado,
-          // Garantir que o campo categoria esteja definido
-          category: simulado.category || ''
-        }));
+        // Convert database format to Simulado format
+        const convertedSimulados = data.map((dbSimulado: any) => {
+          return convertSimuladoFromDB(dbSimulado as SimuladoFromDB);
+        });
         
         // Filtrar por categoria e idioma preferido
         const preferredLanguage = localStorage.getItem('preferredLanguage') || 'pt';
-        const filteredSimulados = processedData.filter(s => 
+        const filteredSimulados = convertedSimulados.filter(s => 
           s.language === preferredLanguage && 
           matchesCategory(s, category)
         );
