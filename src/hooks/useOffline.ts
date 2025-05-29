@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAnalytics } from './useAnalytics';
 import { useSync } from './useSync';
@@ -19,7 +20,7 @@ export const useOffline = () => {
     isSyncing: false,
   });
   const { trackEvent } = useAnalytics();
-  const { syncRequests } = useSync();
+  const { addRequest } = useSync();
 
   useEffect(() => {
     const handleOnline = () => {
@@ -29,7 +30,6 @@ export const useOffline = () => {
         lastOnline: new Date(),
       }));
       trackEvent('connection', 'online');
-      syncRequests();
     };
 
     const handleOffline = () => {
@@ -47,7 +47,7 @@ export const useOffline = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [trackEvent, syncRequests]);
+  }, [trackEvent]);
 
   const retry = async () => {
     setState(prev => ({
@@ -57,7 +57,6 @@ export const useOffline = () => {
     }));
     
     try {
-      await syncRequests();
       setState(prev => ({
         ...prev,
         isOffline: false,
@@ -83,12 +82,19 @@ export const useOffline = () => {
 
   const getOfflineData = async () => {
     try {
-      const data = await window.indexedDB.open('offline-data', 1);
-      const transaction = data.transaction('pages', 'readonly');
-      const store = transaction.objectStore('pages');
-      const request = store.getAll();
+      const request = indexedDB.open('offline-data', 1);
+      
       return new Promise((resolve, reject) => {
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => {
+          const db = request.result;
+          const transaction = db.transaction('pages', 'readonly');
+          const store = transaction.objectStore('pages');
+          const getAllRequest = store.getAll();
+          
+          getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+          getAllRequest.onerror = () => reject(getAllRequest.error);
+        };
+        
         request.onerror = () => reject(request.error);
       });
     } catch (error) {

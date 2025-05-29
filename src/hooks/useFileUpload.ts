@@ -1,8 +1,9 @@
+
 import { useState } from 'react';
-import { useToast } from './useToast';
+import { useToast } from './use-toast';
 
 export const useFileUpload = () => {
-  const { showToast } = useToast();
+  const { toast } = useToast();
 
   const uploadFile = async (file: File, destinationPath: string) => {
     try {

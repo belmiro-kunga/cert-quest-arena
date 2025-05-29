@@ -1,5 +1,6 @@
+
 import { useEffect } from 'react';
-import AnalyticsService from '../services/analyticsService';
+import { AnalyticsService } from '../services/analyticsService';
 
 export const useAnalytics = () => {
   const trackPageView = (path: string, title: string) => {

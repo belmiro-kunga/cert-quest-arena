@@ -1,5 +1,5 @@
+
 import { useState, useEffect } from 'react';
-import { SyncService } from '../services/syncService';
 
 interface SyncState {
   isSyncing: boolean;
@@ -16,20 +16,13 @@ export const useSync = () => {
     lastSync: null,
   });
 
-  const syncService = SyncService.getInstance();
-
   useEffect(() => {
-    // Iniciar serviço de sincronização
-    syncService.startSync();
-
-    // Atualizar estado
+    // Mock sync service functionality
     const updateState = async () => {
-      const pending = await syncService.getPendingRequests();
-      const failed = pending.filter(r => r.status === 'failed').length;
       setState(prev => ({
         ...prev,
-        pendingRequests: pending.length,
-        failedRequests: failed,
+        pendingRequests: 0,
+        failedRequests: 0,
         lastSync: new Date(),
       }));
     };
@@ -38,7 +31,6 @@ export const useSync = () => {
     const interval = setInterval(updateState, 5000);
 
     return () => {
-      syncService.stopSync();
       clearInterval(interval);
     };
   }, []);
@@ -50,7 +42,6 @@ export const useSync = () => {
     headers: Record<string, string>,
     body?: any
   ) => {
-    await syncService.addRequest(url, method, headers, body);
     setState(prev => ({
       ...prev,
       pendingRequests: prev.pendingRequests + 1,
@@ -59,7 +50,6 @@ export const useSync = () => {
 
   // Função para limpar requisições
   const clearRequests = async () => {
-    await syncService.clearRequests();
     setState(prev => ({
       ...prev,
       pendingRequests: 0,

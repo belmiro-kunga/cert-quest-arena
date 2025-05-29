@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import NotificationService from '../services/notificationService';
+import { NotificationService } from '../services/notificationService';
 
 export const useNotifications = () => {
   const [hasPermission, setHasPermission] = useState(false);
