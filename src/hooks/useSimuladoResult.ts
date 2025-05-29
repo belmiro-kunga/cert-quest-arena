@@ -37,10 +37,15 @@ export function useSimuladoResult(id?: string) {
           throw new Error('Simulado não encontrado');
         }
 
-        // Convert database format to expected format
-        const simuladoConverted: Simulado = convertSimuladoFromDB(simuladoData as SimuladoFromDB);
-        
-        setSimulado(simuladoConverted);
+        // Check if data is already in the expected format
+        if ('total_questions' in simuladoData) {
+          // Already in Simulado format
+          setSimulado(simuladoData as any);
+        } else {
+          // Convert from database format
+          const simuladoConverted: Simulado = convertSimuladoFromDB(simuladoData as unknown as SimuladoFromDB);
+          setSimulado(simuladoConverted);
+        }
 
         // Convert questions to Questao type
         const questoesData: Questao[] = ((simuladoData as any).questions || []).map((q: any) => ({

@@ -149,7 +149,7 @@ export const ExamResult: React.FC<ExamResultProps> = ({
 
   // Agrupa questões por categoria
   const categorizedQuestions = results.reduce((acc, result) => {
-    const category = result.question.category;
+    const category = result.question.category || 'General';
     if (!acc[category]) {
       acc[category] = {
         total: 0,

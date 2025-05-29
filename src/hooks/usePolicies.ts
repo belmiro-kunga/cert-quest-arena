@@ -1,38 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { settingsService } from '@/services/settingsService';
-
-interface PolicySettings {
-  enabled: boolean;
-  content: string;
-  version: string;
-  lastUpdated: string;
-  requiresAcceptance: boolean;
-  customization: {
-    headerText: string;
-    acceptButtonText: string;
-    rejectButtonText: string;
-    popupMessage: string;
-  };
-}
-
-interface CookiePolicySettings extends PolicySettings {
-  showBanner: boolean;
-  bannerPosition: 'top' | 'bottom';
-  customization: {
-    headerText: string;
-    acceptButtonText: string;
-    rejectButtonText: string;
-    popupMessage: string;
-  };
-  cookieTypes: Array<{
-    id: string;
-    name: string;
-    description: string;
-    required: boolean;
-    enabled: boolean;
-  }>;
-}
+import { settingsService, PolicySettings, CookiePolicySettings } from '@/services/settingsService';
 
 interface PoliciesState {
   privacyPolicy: PolicySettings;
@@ -80,9 +48,11 @@ export function usePolicies() {
       bannerPosition: 'bottom',
       customization: {
         headerText: 'Cookie Notice',
-        acceptButtonText: 'Accept',
-        rejectButtonText: 'Reject',
-        popupMessage: 'We use cookies to improve your experience.',
+        bannerText: 'We use cookies to improve your experience.',
+        acceptAllButtonText: 'Accept All',
+        acceptSelectedButtonText: 'Accept Selected',
+        rejectAllButtonText: 'Reject All',
+        settingsButtonText: 'Settings',
       },
       cookieTypes: [],
     },

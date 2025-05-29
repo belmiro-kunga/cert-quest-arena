@@ -4,7 +4,10 @@ export interface User {
   email: string;
   name?: string;
   photo_url?: string;
+  photo?: string;
   role: 'admin' | 'user';
+  planType?: string;
+  attemptsLeft?: number;
 }
 
 export interface Profile {

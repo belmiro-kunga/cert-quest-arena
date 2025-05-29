@@ -1,45 +1,38 @@
+
 import { Request, Response, NextFunction } from 'express';
-import { db } from '../lib/db/config';
+import { connectDB } from '../lib/db/config';
 import { verifyToken } from '../utils/jwt';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
+interface AuthenticatedRequest extends Request {
+  user?: any;
+  headers: any;
 }
 
-export const authenticate = async (
+export const authenticateToken = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
+    const authHeader = req.headers?.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
+
     if (!token) {
-      return res.status(401).json({ error: 'Token não fornecido' });
+      return res.status(401).json({ error: 'Token de acesso requerido' });
     }
 
-    const decoded = await verifyToken(token);
+    const decoded = verifyToken(token);
     req.user = decoded;
-
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Token inválido' });
+    console.error('Erro na autenticação:', error);
+    return res.status(403).json({ error: 'Token inválido' });
   }
 };
 
-export const authorize = (roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Não autenticado' });
-    }
-
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Não autorizado' });
-    }
-
-    next();
-  };
-}; 
+export const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Acesso negado. Permissões de administrador necessárias.' });
+  }
+  next();
+};
