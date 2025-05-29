@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AchievementForm } from './AchievementForm';
+import { Badge } from '@/components/ui/badge';
 import { Achievement } from '@/types/admin';
+import { AchievementForm } from './AchievementForm';
 import { Plus, Edit, Trash } from 'lucide-react';
-import { createAchievement, updateAchievement, deleteAchievement, getAchievements } from '@/services/achievementService';
+import { getAchievements, createAchievement, updateAchievement, deleteAchievement } from '@/services/achievementService';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,15 +45,15 @@ export const GamificationAdmin: React.FC = () => {
       // Convert service achievements to admin achievements
       const adminAchievements: Achievement[] = data.map(serviceAchievement => ({
         id: serviceAchievement.id,
-        title: serviceAchievement.title,
+        title: serviceAchievement.name || 'Achievement',
         description: serviceAchievement.description,
-        type: serviceAchievement.type,
-        xp: serviceAchievement.xp,
-        icon: serviceAchievement.icon,
-        level: serviceAchievement.level,
-        requirement: serviceAchievement.requirement,
-        progress: serviceAchievement.progress,
-        unlocked: serviceAchievement.unlocked,
+        type: 'certification' as const,
+        xp: serviceAchievement.points || 0,
+        icon: serviceAchievement.category || 'trophy',
+        level: 'bronze' as const,
+        requirement: 1,
+        progress: 0,
+        unlocked: false,
         name: serviceAchievement.name,
         points: serviceAchievement.points,
         category: serviceAchievement.category,
@@ -70,24 +71,20 @@ export const GamificationAdmin: React.FC = () => {
   const filteredAchievements = achievements.filter(achievement => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      achievement.title.toLowerCase().includes(searchLower) ||
-      achievement.description.toLowerCase().includes(searchLower)
+      achievement.title?.toLowerCase().includes(searchLower) ||
+      achievement.description?.toLowerCase().includes(searchLower)
     );
   });
 
   const handleSubmit = async (formData: any) => {
     try {
       const achievementData = {
-        title: formData.title || '',
-        description: formData.description || '',
-        type: formData.type || 'certification',
-        xp: formData.xp || 0,
-        icon: formData.icon || '',
-        name: formData.name || formData.title || '',
-        points: formData.points || 0,
-        category: formData.category || '',
-        is_active: formData.is_active !== undefined ? formData.is_active : true,
-        requirements: formData.requirements || ''
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        points: formData.points,
+        is_active: formData.is_active,
+        requirements: formData.requirements
       };
 
       if (selectedAchievement) {
@@ -103,7 +100,7 @@ export const GamificationAdmin: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteAchievement = async () => {
     try {
       if (achievementToDelete) {
         await deleteAchievement(achievementToDelete.id);
@@ -116,12 +113,12 @@ export const GamificationAdmin: React.FC = () => {
     }
   };
 
-  const handleEdit = (achievement: Achievement) => {
+  const handleEditAchievement = (achievement: Achievement) => {
     setSelectedAchievement(achievement);
     setShowForm(true);
   };
 
-  const confirmDelete = (achievement: Achievement) => {
+  const confirmDeleteAchievement = (achievement: Achievement) => {
     setAchievementToDelete(achievement);
     setDeleteDialogOpen(true);
   };
@@ -134,7 +131,7 @@ export const GamificationAdmin: React.FC = () => {
             <div>
               <CardTitle>Conquistas</CardTitle>
               <CardDescription>
-                Gerenciar conquistas e gamificação
+                Gerenciar sistema de conquistas e gamificação
               </CardDescription>
             </div>
             <Button onClick={() => setShowForm(true)}>
@@ -160,9 +157,10 @@ export const GamificationAdmin: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableCell>Título</TableCell>
+                    <TableCell>Descrição</TableCell>
                     <TableCell>Tipo</TableCell>
                     <TableCell>XP</TableCell>
-                    <TableCell>Ativo</TableCell>
+                    <TableCell>Status</TableCell>
                     <TableCell>Ações</TableCell>
                   </TableRow>
                 </TableHeader>
@@ -170,22 +168,29 @@ export const GamificationAdmin: React.FC = () => {
                   {filteredAchievements.map((achievement) => (
                     <TableRow key={achievement.id}>
                       <TableCell>{achievement.title}</TableCell>
-                      <TableCell>{achievement.type}</TableCell>
+                      <TableCell>{achievement.description}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{achievement.type}</Badge>
+                      </TableCell>
                       <TableCell>{achievement.xp}</TableCell>
-                      <TableCell>{achievement.is_active ? 'Sim' : 'Não'}</TableCell>
+                      <TableCell>
+                        <Badge variant={achievement.is_active ? "default" : "secondary"}>
+                          {achievement.is_active ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(achievement)}
+                            onClick={() => handleEditAchievement(achievement)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => confirmDelete(achievement)}
+                            onClick={() => confirmDeleteAchievement(achievement)}
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -200,19 +205,15 @@ export const GamificationAdmin: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Achievement Form */}
+      {/* Formulário de Criação/Edição */}
       {showForm && (
         <AchievementForm
           achievement={selectedAchievement}
           onSubmit={handleSubmit}
-          onCancel={() => {
-            setShowForm(false);
-            setSelectedAchievement(null);
-          }}
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Diálogo de confirmação de exclusão */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -223,7 +224,7 @@ export const GamificationAdmin: React.FC = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogAction onClick={handleDeleteAchievement}>
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

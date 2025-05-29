@@ -1,95 +1,69 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Achievement, AchievementType } from '@/types/admin';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Achievement } from '@/types/admin';
 
-const achievementTypes = ['certification', 'streak', 'mastery', 'special'] as const;
-
-const formSchema = z.object({
-  title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
-  description: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
-  type: z.enum(achievementTypes, { errorMap: () => ({ message: 'Selecione um tipo válido.' }) }),
-  xp: z.number().min(0, 'XP não pode ser negativo').positive('XP deve ser um número positivo'),
-  icon: z.string().min(2, 'Ícone deve ter pelo menos 2 caracteres (ex: Trophy, Star)'),
+const achievementSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  type: z.enum(['certification', 'streak', 'mastery', 'special']),
+  xp: z.number().min(0, 'XP must be positive'),
+  icon: z.string().min(1, 'Icon is required'),
+  level: z.enum(['bronze', 'silver', 'gold', 'platinum']).optional(),
+  requirement: z.number().min(0).optional(),
+  name: z.string().min(1, 'Name is required'),
+  points: z.number().min(0, 'Points must be positive'),
+  category: z.string().min(1, 'Category is required'),
+  is_active: z.boolean(),
+  requirements: z.string().min(1, 'Requirements are required')
 });
 
-export type AchievementFormData = z.infer<typeof formSchema>;
+type FormData = z.infer<typeof achievementSchema>;
 
-interface AchievementFormProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (data: AchievementFormData) => Promise<void>;
-  achievement?: Partial<Achievement>; // Partial because ID is not in form, and other fields might be optional initially
+export interface AchievementFormProps {
+  achievement?: Achievement;
+  onSubmit: (data: FormData) => Promise<void>;
 }
 
-export const AchievementForm: React.FC<AchievementFormProps> = ({
-  open,
-  onClose,
-  onSubmit,
-  achievement
+export const AchievementForm: React.FC<AchievementFormProps> = ({ 
+  achievement, 
+  onSubmit 
 }) => {
-  const form = useForm<AchievementFormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormData>({
+    resolver: zodResolver(achievementSchema),
     defaultValues: {
       title: achievement?.title || '',
       description: achievement?.description || '',
-      type: achievement?.type || 'special',
+      type: achievement?.type || 'certification',
       xp: achievement?.xp || 0,
       icon: achievement?.icon || '',
+      level: achievement?.level || 'bronze',
+      requirement: achievement?.requirement || 0,
+      name: achievement?.name || '',
+      points: achievement?.points || 0,
+      category: achievement?.category || '',
+      is_active: achievement?.is_active || true,
+      requirements: achievement?.requirements || ''
     }
   });
 
-  const handleSubmit = async (data: AchievementFormData) => {
-    try {
-      await onSubmit(data);
-      form.reset(); 
-      onClose();
-    } catch (error) {
-      console.error('Erro ao salvar conquista:', error);
-      // Potentially show a toast message here
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[525px]">
-        <DialogHeader>
-          <DialogTitle>{achievement?.id ? 'Editar Conquista' : 'Nova Conquista'}</DialogTitle>
-          <DialogDescription>
-            {achievement?.id ? 'Edite as informações da conquista.' : 'Preencha as informações para criar uma nova conquista.'}
-          </DialogDescription>
-        </DialogHeader>
-
+    <Card>
+      <CardHeader>
+        <CardTitle>{achievement ? 'Editar Conquista' : 'Nova Conquista'}</CardTitle>
+      </CardHeader>
+      <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="title"
@@ -97,13 +71,13 @@ export const AchievementForm: React.FC<AchievementFormProps> = ({
                 <FormItem>
                   <FormLabel>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Mestre dos Flashcards" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
               name="description"
@@ -111,78 +85,89 @@ export const AchievementForm: React.FC<AchievementFormProps> = ({
                 <FormItem>
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Ex: Concedida por dominar 100 flashcards." {...field} />
+                    <Textarea {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {achievementTypes.map(type => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="xp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>XP (Pontos)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Ex: 100" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <FormField
               control={form.control}
-              name="icon"
+              name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ícone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Trophy, Star, BookOpen" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Nome do ícone (ex: Lucide Icons). Pode ser implementado visualmente depois.
-                  </FormDescription>
+                  <FormLabel>Tipo</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="certification">Certificação</SelectItem>
+                      <SelectItem value="streak">Sequência</SelectItem>
+                      <SelectItem value="mastery">Maestria</SelectItem>
+                      <SelectItem value="special">Especial</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-              <Button type="submit">{achievement?.id ? 'Salvar Alterações' : 'Criar Conquista'}</Button>
-            </DialogFooter>
+            <FormField
+              control={form.control}
+              name="xp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>XP</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="points"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pontos</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="is_active"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Ativo</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit">
+              {achievement ? 'Atualizar' : 'Criar'} Conquista
+            </Button>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   );
 };

@@ -48,21 +48,7 @@ export const Flashcards: React.FC = () => {
   const loadFlashcards = async () => {
     try {
       const data = await getFlashcards();
-      // Convert service flashcards to admin flashcards
-      const adminFlashcards: Flashcard[] = data.map(serviceFlashcard => ({
-        id: serviceFlashcard.id,
-        front: serviceFlashcard.front,
-        back: serviceFlashcard.back,
-        category: serviceFlashcard.category,
-        tags: serviceFlashcard.tags,
-        status: serviceFlashcard.status,
-        lastReviewedAt: serviceFlashcard.lastReviewedAt,
-        interval: serviceFlashcard.interval,
-        repetitions: serviceFlashcard.repetitions,
-        easeFactor: serviceFlashcard.easeFactor,
-        nextReview: serviceFlashcard.nextReview,
-      }));
-      setFlashcards(adminFlashcards);
+      setFlashcards(data);
     } catch (error) {
       console.error('Error loading flashcards:', error);
     }
@@ -95,7 +81,10 @@ export const Flashcards: React.FC = () => {
           interval: 0,
           repetitions: 0,
           easeFactor: 2.5,
-          nextReview: new Date().toISOString()
+          nextReview: new Date().toISOString(),
+          difficulty: 'medium',
+          question: formData.front,
+          answer: formData.back
         });
       }
       setShowForm(false);
@@ -106,7 +95,7 @@ export const Flashcards: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteFlashcard = async () => {
     try {
       if (flashcardToDelete) {
         await deleteFlashcard(flashcardToDelete.id);
@@ -119,12 +108,12 @@ export const Flashcards: React.FC = () => {
     }
   };
 
-  const handleEdit = (flashcard: Flashcard) => {
+  const handleEditFlashcard = (flashcard: Flashcard) => {
     setSelectedFlashcard(flashcard);
     setShowForm(true);
   };
 
-  const confirmDelete = (flashcard: Flashcard) => {
+  const confirmDeleteFlashcard = (flashcard: Flashcard) => {
     setFlashcardToDelete(flashcard);
     setDeleteDialogOpen(true);
   };
@@ -179,14 +168,14 @@ export const Flashcards: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(flashcard)}
+                            onClick={() => handleEditFlashcard(flashcard)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => confirmDelete(flashcard)}
+                            onClick={() => confirmDeleteFlashcard(flashcard)}
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
@@ -224,7 +213,7 @@ export const Flashcards: React.FC = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogAction onClick={handleDeleteFlashcard}>
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

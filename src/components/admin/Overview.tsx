@@ -53,15 +53,15 @@ export const Overview = () => {
         // Convert users to students
         const students: Student[] = (Array.isArray(data) ? data : []).map(user => ({
           id: user.id,
-          name: user.name || user.email || 'Usuário sem nome',
+          name: user.email || 'Usuário sem nome',
           email: user.email,
-          provider: (user.provider as 'email' | 'google' | 'github') || 'email',
-          plan_type: 'free', // Default plan type
-          attempts_left: 3, // Default attempts
-          progress: 0, // Default progress
-          achievements: 0, // Default achievements
-          lastActive: user.last_sign_in_at || new Date().toISOString(),
-          exams: [], // Default empty exams array
+          provider: 'email' as const,
+          plan_type: 'free',
+          attempts_left: 3,
+          progress: 0,
+          achievements: 0,
+          lastActive: user.created_at || new Date().toISOString(),
+          exams: [],
           created_at: user.created_at || new Date().toISOString()
         }));
         setAlunos(students);
