@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Question, Exam, ExplanationLink } from '@/types/admin';
+import { Question, Exam, ExplanationLink } from '@/types/exam';
 import { QuestionAnswer } from './QuestionAnswer';
 import { CheckCircle2, XCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -77,26 +77,26 @@ const calculateScore = (question: Question, answer: any): { isCorrect: boolean; 
 
     case 'drag_and_drop':
       const correctPlacements = question.correctPlacements;
-      const isAllCorrect = correctPlacements.every(placement => {
+      const isAllCorrect = correctPlacements?.every(placement => {
         const itemPlacement = answer[placement.itemId];
         return itemPlacement === placement.targetCategory;
       });
       return {
-        isCorrect: isAllCorrect,
+        isCorrect: isAllCorrect || false,
         score: isAllCorrect ? question.points : 0,
       };
 
     case 'fill_in_blank':
-      const allBlanksCorrect = question.blanks.every((blank, index) => {
+      const allBlanksCorrect = question.blanks?.every((blank, index) => {
         const userAnswer = answer[index];
-        return blank.correctAnswers.some(correct => 
+        return blank.correctAnswers.some((correct: string) => 
           blank.caseSensitive
             ? correct === userAnswer
             : correct.toLowerCase() === userAnswer?.toLowerCase()
         );
       });
       return {
-        isCorrect: allBlanksCorrect,
+        isCorrect: allBlanksCorrect || false,
         score: allBlanksCorrect ? question.points : 0,
       };
 
@@ -122,8 +122,11 @@ export const ExamResult: React.FC<ExamResultProps> = ({
 }) => {
   const { handleExamCompletion } = useAchievements();
   
+  // Ensure exam has questions property
+  const examQuestions = exam.questions || [];
+  
   // Calcula o resultado de cada questão
-  const results: QuestionResult[] = exam.questions.map(question => ({
+  const results: QuestionResult[] = examQuestions.map(question => ({
     question,
     answer: answers[question.id],
     ...calculateScore(question, answers[question.id]),
@@ -139,7 +142,8 @@ export const ExamResult: React.FC<ExamResultProps> = ({
 
   // Atualiza conquistas quando o componente é montado
   useEffect(() => {
-    handleExamCompletion(percentageScore);
+    // Cast to string to match expected type
+    handleExamCompletion(percentageScore.toString());
   }, [handleExamCompletion, percentageScore]);
 
   // Agrupa questões por categoria
@@ -171,7 +175,7 @@ export const ExamResult: React.FC<ExamResultProps> = ({
               <CardDescription>{exam.description}</CardDescription>
             </div>
             <Badge
-              variant={passed ? "success" : "destructive"}
+              variant={passed ? "default" : "destructive"}
               className="text-lg py-2 px-4"
             >
               {passed ? "APROVADO" : "REPROVADO"}

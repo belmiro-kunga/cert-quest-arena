@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Button,
@@ -5,7 +6,6 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Input,
   Paper,
   Typography,
   Box,
@@ -17,7 +17,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 export const SettingsPWAIcons = () => {
   const [open, setOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const { showToast } = useToast();
+  const { error, success } = useToast();
   const { uploadFile } = useFileUpload();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,15 +30,12 @@ export const SettingsPWAIcons = () => {
       for (const file of selectedFiles) {
         // Verificar se o arquivo é uma imagem
         if (!file.type.startsWith('image/')) {
-          showToast({
-            message: 'Por favor, selecione apenas arquivos de imagem',
-            type: 'error',
-          });
+          error('Por favor, selecione apenas arquivos de imagem');
           return;
         }
 
         // Verificar se o arquivo tem o tamanho correto
-        const requiredSizes = {
+        const requiredSizes: Record<string, { width: number; height: number }> = {
           'icon-192x192.png': { width: 192, height: 192 },
           'icon-512x512.png': { width: 512, height: 512 },
         };
@@ -52,10 +49,7 @@ export const SettingsPWAIcons = () => {
           
           img.onload = () => {
             if (img.width !== requiredSize.width || img.height !== requiredSize.height) {
-              showToast({
-                message: `O arquivo ${fileName} deve ter ${requiredSize.width}x${requiredSize.height}px`,
-                type: 'error',
-              });
+              error(`O arquivo ${fileName} deve ter ${requiredSize.width}x${requiredSize.height}px`);
               return;
             }
           };
@@ -65,18 +59,12 @@ export const SettingsPWAIcons = () => {
         await uploadFile(file, `public/assets/icons/${file.name}`);
       }
 
-      showToast({
-        message: 'Ícones atualizados com sucesso!',
-        type: 'success',
-      });
+      success('Ícones atualizados com sucesso!');
       setOpen(false);
       setSelectedFiles([]);
-    } catch (error) {
-      console.error('Erro ao fazer upload:', error);
-      showToast({
-        message: 'Erro ao fazer upload dos ícones',
-        type: 'error',
-      });
+    } catch (err) {
+      console.error('Erro ao fazer upload:', err);
+      error('Erro ao fazer upload dos ícones');
     }
   };
 
@@ -107,12 +95,12 @@ export const SettingsPWAIcons = () => {
           </Paper>
 
           <Box sx={{ mt: 2 }}>
-            <Input
+            <input
               type="file"
               multiple
               onChange={handleFileChange}
               accept="image/png"
-              sx={{ display: 'none' }}
+              style={{ display: 'none' }}
               id="icon-upload"
             />
             <label htmlFor="icon-upload">
