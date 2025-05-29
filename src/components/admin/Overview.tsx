@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, CreditCard, Clock, Package, PieChart } from "lucide-react";
@@ -17,7 +18,23 @@ export const Overview = () => {
       try {
         setIsLoading(true);
         const data = await examService.getAllExams();
-        setSimulados(Array.isArray(data) ? data : []);
+        // Convert service exams to admin exams
+        const adminExams: Exam[] = (Array.isArray(data) ? data : []).map(serviceExam => ({
+          id: serviceExam.id,
+          title: serviceExam.title,
+          description: serviceExam.description,
+          price: serviceExam.price,
+          duration: serviceExam.duration,
+          questions_count: serviceExam.questions_count || 0,
+          difficulty: (serviceExam.difficulty === 'Fácil' || serviceExam.difficulty === 'Médio' || serviceExam.difficulty === 'Difícil') 
+            ? serviceExam.difficulty as 'Fácil' | 'Médio' | 'Difícil'
+            : 'Médio',
+          category: serviceExam.category || '',
+          is_gratis: serviceExam.is_gratis,
+          created_at: serviceExam.created_at || new Date().toISOString(),
+          updated_at: serviceExam.updated_at || new Date().toISOString()
+        }));
+        setSimulados(adminExams);
       } catch (error) {
         console.error('Erro ao buscar simulados:', error);
         setSimulados([]);
@@ -33,7 +50,21 @@ export const Overview = () => {
       try {
         setIsLoadingAlunos(true);
         const data = await userService.getAllUsers();
-        setAlunos(Array.isArray(data) ? data : []);
+        // Convert users to students
+        const students: Student[] = (Array.isArray(data) ? data : []).map(user => ({
+          id: user.id,
+          name: user.name || user.email || 'Usuário sem nome',
+          email: user.email,
+          provider: user.provider as 'email' | 'google' | 'github' | undefined,
+          plan_type: 'free', // Default plan type
+          attempts_left: 3, // Default attempts
+          progress: 0, // Default progress
+          achievements: 0, // Default achievements
+          lastActive: user.last_sign_in_at || new Date().toISOString(),
+          exams: [], // Default empty exams array
+          created_at: user.created_at || new Date().toISOString()
+        }));
+        setAlunos(students);
       } catch (error) {
         console.error('Erro ao buscar alunos:', error);
         setAlunos([]);
@@ -232,6 +263,51 @@ export const Overview = () => {
       </div>
     </div>
   );
+
+  // Helper functions
+  function normalizeCategory(category: string): string {
+    const categoryLower = (category || '').toLowerCase().trim();
+    
+    if (categoryLower === '' || categoryLower === 'undefined' || categoryLower === 'null') {
+      return 'Sem categoria';
+    }
+    
+    if (categoryLower.includes('aws') || categoryLower.includes('amazon')) {
+      return 'AWS';
+    }
+    
+    if (categoryLower.includes('azure') || categoryLower.includes('microsoft') || categoryLower.includes('ms-')) {
+      return 'Microsoft Azure';
+    }
+    
+    if (categoryLower.includes('gcp') || categoryLower.includes('google') || categoryLower.includes('cloud platform')) {
+      return 'Google Cloud';
+    }
+    
+    if (categoryLower.includes('comptia') || categoryLower.includes('comp tia')) {
+      return 'CompTIA';
+    }
+    
+    if (categoryLower.includes('cisco') || categoryLower.includes('ccna') || categoryLower.includes('ccnp')) {
+      return 'Cisco';
+    }
+    
+    return category || 'Sem categoria';
+  }
+
+  function getCategoryColor(category: string): string {
+    const colorMap: Record<string, string> = {
+      'aws': 'bg-orange-500',
+      'microsoft azure': 'bg-blue-500',
+      'google cloud': 'bg-red-500',
+      'comptia': 'bg-green-500',
+      'cisco': 'bg-indigo-500',
+      'sem categoria': 'bg-gray-500'
+    };
+    
+    const categoryKey = category.toLowerCase();
+    return colorMap[categoryKey] || 'bg-gray-500';
+  }
 };
 
 export default Overview;

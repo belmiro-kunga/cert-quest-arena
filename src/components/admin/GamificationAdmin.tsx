@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Plus, Edit, Trash, Loader2, Trophy, Star, Target, Award, Crown } from 'lucide-react';
-import { AchievementForm, AchievementFormData } from './AchievementForm'; 
-import { Achievement, AchievementType, PointActionConfig, PointActionKey } from '@/types/admin'; 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { AchievementForm } from './AchievementForm';
+import { Achievement } from '@/types/admin';
+import { Plus, Edit, Trash } from 'lucide-react';
+import { createAchievement, updateAchievement, deleteAchievement, getAchievements } from '@/services/achievementService';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,323 +17,213 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/components/ui/use-toast";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  getAchievements,
-  createAchievement,
-  updateAchievement,
-  deleteAchievement
-} from '@/services/achievementService'; 
-
-const mockPointActionConfigs: PointActionConfig[] = [
-  {
-    id: 'review_flashcard',
-    name: 'Revisar um Flashcard',
-    points: 5,
-    description: 'Pontos ganhos por cada flashcard revisado.'
-  },
-  {
-    id: 'complete_flashcard_session',
-    name: 'Completar Sessão de Flashcards',
-    points: 25,
-    description: 'Pontos ganhos ao completar uma sessão de revisão de flashcards.'
-  },
-  {
-    id: 'start_exam',
-    name: 'Iniciar um Simulado',
-    points: 10,
-    description: 'Pontos ganhos ao iniciar um simulado (para incentivar tentativas).'
-  },
-  {
-    id: 'complete_exam',
-    name: 'Completar um Simulado',
-    points: 50,
-    description: 'Pontos ganhos ao finalizar um simulado, independentemente da nota.'
-  },
-  {
-    id: 'daily_login',
-    name: 'Login Diário',
-    points: 15,
-    description: 'Pontos ganhos por fazer login na plataforma uma vez ao dia.'
-  }
-];
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const GamificationAdmin: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("achievements");
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
-  const [isSubmittingAchievement, setIsSubmittingAchievement] = useState(false);
-  const [isDeletingAchievement, setIsDeletingAchievement] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [achievementToDelete, setAchievementToDelete] = useState<string | null>(null);
-  const [pointActionConfigs, setPointActionConfigs] = useState<PointActionConfig[]>(mockPointActionConfigs);
-  const [hasUnsavedPointChanges, setHasUnsavedPointChanges] = useState(false);
-  const { toast } = useToast();
-
-  const fetchAndSetAchievements = async () => {
-    setIsLoadingAchievements(true);
-    try {
-      const data = await getAchievements();
-      setAchievements(data);
-    } catch (error) {
-      toast({ 
-        title: "Erro", 
-        description: "Falha ao buscar conquistas. Por favor, tente novamente.", 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsLoadingAchievements(false);
-    }
-  };
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [achievementToDelete, setAchievementToDelete] = useState<Achievement | null>(null);
 
   useEffect(() => {
-    fetchAndSetAchievements();
+    loadAchievements();
   }, []);
 
-  const handleOpenForm = (achievement: Achievement | null = null) => {
-    setSelectedAchievement(achievement);
-    setIsFormOpen(true);
-  };
-
-  const handleCloseForm = () => {
-    setSelectedAchievement(null);
-    setIsFormOpen(false);
-  };
-
-  const handleFormSubmit = async (data: AchievementFormData) => {
-    setIsSubmittingAchievement(true);
+  const loadAchievements = async () => {
     try {
-      if (selectedAchievement && selectedAchievement.id) {
-        await updateAchievement(selectedAchievement.id, data);
-        toast({ 
-          title: "Sucesso", 
-          description: "Conquista atualizada com sucesso!" 
-        });
-      } else {
-        await createAchievement(data);
-        toast({ 
-          title: "Sucesso", 
-          description: "Conquista criada com sucesso!" 
-        });
-      }
-      await fetchAndSetAchievements();
-      handleCloseForm();
+      const data = await getAchievements();
+      // Convert service achievements to admin achievements
+      const adminAchievements: Achievement[] = data.map(serviceAchievement => ({
+        id: serviceAchievement.id,
+        title: serviceAchievement.title,
+        description: serviceAchievement.description,
+        type: serviceAchievement.type,
+        xp: serviceAchievement.xp,
+        icon: serviceAchievement.icon,
+        level: serviceAchievement.level,
+        requirement: serviceAchievement.requirement,
+        progress: serviceAchievement.progress,
+        unlocked: serviceAchievement.unlocked,
+        name: serviceAchievement.name,
+        points: serviceAchievement.points,
+        category: serviceAchievement.category,
+        is_active: serviceAchievement.is_active,
+        requirements: serviceAchievement.requirements,
+        created_at: serviceAchievement.created_at,
+        updated_at: serviceAchievement.updated_at
+      }));
+      setAchievements(adminAchievements);
     } catch (error) {
-      toast({ 
-        title: "Erro", 
-        description: "Falha ao salvar conquista. Por favor, tente novamente.", 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsSubmittingAchievement(false);
+      console.error('Error loading achievements:', error);
     }
   };
 
-  const openDeleteDialog = (id: string) => {
-    setAchievementToDelete(id);
-    setIsDeleteDialogOpen(true);
-  };
+  const filteredAchievements = achievements.filter(achievement => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      achievement.title.toLowerCase().includes(searchLower) ||
+      achievement.description.toLowerCase().includes(searchLower)
+    );
+  });
 
-  const handleDeleteConfirm = async () => {
-    if (achievementToDelete) {
-      setIsDeletingAchievement(true);
-      try {
-        await deleteAchievement(achievementToDelete);
-        toast({ 
-          title: "Sucesso", 
-          description: "Conquista excluída com sucesso!" 
-        });
-        await fetchAndSetAchievements();
-        setAchievementToDelete(null);
-        setIsDeleteDialogOpen(false);
-      } catch (error) {
-        toast({ 
-          title: "Erro", 
-          description: "Falha ao excluir conquista. Por favor, tente novamente.", 
-          variant: "destructive" 
-        });
-      } finally {
-        setIsDeletingAchievement(false);
+  const handleSubmit = async (formData: any) => {
+    try {
+      const achievementData = {
+        title: formData.title || '',
+        description: formData.description || '',
+        type: formData.type || 'certification',
+        xp: formData.xp || 0,
+        icon: formData.icon || '',
+        name: formData.name || formData.title || '',
+        points: formData.points || 0,
+        category: formData.category || '',
+        is_active: formData.is_active !== undefined ? formData.is_active : true,
+        requirements: formData.requirements || ''
+      };
+
+      if (selectedAchievement) {
+        await updateAchievement(selectedAchievement.id, achievementData);
+      } else {
+        await createAchievement(achievementData);
       }
+      setShowForm(false);
+      setSelectedAchievement(null);
+      loadAchievements();
+    } catch (error) {
+      console.error('Error saving achievement:', error);
     }
   };
 
-  const handlePointChange = (actionId: PointActionKey, newPoints: string) => {
-    const points = parseInt(newPoints, 10);
-    if (!isNaN(points) && points >= 0) {
-      setPointActionConfigs(prevConfigs => 
-        prevConfigs.map(config => 
-          config.id === actionId ? { ...config, points: points } : config
-        )
-      );
-      if (!hasUnsavedPointChanges) setHasUnsavedPointChanges(true);
-    } else if (newPoints === "") { 
-      setPointActionConfigs(prevConfigs => 
-        prevConfigs.map(config => 
-          config.id === actionId ? { ...config, points: 0 } : config 
-        )
-      );
-      if (!hasUnsavedPointChanges) setHasUnsavedPointChanges(true);
+  const handleDelete = async () => {
+    try {
+      if (achievementToDelete) {
+        await deleteAchievement(achievementToDelete.id);
+        setAchievements(prev => prev.filter(achievement => achievement.id !== achievementToDelete.id));
+      }
+      setDeleteDialogOpen(false);
+      setAchievementToDelete(null);
+    } catch (error) {
+      console.error('Error deleting achievement:', error);
     }
   };
 
-  const handleSavePointChanges = () => {
-    // TODO: Implementar a persistência das alterações de pontos
-    setHasUnsavedPointChanges(false);
-    toast({ 
-      title: "Sucesso", 
-      description: "Configurações de pontos salvas com sucesso!" 
-    });
+  const handleEdit = (achievement: Achievement) => {
+    setSelectedAchievement(achievement);
+    setShowForm(true);
+  };
+
+  const confirmDelete = (achievement: Achievement) => {
+    setAchievementToDelete(achievement);
+    setDeleteDialogOpen(true);
   };
 
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="achievements">
-            <Trophy className="h-4 w-4 mr-2" />
-            Conquistas
-          </TabsTrigger>
-          <TabsTrigger value="points">
-            <Star className="h-4 w-4 mr-2" />
-            Sistema de Pontos
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="achievements">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Gerenciamento de Conquistas</CardTitle>
-                <CardDescription>
-                  Crie, edite e gerencie as conquistas disponíveis para os alunos.
-                </CardDescription>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Conquistas</CardTitle>
+              <CardDescription>
+                Gerenciar conquistas e gamificação
+              </CardDescription>
+            </div>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Nova Conquista
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Input
+                  placeholder="Buscar conquistas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
               </div>
-              <Button onClick={() => handleOpenForm(null)} disabled={isLoadingAchievements || isSubmittingAchievement}>
-                <Plus className="mr-2 h-4 w-4" /> Nova Conquista
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {isLoadingAchievements ? (
-                <div className="flex justify-center items-center py-10">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="ml-2">Carregando conquistas...</p>
-                </div>
-              ) : achievements.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">Nenhuma conquista cadastrada ainda.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Título</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>XP</TableHead>
-                      <TableHead>Ícone</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {achievements.map((ach) => (
-                      <TableRow key={ach.id}>
-                        <TableCell className="font-medium">{ach.title}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground truncate max-w-xs">{ach.description}</TableCell>
-                        <TableCell>{ach.type.charAt(0).toUpperCase() + ach.type.slice(1)}</TableCell>
-                        <TableCell>{ach.xp}</TableCell>
-                        <TableCell>{ach.icon}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenForm(ach)} title="Editar" disabled={isSubmittingAchievement || isDeletingAchievement}>
+            </div>
+
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableCell>Título</TableCell>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell>XP</TableCell>
+                    <TableCell>Ativo</TableCell>
+                    <TableCell>Ações</TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAchievements.map((achievement) => (
+                    <TableRow key={achievement.id}>
+                      <TableCell>{achievement.title}</TableCell>
+                      <TableCell>{achievement.type}</TableCell>
+                      <TableCell>{achievement.xp}</TableCell>
+                      <TableCell>{achievement.is_active ? 'Sim' : 'Não'}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(achievement)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(ach.id)} title="Excluir" className="text-red-500 hover:text-red-600" disabled={isSubmittingAchievement || isDeletingAchievement}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => confirmDelete(achievement)}
+                          >
                             <Trash className="h-4 w-4" />
                           </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="points">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuração de Pontos por Ação</CardTitle>
-              <CardDescription>
-                Defina quantos pontos os alunos ganham por diferentes ações na plataforma.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pointActionConfigs.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">Nenhuma configuração de ponto cadastrada.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Ação</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead className="text-right w-[120px]">Pontos</TableHead>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pointActionConfigs.map((config) => (
-                      <TableRow key={config.id}>
-                        <TableCell className="font-medium">{config.name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground truncate max-w-md">{config.description}</TableCell>
-                        <TableCell className="text-right">
-                          <Input 
-                            type="number"
-                            value={config.points.toString()} 
-                            onChange={(e) => handlePointChange(config.id, e.target.value)}
-                            className="w-20 text-right h-8"
-                            min="0"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-              {hasUnsavedPointChanges && (
-                <div className="mt-4 flex justify-end">
-                  <Button onClick={handleSavePointChanges} disabled={isLoadingAchievements}>
-                    Salvar Alterações de Pontos
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {isFormOpen && (
+      {/* Achievement Form */}
+      {showForm && (
         <AchievementForm
-          open={isFormOpen}
-          onClose={handleCloseForm}
-          onSubmit={handleFormSubmit}
-          achievement={selectedAchievement || undefined}
+          achievement={selectedAchievement}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setShowForm(false);
+            setSelectedAchievement(null);
+          }}
         />
       )}
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Conquista</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta conquista? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir esta conquista?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeletingAchievement}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700" disabled={isDeletingAchievement}>
-              {isDeletingAchievement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

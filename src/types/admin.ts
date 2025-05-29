@@ -106,6 +106,15 @@ export interface DragAndDropQuestion extends BaseQuestion {
     itemId: string;
     targetCategory: string;
   }[];
+  dragAndDropItems?: {
+    text: string;
+    category?: string;
+    hint?: string;
+  }[];
+  dragAndDropCategories?: {
+    name: string;
+    description?: string;
+  }[];
 }
 
 export interface PracticalScenarioQuestion extends BaseQuestion {

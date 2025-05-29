@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +48,26 @@ export const Flashcards: React.FC = () => {
   const loadFlashcards = async () => {
     try {
       const data = await getFlashcards();
-      setFlashcards(data);
+      // Convert service flashcards to admin flashcards
+      const adminFlashcards: Flashcard[] = data.map(serviceFlashcard => ({
+        id: serviceFlashcard.id,
+        front: serviceFlashcard.front,
+        back: serviceFlashcard.back,
+        category: serviceFlashcard.category,
+        tags: serviceFlashcard.tags,
+        status: serviceFlashcard.status,
+        lastReviewedAt: serviceFlashcard.lastReviewedAt,
+        interval: serviceFlashcard.interval,
+        repetitions: serviceFlashcard.repetitions,
+        easeFactor: serviceFlashcard.easeFactor,
+        nextReview: serviceFlashcard.nextReview,
+        question: serviceFlashcard.question,
+        answer: serviceFlashcard.answer,
+        difficulty: serviceFlashcard.difficulty,
+        created_at: serviceFlashcard.created_at,
+        updated_at: serviceFlashcard.updated_at
+      }));
+      setFlashcards(adminFlashcards);
     } catch (error) {
       console.error('Error loading flashcards:', error);
     }
@@ -67,16 +87,27 @@ export const Flashcards: React.FC = () => {
         await updateFlashcard(selectedFlashcard.id, {
           front: formData.front,
           back: formData.back,
+          question: formData.front,
+          answer: formData.back,
+          difficulty: 'easy',
           lastReviewedAt: formData.lastReviewedAt
         });
       } else {
         await createFlashcard({
           front: formData.front,
           back: formData.back,
+          question: formData.front,
+          answer: formData.back,
+          difficulty: 'easy',
+          category: '',
+          tags: [],
           status: 'new',
           lastReviewedAt: null,
+          interval: 0,
+          repetitions: 0,
+          easeFactor: 2.5,
           nextReview: new Date().toISOString()
-        } as Flashcard);
+        });
       }
       setShowForm(false);
       setSelectedFlashcard(null);
@@ -212,4 +243,27 @@ export const Flashcards: React.FC = () => {
       </AlertDialog>
     </div>
   );
+
+  async function handleDelete() {
+    try {
+      if (flashcardToDelete) {
+        await deleteFlashcard(flashcardToDelete.id);
+        setFlashcards(prev => prev.filter(flashcard => flashcard.id !== flashcardToDelete.id));
+      }
+      setDeleteDialogOpen(false);
+      setFlashcardToDelete(null);
+    } catch (error) {
+      console.error('Error deleting flashcard:', error);
+    }
+  }
+
+  function handleEdit(flashcard: Flashcard) {
+    setSelectedFlashcard(flashcard);
+    setShowForm(true);
+  }
+
+  function confirmDelete(flashcard: Flashcard) {
+    setFlashcardToDelete(flashcard);
+    setDeleteDialogOpen(true);
+  }
 };
