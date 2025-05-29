@@ -8,7 +8,7 @@ export default defineConfig({
   base: '/',
   server: {
     host: true,
-    port: 3002,
+    port: 8080,
     strictPort: true,
     hmr: {
       host: 'localhost'
