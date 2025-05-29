@@ -34,11 +34,17 @@ export interface Exam {
   price: number;
   duration: number;
   questions_count: number;
-  difficulty: string;
+  questionsCount?: number; // Add alias for compatibility
+  difficulty: 'Fácil' | 'Médio' | 'Difícil';
   category: string;
   categoria?: string;
   is_gratis?: boolean;
   preco_usd?: number;
+  discountPrice?: number;
+  discountPercentage?: number;
+  discountExpiresAt?: string;
+  passingScore?: number;
+  image_url?: string;
   created_at: string;
   updated_at: string;
   isActive?: boolean;

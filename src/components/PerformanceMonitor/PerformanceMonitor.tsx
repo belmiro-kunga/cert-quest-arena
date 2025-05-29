@@ -6,9 +6,9 @@ const PerformanceMonitor: React.FC = () => {
   const { performanceMetrics } = usePerformance();
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'success.main';
-    if (score >= 70) return 'warning.main';
-    return 'error.main';
+    if (score >= 90) return 'success';
+    if (score >= 70) return 'warning';
+    return 'error';
   };
 
   return (

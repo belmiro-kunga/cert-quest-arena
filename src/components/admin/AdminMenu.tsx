@@ -76,10 +76,10 @@ export const AdminMenu: React.FC<AdminMenuProps> = ({ open, onClose }) => {
         <List>
           {menuItems.map((item) => (
             <ListItem
-              button
               key={item.id}
               onClick={() => handleItemClick(item.path)}
               sx={{
+                cursor: 'pointer',
                 '&:hover': {
                   backgroundColor: '#334155',
                   color: '#ffffff'

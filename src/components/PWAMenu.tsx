@@ -1,4 +1,12 @@
+
 import { useState, useEffect } from 'react';
+
+// Extend Window interface to include deferredPrompt
+declare global {
+  interface Window {
+    deferredPrompt: any;
+  }
+}
 
 interface PWAMenuProps {
   onClose: () => void;
@@ -33,7 +41,7 @@ export default function PWAMenu({ onClose }: PWAMenuProps) {
   const handleInstall = () => {
     if (window.deferredPrompt) {
       window.deferredPrompt.prompt();
-      window.deferredPrompt.userChoice.then((choiceResult) => {
+      window.deferredPrompt.userChoice.then((choiceResult: any) => {
         if (choiceResult.outcome === 'accepted') {
           setIsInstalled(true);
         }
