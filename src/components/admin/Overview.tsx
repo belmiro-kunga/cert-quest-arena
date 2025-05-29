@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getExams } from '@/services/examService';
-import { getUsers } from '@/services/userService';
+import { getExams, ExamServiceType } from '@/services/examService';
+import { getUsers, UserServiceType } from '@/services/userService';
 import { Exam, Student } from '@/types/admin';
-import { User } from '@/types/user';
 import { 
   Users, 
   BookOpen, 
@@ -28,7 +27,7 @@ export const Overview: React.FC = () => {
     try {
       const examData = await getExams();
       // Convert service exams to admin exams with proper typing
-      const adminExams: Exam[] = examData.map(exam => ({
+      const adminExams: Exam[] = examData.map((exam: ExamServiceType) => ({
         id: exam.id,
         title: exam.title,
         description: exam.description,
@@ -43,16 +42,17 @@ export const Overview: React.FC = () => {
 
       const userData = await getUsers();
       // Convert users to students
-      const studentData: Student[] = userData.map((user: User) => ({
+      const studentData: Student[] = userData.map((user: UserServiceType) => ({
         id: user.id,
         name: user.email || 'Usuário',
         email: user.email,
         plan_type: user.subscription_type || 'free',
         attempts_left: 5,
         progress: 0,
-        last_access: user.updated_at || new Date().toISOString(),
-        created_at: user.created_at,
-        updated_at: user.updated_at
+        achievements: 0,
+        lastActive: user.updated_at || new Date().toISOString(),
+        exams: [],
+        created_at: user.created_at
       }));
       setStudents(studentData);
     } catch (error) {

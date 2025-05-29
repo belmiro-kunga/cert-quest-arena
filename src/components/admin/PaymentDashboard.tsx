@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DollarSign, FileText, RefreshCw, CreditCard } from 'lucide-react';
-import { paymentService, PaymentStatistics } from '@/services/paymentService';
+import paymentService, { PaymentStatistics } from '@/services/paymentService';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -135,7 +136,7 @@ const PaymentDashboard: React.FC = () => {
                   />
                   <Line 
                     type="monotone" 
-                    dataKey="amount" 
+                    dataKey="revenue" 
                     stroke="#2563eb" 
                     strokeWidth={2}
                     activeDot={{ r: 8 }} 

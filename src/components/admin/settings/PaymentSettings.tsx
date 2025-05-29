@@ -23,13 +23,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 
 // Serviços
-import { paymentService, PaymentMethod, RefundPolicy as RefundPolicyType, Transaction } from '@/services/paymentService';
+import paymentService, { PaymentMethod, RefundPolicy as RefundPolicyType, Transaction } from '@/services/paymentService';
 
 const paymentMethodSchema = z.object({
   id: z.string(),
   name: z.string(),
   enabled: z.boolean(),
-  processingFee: z.number().min(0).max(100)
+  processingFee: z.number().min(0).max(100),
+  config: z.object({
+    apiKey: z.string().optional(),
+    merchantId: z.string().optional(),
+    stripeApiKey: z.string().optional(),
+    paypalEmail: z.string().optional(),
+    googlePayMerchantId: z.string().optional(),
+  }).optional()
 });
 
 const refundPolicySchema = z.object({
@@ -40,7 +47,7 @@ const refundPolicySchema = z.object({
   partialRefunds: z.boolean(),
   refundReasons: z.array(z.string()),
   processingTime: z.number().min(1).max(30),
-  refundMethod: z.enum(['original', 'credit', 'transfer']),
+  refundMethod: z.enum(['original', 'transfer']),
   minAmount: z.number().min(0),
   maxAmount: z.number().min(0),
   refundFees: z.boolean(),
@@ -168,7 +175,6 @@ const PaymentSettings: React.FC = () => {
 
   const handleViewTransactionDetails = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    // Aqui você pode abrir um modal para exibir os detalhes, ou implementar outra lógica
     console.log("Detalhes da transação:", transaction);
   };
 
@@ -485,7 +491,6 @@ const PaymentSettings: React.FC = () => {
                             </FormItem>
                           )}
                         />
-                        {/* Configuração específica por método */}
                         {method.id === 'visa' && (
                           <FormField
                             control={form.control}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -26,7 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Check, X, RefreshCw, Eye } from 'lucide-react';
-import { paymentService, Transaction } from '@/services/paymentService';
+import paymentService, { Transaction } from '@/services/paymentService';
 import { toast } from '@/components/ui/use-toast';
 
 interface PaymentTransactionsTableProps {
@@ -238,13 +239,13 @@ const PaymentTransactionsTable: React.FC<PaymentTransactionsTableProps> = ({ onV
                       <TableCell className="font-medium">{transaction.id.slice(0, 8)}</TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium">{transaction.userName}</span>
+                          <span className="font-medium">{transaction.userName || 'Usuário'}</span>
                           <span className="text-sm text-muted-foreground">{transaction.userEmail}</span>
                         </div>
                       </TableCell>
                       <TableCell>{formatCurrency(transaction.amount)}</TableCell>
                       <TableCell className="capitalize">{transaction.paymentMethod}</TableCell>
-                      <TableCell>{formatDate(transaction.paymentDate || transaction.createdAt)}</TableCell>
+                      <TableCell>{formatDate(transaction.paymentDate || transaction.created_at)}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(transaction.status)}`}>
                           {getStatusLabel(transaction.status)}

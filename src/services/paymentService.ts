@@ -1,3 +1,4 @@
+
 export interface PaymentStatistics {
   totalRevenue: number;
   monthlyRevenue: number;
@@ -19,10 +20,13 @@ export interface Transaction {
   paymentMethod: string;
   userId: string;
   userEmail: string;
+  userName?: string;
   description: string;
   paymentDate: string;
   created_at: string;
   updated_at: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PaymentMethod {
@@ -96,20 +100,25 @@ const paymentService = {
         paymentMethod: 'credit_card',
         userId: 'user1',
         userEmail: 'user@example.com',
+        userName: 'João Silva',
         description: 'Simulado AWS SAA',
         paymentDate: '2024-01-15T10:30:00Z',
         created_at: '2024-01-15T10:30:00Z',
-        updated_at: '2024-01-15T10:30:00Z'
+        updated_at: '2024-01-15T10:30:00Z',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z'
       }
     ];
   },
 
-  async approveTransaction(transactionId: string): Promise<void> {
+  async approveTransaction(transactionId: string): Promise<boolean> {
     console.log('Approving transaction:', transactionId);
+    return true;
   },
 
-  async refundTransaction(transactionId: string): Promise<void> {
+  async refundTransaction(transactionId: string): Promise<boolean> {
     console.log('Refunding transaction:', transactionId);
+    return true;
   },
 
   async getPaymentMethods(): Promise<PaymentMethod[]> {
